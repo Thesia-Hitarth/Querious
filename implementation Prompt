@@ -1,0 +1,885 @@
+# Querious — Complete UI Redesign Prompt
+
+## Overview
+
+You are a senior frontend engineer and product designer. Your task is to completely redesign the UI of this MERN Q&A application — now rebranded as **Querious**. Every screen must look like a modern, opinionated SaaS product — not a Stack Overflow clone. The current UI is a direct visual copy of Stack Overflow (orange top border, `#f8f9f9` background, blue links, tag pills, etc). Every trace of that visual identity must be removed and replaced with the design system defined below.
+
+The logo file is located at the root of the project. Import it wherever the old Stack Overflow logo was used.
+
+All text that currently reads "Stack Overflow", "stack overflow", "stackoverflow.com", or any variation must be replaced with **Querious**.
+
+---
+
+## Design System
+
+Define all CSS custom properties in a single `:root` block in `client/src/index.css`. Every component CSS file must use only these variables — no hardcoded hex values anywhere.
+
+```css
+:root {
+  /* Brand */
+  --color-brand-primary:    #6c63ff;   /* indigo-violet — main CTA, links */
+  --color-brand-secondary:  #a78bfa;   /* soft purple — hover states, accents */
+  --color-brand-gradient:   linear-gradient(135deg, #6c63ff 0%, #a78bfa 100%);
+
+  /* Backgrounds */
+  --color-bg-base:          #0f0f13;   /* near-black page background */
+  --color-bg-surface:       #1a1a24;   /* card / sidebar background */
+  --color-bg-elevated:      #22223a;   /* hover / selected state */
+  --color-bg-input:         #16161f;   /* input fields */
+
+  /* Borders */
+  --color-border:           #2e2e45;   /* default border */
+  --color-border-focus:     #6c63ff;   /* focused input border */
+
+  /* Text */
+  --color-text-primary:     #e8e8f0;   /* headings and body */
+  --color-text-secondary:   #9898b0;   /* meta text, timestamps, vote counts */
+  --color-text-muted:       #5c5c78;   /* placeholder, disabled */
+  --color-text-link:        #818cf8;   /* inline links */
+  --color-text-link-hover:  #a78bfa;
+
+  /* Status / Semantic */
+  --color-success:          #34d399;   /* accepted answer, verified */
+  --color-warning:          #fbbf24;   /* bounties, warnings */
+  --color-danger:           #f87171;   /* errors, downvotes */
+  --color-info:             #60a5fa;   /* tags, info badges */
+
+  /* Tag chips */
+  --color-tag-bg:           #1e1e35;
+  --color-tag-text:         #818cf8;
+  --color-tag-border:       #3a3a5c;
+  --color-tag-bg-hover:     #2a2a4a;
+
+  /* Typography */
+  --font-sans:   'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:   'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Radius */
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  16px;
+  --radius-xl:  24px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.5);
+  --shadow-glow: 0 0 20px rgba(108,99,255,0.25);
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.25s ease;
+}
+```
+
+Add this import to `index.css` so Inter loads from Google Fonts:
+```css
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+```
+
+Set the global base styles:
+```css
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--color-text-link); text-decoration: none; }
+a:hover { color: var(--color-text-link-hover); }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-bg-base); }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: var(--radius-full); }
+```
+
+---
+
+## Layout
+
+The overall page structure is: **fixed Navbar** at the top → below it a three-column layout (Left Sidebar | Main Content | Right Sidebar).
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    NAVBAR (fixed)                   │
+├──────────────┬──────────────────────┬───────────────┤
+│  LEFT        │                      │  RIGHT        │
+│  SIDEBAR     │    MAIN CONTENT      │  SIDEBAR      │
+│  (220px)     │    (flexible)        │  (280px)      │
+│              │                      │               │
+└──────────────┴──────────────────────┴───────────────┘
+```
+
+- Navbar height: `60px`. Fixed. `z-index: 100`.
+- Left sidebar: `220px` wide, fixed, `top: 60px`, full remaining height.
+- Right sidebar: `280px` wide, sticky.
+- Main content: fills remaining space with `min-width: 0`.
+- Page max-width: `1280px`, centered.
+
+### Breakpoints (define in index.css as CSS custom properties):
+- Mobile: `< 640px`
+- Tablet: `640px – 1024px`
+- Desktop: `> 1024px`
+
+At **tablet** (`≤ 1024px`): right sidebar disappears (`display: none`).  
+At **mobile** (`≤ 640px`): left sidebar slides off-screen (existing toggle logic) and right sidebar hidden. Main content takes full width with `16px` horizontal padding.
+
+---
+
+## Component-by-Component Redesign
+
+### 1. `Navbar.jsx` + `Navbar.css`
+
+Remove all existing Navbar CSS. Rewrite completely.
+
+**Appearance:**
+- Background: `var(--color-bg-surface)` with a `1px solid var(--color-border)` bottom border. No top orange stripe.
+- Left side: Querious logo image (import from root folder) followed by the brand name "Querious" in `var(--font-sans)` `600` weight, `18px`, color `var(--color-text-primary)`. The name sits to the right of the logo image.
+- Center: Search bar (see below).
+- Right side: notification bell (if logged in), avatar/username chip (if logged in), or "Log in" + "Sign up" buttons (if logged out).
+
+**Search bar:**
+- Width: `clamp(200px, 35vw, 480px)`.
+- Background: `var(--color-bg-input)`.
+- Border: `1px solid var(--color-border)`. On focus: `var(--color-border-focus)` with `var(--shadow-glow)`.
+- Border-radius: `var(--radius-full)`.
+- Left padding for search icon: `var(--space-10)`.
+- Font size: `14px`, placeholder color `var(--color-text-muted)`.
+- Search icon: use an inline SVG (magnifying glass, `16px`, `var(--color-text-muted)`).
+
+**Log in / Sign up buttons (logged-out state):**
+- "Log in": ghost button — transparent bg, `1px solid var(--color-border)`, `var(--color-text-primary)` text, `var(--radius-md)`, `8px 16px` padding. On hover: `var(--color-bg-elevated)`.
+- "Sign up": filled button — `var(--color-brand-primary)` bg, white text, `var(--radius-md)`, `8px 16px` padding. On hover: darken 10% (use `filter: brightness(0.9)`). Subtle `var(--shadow-glow)`.
+
+**Avatar chip (logged-in state):**
+- A circle `36px × 36px` with `var(--color-brand-gradient)` background, white initial letter, `font-weight: 600`. No rectangular box — border-radius full.
+
+**Notification bell:**
+- Inline SVG bell icon, `22px`, `var(--color-text-secondary)`.
+- Red badge: `8px × 8px` filled circle, `var(--color-danger)`, positioned top-right of the bell.
+- On hover: icon color transitions to `var(--color-text-primary)`.
+
+**Mobile Navbar (`≤ 640px`):**
+- Search bar collapses to a magnifying glass icon button.
+- Tapping the icon expands a full-width search bar below the navbar with a slide-down animation (`transform: translateY(-100%) → translateY(0)`, 200ms).
+- Logo + brand name remain visible.
+- "Log in" text becomes just an icon (person SVG).
+
+**Hamburger button:**
+- Only visible `≤ 640px`.
+- Three horizontal lines SVG, `var(--color-text-secondary)`.
+- On hover: `var(--color-bg-elevated)` background, `var(--radius-sm)`.
+
+---
+
+### 2. `LeftSidebar.jsx` + `LeftSidebar.css`
+
+**Appearance:**
+- Background: `var(--color-bg-surface)`.
+- Right border: `1px solid var(--color-border)`.
+- Padding: `var(--space-6) 0`.
+- Width: `220px`. Fixed position, `top: 60px`, full viewport height minus 60px, `overflow-y: auto`.
+
+**Nav sections:**
+
+Section label ("DISCOVER", "COMMUNITY"):
+```css
+font-size: 11px;
+font-weight: 700;
+letter-spacing: 0.1em;
+text-transform: uppercase;
+color: var(--color-text-muted);
+padding: var(--space-4) var(--space-5);
+margin-top: var(--space-4);
+```
+
+Nav links:
+- Each link: `display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-5); border-radius: 0; font-size: 14px; font-weight: 500; color: var(--color-text-secondary); transition: var(--transition-fast);`
+- On hover: `color: var(--color-text-primary); background: var(--color-bg-elevated);`
+- Active (current route): `color: var(--color-brand-secondary); background: rgba(108,99,255,0.1); border-right: 3px solid var(--color-brand-primary);`
+
+**Nav items and their SVG icons (16px each):**
+
+DISCOVER section:
+- 🏠 Home — house icon
+- ❓ Questions — chat-bubble-question icon
+- 🔖 Tags — tag icon
+- 👥 Users — people icon
+
+If user is logged in, add a "MY ACTIVITY" section:
+- ⭐ Saved — bookmark icon
+- 👤 Profile — person-circle icon
+
+Use simple inline SVG icons — do not install an icon library. Draw each as a `<svg width="16" height="16" viewBox="0 0 24 24">` with `stroke="currentColor"` and `fill="none"`.
+
+**Mobile sidebar:**
+- Slides in from the left on hamburger tap.
+- Overlay: semi-transparent `rgba(0,0,0,0.6)` covers the rest of the screen.
+- Close on overlay click.
+- `z-index: 200`, `position: fixed`.
+
+---
+
+### 3. `Home.jsx` — Hero Section (logged-out state only)
+
+When no user is logged in, the home page shows a **hero section** above the question list:
+
+```
+┌──────────────────────────────────────────────────────┐
+│                                                      │
+│   Ask. Answer. Grow.                                 │
+│   The modern community for developers.               │
+│                                                      │
+│   [Get Started — Free]   [Browse Questions]          │
+│                                                      │
+└──────────────────────────────────────────────────────┘
+```
+
+- Background: subtle gradient mesh — `radial-gradient(ellipse at 20% 50%, rgba(108,99,255,0.12) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(167,139,250,0.08) 0%, transparent 50%), var(--color-bg-base)`.
+- Heading: `font-size: clamp(32px, 5vw, 52px); font-weight: 700; line-height: 1.15`. Gradient text: `background: var(--color-brand-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;`
+- Subheading: `18px`, `var(--color-text-secondary)`.
+- "Get Started" button: `var(--color-brand-gradient)` background, white text, `var(--radius-md)`, `12px 28px`, `font-weight: 600`. Hover: `filter: brightness(1.1)`.
+- "Browse Questions": ghost button, same padding, `var(--color-border)` border.
+- Section padding: `80px 24px`.
+
+When user is logged in, skip the hero and go straight to the question list.
+
+---
+
+### 4. `HomeMainbar.jsx` + `HomeMainbar.css`
+
+**Header row:**
+- Left: "All Questions" heading — `font-size: 22px; font-weight: 700; color: var(--color-text-primary)`.
+- Right: "Ask a Question" button — `var(--color-brand-primary)` background, white, `var(--radius-md)`, `10px 20px`, `font-weight: 600`. Hover: `filter: brightness(0.9); box-shadow: var(--shadow-glow)`.
+
+**Sorting tabs (Newest / Active / Unanswered):**
+- Row below the header, left-aligned.
+- Each tab: `font-size: 13px; font-weight: 500; padding: var(--space-2) var(--space-4); border-radius: var(--radius-full); border: 1px solid transparent; cursor: pointer; transition: var(--transition-fast);`
+- Inactive: `color: var(--color-text-secondary); background: transparent`. Hover: `background: var(--color-bg-elevated); color: var(--color-text-primary)`.
+- Active: `background: rgba(108,99,255,0.15); border-color: var(--color-brand-primary); color: var(--color-brand-secondary); font-weight: 600`.
+
+**Question list container:**
+- `border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; margin-top: var(--space-4)`.
+- Questions list — each question is a row separated by `1px solid var(--color-border)`.
+
+---
+
+### 5. `Questions.jsx` (individual question card in the list)
+
+Remove the existing yellow background (`#fdf7e2`). Replace with:
+
+```
+┌──────────────────────────────────────────────────────┐
+│  [stats]  │  [content]                               │
+└──────────────────────────────────────────────────────┘
+```
+
+**Stats column (left, ~90px wide):**
+- Three stacked pill-counters: votes, answers, views.
+- Each: `font-size: 13px; font-weight: 600; text-align: center; padding: 4px 10px; border-radius: var(--radius-full)`.
+- Default: `background: var(--color-bg-elevated); color: var(--color-text-secondary)`.
+- Answer count with answers > 0: `background: rgba(52,211,153,0.1); color: var(--color-success)`.
+- Accepted answer: `background: var(--color-success); color: #0f0f13`.
+- Label below the number: `font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em`.
+
+**Content column:**
+- Title: `font-size: 15px; font-weight: 600; color: var(--color-text-link); line-height: 1.4`. Hover: `var(--color-text-link-hover); text-decoration: underline`.
+- Body snippet (first 120 chars of question body, stripped of HTML): `font-size: 13px; color: var(--color-text-secondary); margin: var(--space-2) 0; line-height: 1.5`.
+- Tags row + meta row on same line (space-between).
+- Meta: `"asked [time] ago by [username]"` — `font-size: 12px; color: var(--color-text-muted)`. Username in `var(--color-brand-secondary)`.
+
+**Hover state on the entire card:**
+- `background: var(--color-bg-elevated)` — subtle highlight.
+- Transition: `var(--transition-fast)`.
+
+**Tag chips:**
+- Background: `var(--color-tag-bg)`.
+- Text: `var(--color-tag-text)`.
+- Border: `1px solid var(--color-tag-border)`.
+- Border-radius: `var(--radius-sm)`.
+- Font size: `12px`, padding: `3px 8px`.
+- Hover: `background: var(--color-tag-bg-hover)`.
+
+---
+
+### 6. `QuestionsDetails.jsx` + `DisplayQuestion.jsx` — Question Detail Page
+
+**Question header area:**
+- Title: `font-size: clamp(18px, 3vw, 26px); font-weight: 700; line-height: 1.3; color: var(--color-text-primary)`.
+- Meta row below title: asked date, modified date, view count — all in `var(--color-text-muted)` `13px`, separated by `·` dividers.
+- Bottom border: `1px solid var(--color-border)` under the title block.
+
+**Voting sidebar (left of the question/answer body):**
+- Upvote button: `▲` (chevron-up SVG, `20px`). Resting: `var(--color-text-muted)`. Hover: `var(--color-brand-primary)`. Active/voted: `var(--color-brand-primary)`.
+- Vote score: `font-size: 18px; font-weight: 700; color: var(--color-text-primary)`. Negative: `var(--color-danger)`. Positive: `var(--color-success)`.
+- Downvote button: `▼`. Same as upvote but downvote active = `var(--color-danger)`.
+- Bookmark icon: below the vote buttons. Filled when saved: `var(--color-warning)`.
+- Accept checkmark (answers only, question author view): `24px` circle button, `var(--color-border)` border. Accepted state: `var(--color-success)` background, white ✓.
+- All vote buttons: `display: flex; flex-direction: column; align-items: center; gap: var(--space-3)`.
+
+**Question/Answer body (rich text display):**
+- Wrap in a `.prose` class:
+```css
+.prose { color: var(--color-text-primary); line-height: 1.75; }
+.prose p { margin-bottom: var(--space-4); }
+.prose h2, .prose h3 { color: var(--color-text-primary); font-weight: 600; margin: var(--space-6) 0 var(--space-3); }
+.prose code {
+  background: var(--color-bg-elevated);
+  color: #e879f9;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+.prose pre {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  overflow-x: auto;
+  margin: var(--space-5) 0;
+}
+.prose pre code {
+  background: transparent;
+  padding: 0;
+  color: var(--color-text-primary);
+}
+.prose blockquote {
+  border-left: 3px solid var(--color-brand-primary);
+  padding-left: var(--space-4);
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+.prose a { color: var(--color-text-link); text-decoration: underline; }
+.prose ul, .prose ol { padding-left: var(--space-6); margin-bottom: var(--space-4); }
+```
+
+**Answer section header:**
+- `"N Answers"` — `font-size: 18px; font-weight: 700`. Separator: full-width `1px solid var(--color-border)` below.
+
+**Accepted answer:**
+- Left border: `3px solid var(--color-success)`.
+- Background: `rgba(52,211,153,0.04)`.
+- A small `"✓ Accepted"` badge: `var(--color-success)` text, `rgba(52,211,153,0.1)` bg, `var(--radius-full)` pill.
+
+**"Post Your Answer" section:**
+- Heading: `"Your Answer"` — `font-size: 18px; font-weight: 600`.
+- The Quill editor container: `border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg-input); overflow: hidden`.
+- Quill toolbar: `background: var(--color-bg-elevated); border-bottom: 1px solid var(--color-border)`. Override Quill's default white/light theme: all toolbar buttons use `color: var(--color-text-secondary)`, hover state `var(--color-text-primary)`.
+- Quill editor area: `background: var(--color-bg-input); color: var(--color-text-primary); min-height: 200px; padding: var(--space-4)`.
+- Submit button: same style as "Ask a Question" button.
+
+---
+
+### 7. `AskQuestion.jsx` + `AskQuestion.css`
+
+**Page layout:**
+- Two-column: form on the left (~65%), tips sidebar on the right (~32%).
+- On mobile: single column, tips sidebar moves below the form.
+
+**Card container for the form:**
+- `background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-8)`.
+
+**Form fields:**
+
+Each field group:
+```css
+.form-group { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-6); }
+.form-group label { font-size: 14px; font-weight: 600; color: var(--color-text-primary); }
+.form-group .field-hint { font-size: 13px; color: var(--color-text-secondary); }
+```
+
+Text inputs:
+```css
+input[type="text"], textarea {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  padding: var(--space-3) var(--space-4);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  width: 100%;
+}
+input[type="text"]:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+}
+```
+
+**Tags input:** When the user types a tag and presses space or comma, the tag appears as a chip inline in the input. Each chip: `var(--color-tag-bg)` background, `var(--color-tag-text)` text, `×` remove button.
+
+**Tips sidebar:**
+- `background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6)`.
+- Heading: `"Writing a good question"` in `var(--color-brand-secondary)`.
+- Bullet tips in `var(--color-text-secondary)` `14px`.
+
+**Submit / Review buttons:**
+- "Review your question": secondary — `var(--color-bg-elevated)` bg, `var(--color-text-primary)` text, `var(--color-border)` border.
+- "Post your question": primary — `var(--color-brand-primary)` bg, white.
+
+---
+
+### 8. `Auth.jsx` + `Auth.css`
+
+**Page layout:**
+- Centered card on the page, max-width `440px`, vertically centered.
+- Page background: same dark base with the subtle radial gradient from the hero section.
+
+**Card:**
+- `background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-xl); padding: var(--space-10) var(--space-8); box-shadow: var(--shadow-md)`.
+
+**Header:**
+- Querious logo centered above the card heading.
+- Heading: `"Welcome back"` / `"Join Querious"` — `22px`, `font-weight: 700`.
+- Sub-text: `"Don't have an account?"` → `"Sign up"` (linked) — `var(--color-text-secondary)`.
+
+**Input fields:** Same global input styles.
+
+**Submit button:** Full-width, `var(--color-brand-gradient)` background, white text, `var(--radius-md)`, `12px`, `font-size: 15px`, `font-weight: 600`.
+
+**Forgot password link:** `font-size: 13px; color: var(--color-text-link); float: right; margin-bottom: var(--space-4)`.
+
+**Toggle between Login / Signup:** Tab-style switcher at the top of the card:
+- Two tabs: "Log in" and "Sign up".
+- Active tab: `var(--color-brand-primary)` bottom border `2px`, `var(--color-text-primary)`.
+- Inactive: `var(--color-text-muted)`.
+
+---
+
+### 9. `Tags.jsx` + `Tags.css` — Tags Page
+
+**Page heading:** `"Tags"` — `22px`, `700`. Sub-text: `"Browse N tags used to categorize questions"`.
+
+**Search input** (filter tags): same global input style, max-width `300px`.
+
+**Tag grid:**
+- `display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-4)`.
+
+**Tag card:**
+```css
+.tag-card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  transition: var(--transition-base);
+  cursor: pointer;
+}
+.tag-card:hover {
+  border-color: var(--color-brand-primary);
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-glow);
+}
+```
+- Top: tag chip pill (full-width or auto).
+- Below: tag description in `var(--color-text-secondary)` `13px` (add a short mock description or leave blank).
+- Bottom: `"N questions"` in `var(--color-text-muted)` `12px`.
+
+---
+
+### 10. `Users.jsx` + `Users.css` — Users Page
+
+**Page heading:** `"Community"` — `22px`, `700`. Sub-text: `"Developers helping developers on Querious"`.
+
+**Users grid:**
+- `display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--space-4)`.
+
+**User card:**
+- Same card style as tag card.
+- Centered avatar circle `52px`, `var(--color-brand-gradient)` background, white initial.
+- Name: `15px`, `600`, centered.
+- Reputation: `var(--color-brand-secondary)`, `13px`, `font-weight: 600`. Label: `"reputation"` in `var(--color-text-muted)`.
+- Joined date: `12px`, `var(--color-text-muted)`.
+- Hover: same glow effect.
+
+---
+
+### 11. `UserProfile.jsx` + `UsersProfile.css` — User Profile Page
+
+**Layout:**
+- Top section: profile header card (full width).
+- Below: two columns — left (stats/bio) and right (questions/answers/saves tabs).
+
+**Profile header card:**
+- `background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-8)`.
+- Left: large avatar `72px`, gradient circle.
+- Right: name `24px 700`, joined date, location, website as small meta items with SVG icons.
+- Reputation badge: pill with star icon, `var(--color-warning)` color.
+- If viewing own profile: "Edit Profile" button (ghost style) top-right.
+
+**Stats row:**
+- Three stat tiles: Questions asked, Answers given, Reputation.
+- Each: `background: var(--color-bg-elevated); border-radius: var(--radius-md); padding: var(--space-4) var(--space-6); text-align: center`.
+- Number: `24px; 700; var(--color-brand-secondary)`. Label: `12px; var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em`.
+
+**Tabs (Questions / Answers / Saves):**
+- Same pill-style tabs as sorting tabs.
+
+**Edit profile form:**
+- Same card + form-group style as AskQuestion.
+
+---
+
+### 12. `RightSidebar.jsx` + `RightSidebar.css`
+
+Remove static "Featured on Meta" and "Hot Network Questions" content. Replace with:
+
+**"Popular Tags" widget:**
+- Heading: `"Popular Tags"` in `var(--color-text-secondary)` `13px` uppercase.
+- List of top 10 tags with count pills — `display: flex; flex-wrap: wrap; gap: var(--space-2)`.
+
+**"Top Contributors" widget:**
+- Heading: `"Top Contributors"`.
+- List of 5 users with avatar + name + reputation.
+
+**Widget card style:**
+```css
+.widget-card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-4);
+}
+.widget-card h3 {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+}
+```
+
+---
+
+### 13. Notification Dropdown
+
+When bell is clicked, a dropdown appears below the bell icon:
+
+```css
+.notifications-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 340px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  z-index: 300;
+  overflow: hidden;
+}
+```
+
+- Header row: `"Notifications"` + `"Mark all read"` link.
+- Each notification: `display: flex; gap: var(--space-3); padding: var(--space-4); border-bottom: 1px solid var(--color-border)`. Unread: `background: rgba(108,99,255,0.05)`. Left: colored dot (brand or success/warning). Text: `13px`. Timestamp: `11px var(--color-text-muted)`.
+
+---
+
+### 14. `<LoadingSkeleton />` Component
+
+```css
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.skeleton {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-sm);
+  animation: skeleton-pulse 1.8s ease-in-out infinite;
+}
+```
+
+Create `QuestionCardSkeleton` that mimics the question card layout — one wide line for title, two narrow lines for body, a row of tag-shaped blocks, and stat pill shapes on the left.
+
+---
+
+### 15. Pagination Component
+
+```css
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-6) 0;
+}
+
+.page-btn {
+  min-width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.page-btn:hover {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+}
+
+.page-btn.active {
+  background: var(--color-brand-primary);
+  border-color: var(--color-brand-primary);
+  color: white;
+  box-shadow: var(--shadow-glow);
+}
+
+.page-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+```
+
+---
+
+### 16. Global Utility Classes
+
+Add these to `index.css`:
+
+```css
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+}
+.badge-brand  { background: rgba(108,99,255,0.15); color: var(--color-brand-secondary); }
+.badge-success{ background: rgba(52,211,153,0.12); color: var(--color-success); }
+.badge-warning{ background: rgba(251,191,36,0.12); color: var(--color-warning); }
+.badge-danger { background: rgba(248,113,113,0.12); color: var(--color-danger); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: var(--transition-fast);
+  text-decoration: none;
+}
+.btn-primary {
+  background: var(--color-brand-primary);
+  color: #fff;
+}
+.btn-primary:hover { filter: brightness(1.1); box-shadow: var(--shadow-glow); }
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+.btn-ghost:hover { background: var(--color-bg-elevated); }
+.btn-danger {
+  background: rgba(248,113,113,0.1);
+  color: var(--color-danger);
+  border: 1px solid rgba(248,113,113,0.2);
+}
+.btn-danger:hover { background: rgba(248,113,113,0.2); }
+
+.divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--space-6) 0;
+}
+
+.text-muted   { color: var(--color-text-muted); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-brand   { color: var(--color-brand-secondary); }
+.text-success { color: var(--color-success); }
+.text-danger  { color: var(--color-danger); }
+```
+
+---
+
+## Branding Changes (Text Replacements)
+
+Search and replace every instance of the following in all `.jsx`, `.css`, `.html`, and any string literals:
+
+| Old text | New text |
+|---|---|
+| Stack Overflow | Querious |
+| stack overflow | Querious |
+| stackoverflow | querious |
+| StackOverflow | Querious |
+| "About" nav link | "About" (keep) |
+| "Products" nav link | "Explore" |
+| "For Teams" nav link | Remove entirely |
+| Navbar logo `<img src={logo}>` | Import the logo from the root folder |
+| Page `<title>` in `public/index.html` | `"Querious — Ask. Answer. Grow."` |
+| `<meta name="description">` | `"Querious is a modern developer Q&A community."` |
+| favicon `public/favicon.ico` | Replace with the logo from the root folder (convert to `.ico` or use `.png` as favicon) |
+
+---
+
+## Micro-interactions & Polish (Senior Dev Additions)
+
+1. **Focus ring**: All focusable elements (buttons, inputs, links) must have a visible `outline: 2px solid var(--color-brand-primary); outline-offset: 2px` on keyboard focus (`:focus-visible`). Remove default browser outline.
+
+2. **Button press**: All `.btn` elements: `transform: scale(0.97)` on `:active`.
+
+3. **Card entrance animation**: Question cards in the list animate in on mount:
+   ```css
+   @keyframes fadeInUp {
+     from { opacity: 0; transform: translateY(12px); }
+     to   { opacity: 1; transform: translateY(0); }
+   }
+   .question-card { animation: fadeInUp 0.3s ease both; }
+   .question-card:nth-child(1) { animation-delay: 0ms; }
+   .question-card:nth-child(2) { animation-delay: 40ms; }
+   .question-card:nth-child(3) { animation-delay: 80ms; }
+   /* ... up to :nth-child(10), incrementing 40ms each */
+   ```
+
+4. **Vote button bounce**: When a vote is cast, the vote count changes with a brief scale animation:
+   ```css
+   @keyframes voteBump { 0%,100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+   .vote-score.animating { animation: voteBump 0.25s ease; }
+   ```
+   Add/remove the `.animating` class in the component using a `setTimeout`.
+
+5. **Smooth sidebar transition**: Left sidebar slide-in uses `transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)` (not linear).
+
+6. **Toast notifications**: Create a `<Toast />` component for success/error feedback (e.g., "Question posted!", "Vote recorded"). Appears top-right, slides in from the right, auto-dismisses after 3 seconds.
+   ```css
+   .toast { position: fixed; top: 76px; right: var(--space-6); z-index: 500; background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); box-shadow: var(--shadow-md); display: flex; align-items: center; gap: var(--space-3); animation: slideInRight 0.3s ease; }
+   @keyframes slideInRight { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+   ```
+
+7. **Empty state illustrations**: When a question list is empty (no results / no saved questions), show an empty state:
+   - A simple inline SVG illustration (abstract geometric shapes in brand colors, ~120px).
+   - Heading: `"No questions found"`.
+   - Sub-text: `"Be the first to ask something!"` with a link to `/ask`.
+
+8. **Keyboard shortcut**: Press `/` anywhere on the page to focus the search bar. Add a small `⌘/` or `/` pill hint inside the search bar on the right side (desktop only).
+
+9. **Scroll-to-top button**: A floating `↑` button appears when the user scrolls down > 300px. Bottom-right, `48px` circle, `var(--color-brand-primary)` background. Smooth scroll to top on click.
+   ```css
+   .scroll-top-btn {
+     position: fixed; bottom: var(--space-6); right: var(--space-6);
+     width: 44px; height: 44px; border-radius: var(--radius-full);
+     background: var(--color-brand-primary); color: white; border: none; cursor: pointer;
+     box-shadow: var(--shadow-md); opacity: 0; transition: opacity var(--transition-base), transform var(--transition-base);
+     transform: translateY(8px);
+   }
+   .scroll-top-btn.visible { opacity: 1; transform: translateY(0); }
+   ```
+
+10. **Code block copy button**: In `.prose pre` blocks, render a small "Copy" button in the top-right corner. On click: copies code to clipboard and changes to "Copied ✓" for 2 seconds. Style:
+    ```css
+    .code-copy-btn {
+      position: absolute; top: var(--space-3); right: var(--space-3);
+      background: var(--color-bg-elevated); border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm); color: var(--color-text-muted);
+      font-size: 12px; padding: 3px 10px; cursor: pointer; font-family: var(--font-sans);
+      transition: var(--transition-fast);
+    }
+    .code-copy-btn:hover { color: var(--color-text-primary); }
+    ```
+
+---
+
+## Responsive Checklist
+
+Before completing the redesign, verify every breakpoint:
+
+**Mobile (`≤ 640px`)**
+- [ ] Navbar: hamburger visible, logo + brand name, search collapses to icon
+- [ ] Left sidebar: hidden by default, slides in on hamburger tap with overlay
+- [ ] Right sidebar: hidden
+- [ ] Question cards: stats column stacks above content, not beside it
+- [ ] AskQuestion form: single column, tips moved below
+- [ ] Auth card: full-width with 16px horizontal padding
+- [ ] Tags grid: `grid-template-columns: repeat(2, 1fr)`
+- [ ] Users grid: `grid-template-columns: repeat(2, 1fr)`
+- [ ] UserProfile: header avatar above text, stat tiles in a 2×2 grid
+- [ ] Toast: full-width, bottom of screen instead of top-right
+
+**Tablet (`641px – 1024px`)**
+- [ ] Right sidebar: hidden
+- [ ] Left sidebar: visible and fixed
+- [ ] Question card: normal two-column layout
+- [ ] Tags/Users grid: `repeat(3, 1fr)`
+
+**Desktop (`> 1024px`)**
+- [ ] All three columns visible
+- [ ] Hover effects active
+- [ ] Keyboard shortcut `/` hint visible in search bar
+
+---
+
+## Files to Create or Modify
+
+| File | Action |
+|---|---|
+| `client/src/index.css` | Rewrite — add CSS variables, global resets, utility classes |
+| `client/src/App.css` | Replace with minimal layout styles only |
+| `client/src/components/Navbar/Navbar.css` | Full rewrite |
+| `client/src/components/LeftSidebar/LeftSidebar.css` | Full rewrite |
+| `client/src/components/HomeMainbar/HomeMainbar.css` | Full rewrite |
+| `client/src/components/RightSidebar/RightSidebar.css` | Full rewrite |
+| `client/src/Pages/Auth/Auth.css` | Full rewrite |
+| `client/src/Pages/AskQuestion/AskQuestion.css` | Full rewrite |
+| `client/src/Pages/Questions/Questions.css` | Full rewrite |
+| `client/src/Pages/Tags/Tags.css` | Full rewrite |
+| `client/src/Pages/Users/Users.css` | Full rewrite |
+| `client/src/Pages/UserProfile/UsersProfile.css` | Full rewrite |
+| `client/src/components/Navbar/Navbar.jsx` | Update logo import, remove "For Teams" link, rename "Products" → "Explore", wire search, add notification bell |
+| `client/src/components/HomeMainbar/HomeMainbar.jsx` | Add hero section (logged-out), update class names |
+| `client/src/components/HomeMainbar/Questions.jsx` | Update question card structure and class names |
+| `client/src/components/Toast/Toast.jsx` | **Create new** |
+| `client/src/components/ScrollToTop/ScrollToTop.jsx` | **Create new** |
+| `client/public/index.html` | Update `<title>` and `<meta description>` |
+
+---
+
+## Definition of Done for UI
+
+- [ ] No hardcoded hex color values outside `index.css :root` block.
+- [ ] No reference to orange `#ef8236`, `#f8f9f9`, or Stack Overflow blue `#009dff` anywhere.
+- [ ] No text "Stack Overflow" anywhere in the UI.
+- [ ] Querious logo renders correctly in the Navbar and Auth page.
+- [ ] All pages render without horizontal scroll on a 375px viewport.
+- [ ] All interactive elements have `:focus-visible` styles.
+- [ ] Lighthouse accessibility score ≥ 85 (check in Chrome DevTools, mobile preset).
+- [ ] Chrome DevTools shows no CSS errors in the console.
+- [ ] Animations respect `prefers-reduced-motion`:
+  ```css
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+  ```

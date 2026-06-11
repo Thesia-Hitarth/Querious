@@ -1,6 +1,9 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
+import mongoose from "mongoose";
 import http from "http";
 import { Server } from "socket.io";
 import helmet from "helmet";
@@ -11,17 +14,24 @@ import userRoutes from "./routes/users.js";
 import questionRoutes from "./routes/Questions.js";
 import answerRoutes from "./routes/Answers.js";
 import notificationRoutes from "./routes/Notifications.js";
-import connectDB from "./connectMongoDb.js";
 import { initSocket } from "./utils/notificationHelper.js";
 import { logger } from "./utils/logger.js";
 
-dotenv.config();
-connectDB();
+// Ensure Mongo connects using CONNECTION_URL
+const mongoUrl = process.env.CONNECTION_URL || process.env.MONGO_URL;
+if (mongoUrl) {
+  mongoose
+    .connect(mongoUrl)
+    .then((conn) => console.log(`MongoDB connected: ${conn.connection.host}`))
+    .catch((error) => console.error("MongoDB connection failed:", error));
+} else {
+  console.warn("WARNING: CONNECTION_URL not defined. MongoDB connection skipped.");
+}
+
 const app = express();
 
 app.use(helmet());
 app.use(mongoSanitize());
-
 
 app.use(express.json({ limit: "30mb", extended: true }));
 app.use(express.urlencoded({ limit: "30mb", extended: true }));
@@ -65,20 +75,19 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-  },
-});
-
-initSocket(io);
-
-if (process.env.NODE_ENV !== "test" && !process.env.VERCEL) {
-  server.listen(PORT, () => {
+if (!process.env.VERCEL && process.env.NODE_ENV !== "test") {
+  const server = app.listen(PORT, () => {
     console.log(`server running on port ${PORT}`);
   });
+
+  const io = new Server(server, {
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    },
+  });
+
+  initSocket(io);
 }
 
 export default app;

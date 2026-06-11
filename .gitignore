@@ -18,6 +18,11 @@
 .env.test.local
 .env.production.local
 
+# Ensure local envs and node modules are ignored
+node_modules/
+.env
+server/.env
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
