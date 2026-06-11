@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/user/:path*",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/questions/:path*",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/answer/:path*",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/notifications/:path*",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
+  ]
+}

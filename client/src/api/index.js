@@ -7,7 +7,7 @@ const API = axios.create({
     process.env.REACT_APP_API_URL ||
     (window.location.hostname === "localhost"
       ? "http://localhost:5000"
-      : "https://stack-overflow-clone-server-ql8j.onrender.com/"),
+      : window.location.origin),
 });
 
 API.interceptors.request.use((req) => {

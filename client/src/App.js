@@ -27,7 +27,7 @@ function App() {
       // Connect to the API server
       const apiUrl = window.location.hostname === "localhost"
         ? "http://localhost:5000"
-        : "https://stack-overflow-clone-server-ql8j.onrender.com/";
+        : window.location.origin;
       
       const socket = io(apiUrl);
       socket.emit("join", User.result._id);

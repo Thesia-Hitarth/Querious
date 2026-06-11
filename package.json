@@ -11,6 +11,11 @@
     "test:server": "cross-env NODE_OPTIONS=--experimental-vm-modules npx --prefix server jest --testPathPatterns=server --runInBand --forceExit",
     "test:client": "cross-env CI=true npm run test --prefix client"
   },
+  "type": "module",
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "devDependencies": {
     "concurrently": "^8.2.2",
     "cross-env": "^10.1.0"
