@@ -1,27 +1,59 @@
 {
   "version": 2,
   "cleanUrls": true,
-  "outputDirectory": "client/build",
-  "rewrites": [
+  "builds": [
     {
-      "source": "/user/:path*",
-      "destination": "/api/index.js"
+      "src": "api/index.js",
+      "use": "@vercel/node"
     },
     {
-      "source": "/questions/:path*",
-      "destination": "/api/index.js"
+      "src": "client/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/user/(.*)",
+      "dest": "api/index.js"
     },
     {
-      "source": "/answer/:path*",
-      "destination": "/api/index.js"
+      "src": "/questions/(.*)",
+      "dest": "api/index.js"
     },
     {
-      "source": "/notifications/:path*",
-      "destination": "/api/index.js"
+      "src": "/answer/(.*)",
+      "dest": "api/index.js"
     },
     {
-      "source": "/((?!api).*)",
-      "destination": "/"
+      "src": "/notifications/(.*)",
+      "dest": "api/index.js"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "client/build/static/$1"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "client/build/favicon.ico"
+    },
+    {
+      "src": "/manifest.json",
+      "dest": "client/build/manifest.json"
+    },
+    {
+      "src": "/logo192.png",
+      "dest": "client/build/logo192.png"
+    },
+    {
+      "src": "/logo512.png",
+      "dest": "client/build/logo512.png"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "client/build/index.html"
     }
   ]
 }
