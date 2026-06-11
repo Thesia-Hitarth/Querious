@@ -207,7 +207,7 @@ const QuestionsDetails = () => {
 
   return (
     <div className="question-details-page">
-      {questionsList.data === null ? (
+      {!questionsList.data ? (
         <LoadingSkeleton type="question-detail" count={1} />
       ) : (
         <>

@@ -138,7 +138,7 @@ const HomeMainbar = ({ tag }) => {
 
       {/* Questions list area */}
       <div className="questions-feed-wrapper">
-        {questionsList.data === null ? (
+        {!questionsList.data ? (
           <LoadingSkeleton type="question-list" count={4} />
         ) : (
           <>
