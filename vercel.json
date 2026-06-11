@@ -1,7 +1,18 @@
 {
   "version": 2,
-  "cleanUrls": true,
-  "outputDirectory": "client/build",
+  "builds": [
+    {
+      "src": "client/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    },
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    }
+  ],
   "rewrites": [
     {
       "source": "/user/:path*",
@@ -21,7 +32,7 @@
     },
     {
       "source": "/((?!api).*)",
-      "destination": "/"
+      "destination": "/index.html"
     }
   ]
 }
