@@ -29,6 +29,7 @@ if (mongoUrl) {
 }
 
 const app = express();
+app.set('trust proxy', 1);
 
 app.use(helmet());
 app.use(mongoSanitize());
@@ -41,6 +42,7 @@ app.use(cors());
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 mins
   max: process.env.NODE_ENV === "production" ? 100 : 10000,
+  validate: { xForwardedForHeader: false },
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: "Too many requests, please try again later." },
@@ -49,6 +51,7 @@ const generalLimiter = rateLimit({
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: process.env.NODE_ENV === "production" ? 10 : 1000,
+  validate: { xForwardedForHeader: false },
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: "Too many attempts, please try again later." },
