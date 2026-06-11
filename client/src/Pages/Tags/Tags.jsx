@@ -1,11 +1,34 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 
 import LeftSidebar from "../../components/LeftSidebar/LeftSidebar";
 import TagsList from "./TagsList";
 import "./Tags.css";
 import { tagsList } from "./tagList";
+import { fetchTagsAggregation } from "../../actions/question";
 
 const Tags = ({ slideIn, handleSlideIn }) => {
+  const dispatch = useDispatch();
+  const tagsAggregation = useSelector((state) => state.questionsReducer.tagsAggregation) || [];
+
+  useEffect(() => {
+    dispatch(fetchTagsAggregation());
+  }, [dispatch]);
+
+  // Combine static tagsList with dynamic tagsAggregation
+  const mergedTags = tagsAggregation.map((dynTag) => {
+    const staticTag = tagsList.find(
+      (st) => st.tagName.toLowerCase() === dynTag.tag.toLowerCase()
+    );
+    return {
+      tagName: dynTag.tag,
+      tagDesc: staticTag ? staticTag.tagDesc : `Questions related to ${dynTag.tag} programming.`,
+      count: dynTag.count
+    };
+  });
+
+  const tagsToDisplay = mergedTags.length > 0 ? mergedTags : tagsList;
+
   return (
     <div className="home-container-1">
       <LeftSidebar slideIn={slideIn} handleSlideIn={handleSlideIn} />
@@ -20,7 +43,7 @@ const Tags = ({ slideIn, handleSlideIn }) => {
           your question.
         </p>
         <div className="tags-list-container">
-          {tagsList.map((tag, index) => (
+          {tagsToDisplay.map((tag, index) => (
             <TagsList tag={tag} key={index} />
           ))}
         </div>

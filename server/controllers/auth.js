@@ -20,7 +20,7 @@ export const signup = async (req, res) => {
     const token = jwt.sign(
       { email: newUser.email, id: newUser._id },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "7d" }
     );
     res.status(200).json({ result: newUser, token });
   } catch (error) {
@@ -42,10 +42,81 @@ export const login = async (req, res) => {
     const token = jwt.sign(
       { email: existinguser.email, id: existinguser._id },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "7d" }
     );
     res.status(200).json({ result: existinguser, token });
   } catch (error) {
     res.status(500).json("Something went worng...");
+  }
+};
+
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await users.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User with this email does not exist." });
+    }
+
+    const resetToken = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    const hashedToken = await bcrypt.hash(resetToken, 10);
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
+    await user.save();
+
+    const clientUrl = process.env.REACT_APP_CLIENT_URL || "http://localhost:3000";
+    const resetLink = `${clientUrl}/reset-password/${resetToken}`;
+
+    console.log("======================================");
+    console.log(`PASSWORD RESET REQUEST for: ${email}`);
+    console.log(`Reset Link: ${resetLink}`);
+    console.log("======================================");
+
+    res.status(200).json({ message: "Password reset link logged to server console successfully." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong..." });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  const { token, newPassword } = req.body;
+  try {
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(400).json({ message: "Password reset token is invalid or has expired." });
+    }
+
+    const user = await users.findById(decoded.id);
+    if (!user || !user.resetPasswordToken || !user.resetPasswordExpires) {
+      return res.status(400).json({ message: "Password reset request is invalid or has expired." });
+    }
+
+    if (Date.now() > user.resetPasswordExpires) {
+      return res.status(400).json({ message: "Password reset token has expired." });
+    }
+
+    const isTokenMatch = await bcrypt.compare(token, user.resetPasswordToken);
+    if (!isTokenMatch) {
+      return res.status(400).json({ message: "Password reset token is invalid." });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.status(200).json({ message: "Password has been reset successfully." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong..." });
   }
 };

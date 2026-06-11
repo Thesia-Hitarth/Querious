@@ -16,3 +16,30 @@ export const updateProfile = (id, updateData) => async (dispatch) => {
     console.log(error);
   }
 };
+
+export const toggleSaveQuestion = (userId, questionId) => async (dispatch) => {
+  try {
+    const { data } = await api.toggleSaveQuestion(userId, questionId);
+    
+    // Sync localStorage
+    const localProfile = JSON.parse(localStorage.getItem("Profile"));
+    if (localProfile && localProfile.result) {
+      localProfile.result.savedQuestions = data.savedQuestions;
+      localStorage.setItem("Profile", JSON.stringify(localProfile));
+    }
+    
+    dispatch({ type: "UPDATE_SAVED_QUESTIONS", payload: data.savedQuestions });
+    dispatch(fetchAllUsers());
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const fetchUserDetails = (id) => async (dispatch) => {
+  try {
+    const { data } = await api.getUserDetails(id);
+    dispatch({ type: "FETCH_USER_DETAILS", payload: data });
+  } catch (error) {
+    console.error(error);
+  }
+};

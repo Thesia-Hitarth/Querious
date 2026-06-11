@@ -1,9 +1,33 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { navigate, useNavigate } from "react-router-dom";
+import ReactQuill from "react-quill";
 
 import "./AskQuestion.css";
 import { askQuestion } from "../../actions/question";
+
+const modules = {
+  toolbar: [
+    ["bold", "italic", "underline", "blockquote"],
+    ["code", "code-block"],
+    [{ list: "ordered" }, { list: "bullet" }],
+    ["link", "image"],
+    ["clean"],
+  ],
+};
+
+const formats = [
+  "bold",
+  "italic",
+  "underline",
+  "blockquote",
+  "code",
+  "code-block",
+  "list",
+  "bullet",
+  "link",
+  "image",
+];
 
 const AskQuestion = () => {
   const [questionTitle, setQuestionTitle] = useState("");
@@ -33,11 +57,6 @@ const AskQuestion = () => {
     } else alert("Login to ask question");
   };
 
-  const handleEnter = (e) => {
-    if (e.key === "Enter") {
-      setQuestionBody(questionBody + "\n");
-    }
-  };
   return (
     <div className="ask-question">
       <div className="ask-ques-container">
@@ -65,16 +84,13 @@ const AskQuestion = () => {
                 Include all the information someone would need to answer your
                 question
               </p>
-              <textarea
-                name=""
-                id="ask-ques-body"
-                onChange={(e) => {
-                  setQuestionBody(e.target.value);
-                }}
-                cols="30"
-                rows="10"
-                onKeyPress={handleEnter}
-              ></textarea>
+              <ReactQuill
+                theme="snow"
+                value={questionBody}
+                onChange={setQuestionBody}
+                modules={modules}
+                formats={formats}
+              />
             </label>
             <label htmlFor="ask-ques-tags">
               <h4>Tags</h4>
@@ -91,7 +107,7 @@ const AskQuestion = () => {
           </div>
           <input
             type="submit"
-            value="Reivew your question"
+            value="Review your question"
             className="review-btn"
           />
         </form>

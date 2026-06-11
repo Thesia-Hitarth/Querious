@@ -10,14 +10,21 @@ const QuestionSchema = mongoose.Schema({
   userPosted: { type: String, required: "Question must have an author" },
   userId: { type: String },
   askedOn: { type: Date, default: Date.now },
-  answer: [
+  views: { type: Number, default: 0 },
+  acceptedAnswerId: { type: String, default: null },
+  editedOn: { type: Date, default: null },
+  editedBy: { type: String, default: "" },
+  status: { type: String, enum: ["open", "closed"], default: "open" },
+  comments: [
     {
-      answerBody: String,
-      userAnswered: String,
+      commentBody: { type: String, required: true },
       userId: String,
-      answeredOn: { type: Date, default: Date.now },
+      userCommented: String,
+      commentedOn: { type: Date, default: Date.now },
     },
   ],
 });
+
+QuestionSchema.index({ questionTitle: "text", questionBody: "text" });
 
 export default mongoose.model("Question", QuestionSchema);

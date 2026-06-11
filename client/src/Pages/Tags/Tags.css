@@ -34,3 +34,19 @@
   color: #323232;
   line-height: 17px;
 }
+
+.tag-link-wrapper {
+  text-decoration: none;
+  color: inherit;
+}
+
+.tag-link-wrapper:hover .tag {
+  border-color: #f48024;
+  background-color: #fafafa;
+}
+
+.tag-count {
+  font-size: 12px;
+  color: #6a737c;
+  margin-left: 4px;
+}
