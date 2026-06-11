@@ -75,7 +75,7 @@ const io = new Server(server, {
 
 initSocket(io);
 
-if (process.env.NODE_ENV !== "test") {
+if (process.env.NODE_ENV !== "test" && !process.env.VERCEL) {
   server.listen(PORT, () => {
     console.log(`server running on port ${PORT}`);
   });

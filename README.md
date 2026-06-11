@@ -1,19 +1,17 @@
 
-
-<h1 align="center"> Stack Overflow Clone 🚀</h1> 
+<h1 align="center"> Querious 🚀</h1> 
 <p align="center">
-  <a href="https://stack-overflow-clone-y1fv.onrender.com/">
-    <img alt="Stack Overflow Clone image" title="Stack Overflow Clone" src="https://i.ibb.co/TKHkYnP/Whats-App-Image-2023-08-24-at-9-23-39-PM.jpg" width="450">
-    
+  <a href="https://github.com/Thesia-Hitarth/Querious">
+    <img alt="Querious logo" title="Querious" src="./client/src/assets/Only-Symbol.png" width="150">
   </a>
 </p>
 
 <p align="center">
-Welcome to **Stack-Overflow-Clone**, a platform dedicated to fostering a vibrant community of developers helping developers by providing a space to ask questions, share knowledge, and find solutions together. 🌟❤
+Welcome to **Querious**, a high-fidelity community-driven platform dedicated to fostering a vibrant ecosystem of developers helping developers by providing a space to ask questions, share knowledge, and find solutions together. 🌟❤
 </p>
 
 <p align="center">
-  <a href="https://stack-overflow-clone-y1fv.onrender.com/">Stack Overflow Clone
+  <a href="https://github.com/Thesia-Hitarth/Querious">Querious Codebase
   </a>
 </p>
 
@@ -23,214 +21,115 @@ Welcome to **Stack-Overflow-Clone**, a platform dedicated to fostering a vibrant
 - [Important Links](#important-links-related-to-the-project)
 - [Technology Used](#technology-used)
 - [Features](#features)
-- [Top Level Directory Structure](#top-level-directory-structure)
-- [Screenshots of the project](#screenshots-of-the-project)
-- [Installation](#installation)
+- [Workspace Directory Structure](#workspace-directory-structure)
+- [Installation & Local Setup](#installation--local-setup)
+- [Deployment Configuration](#deployment-configuration)
 - [Contributions](#contributions)
-- [Usage](#usage)
 - [Feedback](#feedback)
 
 
 ### Important links related to the project
 
-* <b>Deployed website 👉: </b> [Stack-Overflow-Clone](https://stack-overflow-clone-y1fv.onrender.com/)
+* <b>Code Repository 👉: </b> [Querious GitHub](https://github.com/Thesia-Hitarth/Querious)
 
-* <b>The backend is hosted here 👉: </b> [Stack-Overflow-Clone-Backend](https://stack-overflow-clone-server-ql8j.onrender.com/)
+* <b>Unified Vercel Deployment 👉: </b> Deployed as a single unified application (Frontend & Serverless Backend) directly on Vercel. Connect your imported GitHub project to Vercel and it compiles dynamically.
 
 
 ## Technology Used
 
 | Technology | Features |
 |------------|----------|
-|   React.js      |  Frontend of the application |    
-| Redux | State Management|    
-| Node.js, Express.js    |  Backend of the application  |   
-|    MongoDB Atlas, Mongoose    | Database for the application|
-| Bcrypt     |    Password Management      |   
-| JSON Web Token     |    Authorization and Authentication |
-| Render     |     Deployment     |  
-| Postman | API Testing, Debugging and Documentation |
- 
+| **React.js** | Frontend interface with high-fidelity Stack Overflow UI redesign |    
+| **Redux** | Global state management for questions, answers, and users |    
+| **Node.js, Express.js** | Server-side API & endpoints for serverless execution |   
+| **MongoDB Atlas, Mongoose** | Cloud database persistence layer |
+| **Bcrypt** | Secure password hashing & cryptography |
+| **JSON Web Token** | Authentication & authorization protocol |
+| **Vercel** | Unified deployment hosting frontend assets and serverless functions |  
+| **Socket.io** | Background real-time notification gateway (degrades gracefully under serverless) |
+
+
 ## Features
 
-Features of our Stack Overflow Clone are as follows:
+Features of Querious include:
 
-- **Ask & Answer:** Post your coding questions and provide answers to help fellow developers.
-- **Voting:** Upvote helpful questions and answers to recognize and encourage valuable contributions.
-- **Tags & Categories:** Organize content by adding relevant tags and categories to questions.
-- **Search:** Easily find answers using our powerful search functionality.
-- **User Profiles:** Build your developer identity, showcase your skills, and keep track of your contributions.
-- **Responsive Design:** Enjoy a seamless experience across devices, from desktop to mobile.
-
-## Top-level directory structure
-
-	├── client                   # Frontend React.js directory
-	│   ├── public              # Public assets for the React app (images, etc.)
-	│   ├── src                 # React application source code
-	│   │   ├── components      # Reusable UI components
-	│   │   ├── pages           # Individual page components
-	│   │   ├── App.js          # Root component
-	│   │   ├── index.js        # Entry point for React app
-	│   │   └── ...             # Other React-related files and folders
-	├── server                  # Backend Node.js/Express directory
-	│   ├── controllers         # Controllers for handling requests
-	│   ├── models              # Database models and schemas
-	│   ├── routes              # API route handlers
-	│   ├── utils               # Utility files
-	│   ├── views               # Templates for rendering server-side views
-	│   ├── app.js              # Express app setup
-	│   ├── package-lock.json   # Node.js package lock
-	│   └── package.json        # Node.js package information
-	├── .gitignore             
-	└── README.md
+* **Ask & Answer:** Post detailed code queries with an embedded markdown ReactQuill editor and answer community questions.
+* **Similar Questions Autocomplete:** Real-time suggestion panel dynamically lists similar existing questions as you type the title.
+* **Reputation Badges:** Automatically awards Gold, Silver, and Bronze badges on user profiles and cards depending on reputation points.
+* **Voting & Accept:** Upvote or downvote questions and answers. Authors can accept answers to highlight the best solution.
+* **Tags & Search:** Advanced search system supporting tag parsers (e.g., matching `[tag]`) and keywords.
+* **Interactive Collectives:** Join and leave specialized topic hubs (MERN Stack, NLP, PHP, R) directly in the right sidebar.
+* **On-Site Blogs:** Embedded blogs list linking to detailed MERN Stack articles at `/Blogs`.
+* **Clean Theme Aesthetics:** Clean light theme colors (white `#ffffff`, orange brand colors `#f48225`, links blue `#0074cc`, and gray borders `#d6d9dc`).
 
 
-<div align="center">
-<img src="https://i.ibb.co/BK8KLHM/MVC-Architecture.jpg" alt="mvc architecture" height="400"/>
-</div>
-<br/>
+## Workspace Directory Structure
 
-## Screenshots of the project
-<table>
-  <tr>
-    <td>Home Page</td>
-    <td>Tags Page</td>
-  </tr>
-  <tr>
-    <td>
-   <img src="https://i.ibb.co/gM7xXWr/screely-1692895310281.png" border="0">
-    </td>
-        <td>
-<img src="https://i.ibb.co/t2mPvSw/screely-1692895676919.png" alt="screely-1677925947288" border="0"></td>
+The project is configured as a Node.js monorepo utilizing npm workspaces:
 
-  </tr>
-</table>
-<table>
-  <tr>
-    <td>SignUp Page</td>
-    <td>Login Page</td>
-  </tr>
-  <tr>
-    <td>
-<img src="https://i.ibb.co/vd9TjxS/screely-1692895003181.png" alt="screely-1677924790571" border="0"></td>
-<td><img src="https://i.ibb.co/nc7vgn1/screely-1692894712324.png" alt="screely-1677925542185" border="0">
-</td>
-  </tr>
-</table>
-<table>
-  <tr>
-    <td>Question Detail Screen</td>
-    <td>Posting an Answer Screen</td>
-  </tr>
-  <tr>
-    <td>
-<img src="https://i.ibb.co/M1n4dHf/screely-1692897031364.png" alt="screely-1677925947288" border="0"></td>
-<td>
-   <img src="https://i.ibb.co/TmSPn3k/screely-1692897192656.png" border="0">
-    </td>
-  </tr>
-</table>
-<table>
-  <tr>
-    <td>All Users Screen</td>
-    <td>Ask a Question Screen</td>
-  </tr>
-  <tr>
-<td>
-   <img src="https://i.ibb.co/Bym2PSg/screely-1692896520603.png" border="0">
-    </td>
-<td>
-   <img src="https://i.ibb.co/YB4VDgq/screely-1692896859187.png" border="0">
-    </td>
-
-  </tr>
-</table>
-<table>
-  <tr>
-    <td>User Profile Screen</td>
-    <td>Other User's Profile Page</td>
-  </tr>
-  <tr>
-     <td>
-<img src="https://i.ibb.co/3kPJWtS/screely-1692895544650.png" border="0"></td>
-    <td>
-<img src="https://i.ibb.co/LRv0rQh/screely-1692896637899.png" alt="screely-1677925947288" border="0"></td>
-  </tr>
-</table>
-
-
-
-##  Installation
-<br>
-
-To setup the project on your local environment, follow the given steps:
-
-1. Fork the [Palaksharma23/Stack-Overflow-Clone](https://github.com/Palaksharma23/Stack-Overflow-Clone) repository.
-2. Clone the repository:
-```
-https://github.com/<USERNAME>/Stack-Overflow-Clone.git
+```text
+├── client/                  # React Frontend application
+│   ├── public/              # Public index HTML and assets
+│   └── src/                 # React source code (components, Pages, redux)
+├── server/                  # Node.js/Express Backend application
+│   ├── controllers/         # Request handling logic
+│   ├── models/              # MongoDB schemas
+│   ├── routes/              # Express API endpoint definitions
+│   └── index.js             # Express application definition
+├── api/                     # Vercel Serverless Function entrypoint
+│   └── index.js             # Gateway routing requests to Express app
+├── vercel.json              # Unified Vercel route rewrites & build configs
+├── package.json             # Workspace dependencies configuration
+└── README.md
 ```
 
-  Replace the `<USERNAME>` with your GitHub username. 
 
-  ### Frontend
+## Installation & Local Setup
 
-Move to the client directory
+The repository is built with npm workspaces, so you can set up both frontend and backend dependencies in a single step!
 
+### 1. Clone the repository
 ```bash
-  cd client
+git clone https://github.com/Thesia-Hitarth/Querious.git
+cd Querious
 ```
 
-Install the necessary dependencies
-
+### 2. Install dependencies
+Run this single command at the root directory to install dependencies for both the `client` and `server`:
 ```bash
-  npm install
+npm install
 ```
 
-To start the server in development mode
-
+### 3. Setup environment variables
+Create a `.env` file inside the `server/` directory:
+```env
+CONNECTION_URL = "your-mongodb-atlas-url"
+JWT_SECRET = "your-custom-jwt-secret-string"
 ```
-  npm start
-```
 
-Go to `localhost:3000` to view the website.
-<br>
-
-### Backend
-
-Move to the server directory
-
+### 4. Run the application
+Run the development command at the root directory to start both the Express backend and React frontend concurrently:
 ```bash
-  cd server
+npm run dev
 ```
 
-Install the necessary dependencies
+* React App: `http://localhost:3000`
+* Express Server: `http://localhost:5000`
 
-```bash
-  npm install
-```
 
-Add a config.env file in the root directory and enter your MongoDb Atlas and JWT Secret key 
-The format of .env file should be similar to the following
-```
-CONNECTION_URL = "Mongo db url"
-JWT_SECRET = "This could be anything like test"
-```
-To start the server in development mode
+## Deployment Configuration
 
-```
-  npm start
-```
+Querious is configured for unified deployment on Vercel:
 
-Server will start at `PORT 5000`
-<br>
+1. **vercel.json**: Specifies route rewrites, routing `/user/*`, `/questions/*`, `/answer/*`, and `/notifications/*` to the serverless function gateway at `api/index.js`, while serving frontend assets statically from the built `client/build` folder.
+2. **Serverless execution**: The entrypoint `api/index.js` imports and delegates to the main Express app, while `server/index.js` skips starting a persistent socket listener when `process.env.VERCEL` is active.
+
 
 ## Contributions
 
-Your worthy contributions are most welcome to our Stack Overflow Clone website. If you have an idea for a new feature or a bug fix, please submit an issue or pull request.
+Your contributions are welcome! Feel free to open issues or submit pull requests for features and bug fixes.
 
 
 ## Feedback
 
-Feel free to send any feedback on [Twitter](https://twitter.com/palaksharma2312) or [file an issue](https://github.com/Palaksharma23/Stack-Overflow-Clone/issues/new). 
-
+Feel free to send feedback or file an issue in the GitHub repository issues list.
