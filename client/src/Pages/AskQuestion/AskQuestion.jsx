@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import ReactQuill from "react-quill";
 
 import "./AskQuestion.css";

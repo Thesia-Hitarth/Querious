@@ -139,7 +139,7 @@ const DisplayAnswer = ({ question, handleShare }) => {
         pre.appendChild(button);
       });
     }
-  }, [question.answer, editingAnswerId]);
+  }, [question.answer, editingAnswerId, showToast]);
 
   const scoreClass = (score) => {
     if (score > 0) return "positive";

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import "./Auth.css";
 import icon from "../../assets/Only-Symbol.png";

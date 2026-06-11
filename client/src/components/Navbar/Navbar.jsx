@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { jwtDecode as decode } from "jwt-decode";
@@ -82,11 +82,11 @@ const Navbar = ({ handleSlideIn }) => {
     dispatch(fetchAllQuestions({ search: "", tag: "" }));
   };
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     dispatch({ type: "LOGOUT" });
     navigate("/");
     dispatch(setCurrentUser(null));
-  };
+  }, [dispatch, navigate]);
 
   const handleNotificationClick = (notif) => {
     dispatch(markAsRead(notif._id));
@@ -127,7 +127,7 @@ const Navbar = ({ handleSlideIn }) => {
       }
     }
     dispatch(setCurrentUser(JSON.parse(localStorage.getItem("Profile"))));
-  }, [User?.token, dispatch]);
+  }, [User?.token, dispatch, handleLogout]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {

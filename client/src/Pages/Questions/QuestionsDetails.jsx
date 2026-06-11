@@ -197,7 +197,7 @@ const QuestionsDetails = () => {
         pre.appendChild(button);
       });
     }
-  }, [questionsList.data, Answer, isEditing]);
+  }, [questionsList.data, Answer, isEditing, showToast]);
 
   const scoreClass = (score) => {
     if (score > 0) return "positive";
