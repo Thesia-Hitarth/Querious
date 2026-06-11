@@ -1,6 +1,6 @@
 .comments-container {
   margin-top: 15px;
-  border-top: 1px dashed #e4e6e8;
+  border-top: 1px dashed var(--color-border);
   padding-top: 10px;
 }
 
@@ -10,9 +10,9 @@
 
 .comment-item {
   padding: 6px 0;
-  border-bottom: 1px solid #f1f2f3;
+  border-bottom: 1px solid var(--color-bg-elevated);
   font-size: 13px;
-  color: #2c2f30;
+  color: var(--color-text-secondary);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -23,21 +23,26 @@
 }
 
 .comment-author {
-  color: #0074cc;
+  color: var(--color-text-link);
   text-decoration: none;
   font-weight: 500;
   margin-left: 5px;
 }
 
+.comment-author:hover {
+  color: var(--color-text-link-hover);
+  text-decoration: underline;
+}
+
 .comment-date {
-  color: #838c95;
+  color: var(--color-text-muted);
   margin-left: 5px;
 }
 
 .delete-comment-btn {
   background: none;
   border: none;
-  color: #c0282d;
+  color: var(--color-danger);
   cursor: pointer;
   font-size: 14px;
   font-weight: bold;
@@ -54,7 +59,7 @@
 .add-comment-link {
   background: none;
   border: none;
-  color: #838c95;
+  color: var(--color-text-muted);
   cursor: pointer;
   font-size: 13px;
   padding: 5px 0;
@@ -64,7 +69,7 @@
 
 .show-more-comments-btn:hover,
 .add-comment-link:hover {
-  color: #0074cc;
+  color: var(--color-text-link-hover);
 }
 
 .add-comment-form {
@@ -76,28 +81,31 @@
   flex-grow: 1;
   padding: 6px 10px;
   font-size: 13px;
-  border: 1px solid #babfc4;
+  background-color: var(--color-bg-input);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
   border-radius: 3px;
   outline: none;
 }
 
 .add-comment-input:focus {
-  border-color: #0074cc;
+  border-color: var(--color-border-focus);
   box-shadow: 0 0 0 3px rgba(0, 116, 204, 0.15);
 }
 
 .add-comment-btn {
   margin-left: 8px;
   padding: 6px 12px;
-  background-color: #009dff;
+  background-color: var(--color-brand-secondary);
   color: white;
-  border: 1px solid #009dff;
+  border: 1px solid var(--color-brand-secondary);
   border-radius: 3px;
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
+  transition: background-color var(--transition-fast);
 }
 
 .add-comment-btn:hover {
-  background-color: #0086d8;
+  background-color: var(--color-text-link-hover);
 }

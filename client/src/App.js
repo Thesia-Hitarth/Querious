@@ -10,6 +10,8 @@ import { fetchAllUsers } from "./actions/users";
 import { fetchNotifications } from "./actions/notifications";
 
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
+import { ToastProvider } from "./components/Toast/ToastContext";
+import ScrollToTop from "./components/ScrollToTop/ScrollToTop";
 
 function App() {
   const dispatch = useDispatch();
@@ -58,12 +60,15 @@ function App() {
 
   return (
     <div className="App">
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <Navbar handleSlideIn={handleSlideIn} />
-        <ErrorBoundary>
-          <AllRoutes slideIn={slideIn} handleSlideIn={handleSlideIn} />
-        </ErrorBoundary>
-      </Router>
+      <ToastProvider>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <Navbar handleSlideIn={handleSlideIn} />
+          <ErrorBoundary>
+            <AllRoutes slideIn={slideIn} handleSlideIn={handleSlideIn} />
+          </ErrorBoundary>
+          <ScrollToTop />
+        </Router>
+      </ToastProvider>
     </div>
   );
 }

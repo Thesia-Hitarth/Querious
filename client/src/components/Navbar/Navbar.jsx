@@ -4,14 +4,41 @@ import { useSelector, useDispatch } from "react-redux";
 import { jwtDecode as decode } from "jwt-decode";
 import { formatDistanceToNow } from "date-fns";
 
-import logo from "../../assets/logo.png";
-import search from "../../assets/search-solid.svg";
-import Avatar from "../../components/Avatar/Avatar";
+import logo from "../../assets/Only-Symbol.png";
 import "./Navbar.css";
 import { setCurrentUser } from "../../actions/currentUser";
 import { fetchAllQuestions } from "../../actions/question";
 import { markAsRead, markAllAsRead } from "../../actions/notifications";
-import bars from "../../assets/bars-solid.svg";
+
+// Custom Inline SVG Icons to avoid importing heavy libraries
+const MenuIconSVG = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="3" y1="12" x2="21" y2="12"></line>
+    <line x1="3" y1="6" x2="21" y2="6"></line>
+    <line x1="3" y1="18" x2="21" y2="18"></line>
+  </svg>
+);
+
+const SearchIconSVG = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8"></circle>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+  </svg>
+);
+
+const BellIconSVG = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+  </svg>
+);
+
+const UserIconSVG = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+    <circle cx="12" cy="7" r="4"></circle>
+  </svg>
+);
 
 const Navbar = ({ handleSlideIn }) => {
   const dispatch = useDispatch();
@@ -20,6 +47,7 @@ const Navbar = ({ handleSlideIn }) => {
 
   // Search state & debounce
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const debounceTimeout = useRef(null);
 
   // Notifications state
@@ -39,15 +67,19 @@ const Navbar = ({ handleSlideIn }) => {
     }
 
     debounceTimeout.current = setTimeout(() => {
+      const tagMatch = value.match(/\[([^\]]+)\]/);
+      const parsedTag = tagMatch ? tagMatch[1].trim() : "";
+      const searchVal = tagMatch ? value.replace(/\[[^\]]+\]/g, "").trim() : value;
+
       dispatch({ type: "SET_SEARCH_QUERY", payload: value });
-      dispatch(fetchAllQuestions({ search: value }));
+      dispatch(fetchAllQuestions({ search: searchVal, tag: parsedTag }));
     }, 300);
   };
 
   const handleClearSearch = () => {
     setSearchQuery("");
     dispatch({ type: "SET_SEARCH_QUERY", payload: "" });
-    dispatch(fetchAllQuestions({ search: "" }));
+    dispatch(fetchAllQuestions({ search: "", tag: "" }));
   };
 
   const handleLogout = () => {
@@ -65,6 +97,21 @@ const Navbar = ({ handleSlideIn }) => {
   const handleMarkAllRead = () => {
     dispatch(markAllAsRead());
   };
+
+  // Keyboard shortcut '/' to focus search bar
+  const searchInputRef = useRef(null);
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "/" && document.activeElement !== searchInputRef.current && 
+          document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== "TEXTAREA" &&
+          !document.activeElement.isContentEditable) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const token = User?.token;
@@ -96,25 +143,24 @@ const Navbar = ({ handleSlideIn }) => {
     <nav className="main-nav">
       <div className="navbar">
         <button className="slide-in-icon" onClick={() => handleSlideIn()}>
-          <img src={bars} alt="bars" width="15" />
+          <MenuIconSVG />
         </button>
-        <div className="navbar-1">
+
+        <div className="navbar-left">
           <Link to="/" className="nav-item nav-logo">
-            <img src={logo} alt="logo" />
+            <img src={logo} alt="Querious logo" />
           </Link>
-          <Link to="/" className="nav-item nav-btn res-nav">
-            About
-          </Link>
-          <Link to="/" className="nav-item nav-btn res-nav">
-            Products
-          </Link>
-          <Link to="/" className="nav-item nav-btn res-nav">
-            For Teams
-          </Link>
-          <form className="navbar-search-form" onSubmit={(e) => e.preventDefault()}>
+        </div>
+
+        <div className="navbar-center">
+          <form className={`navbar-search-form ${isSearchExpanded ? "mobile-expanded" : ""}`} onSubmit={(e) => e.preventDefault()}>
+            <span className="search-icon">
+              <SearchIconSVG />
+            </span>
             <input
+              ref={searchInputRef}
               type="text"
-              placeholder="Search..."
+              placeholder="Search... (Press '/' to focus)"
               value={searchQuery}
               onChange={handleSearchChange}
             />
@@ -127,14 +173,29 @@ const Navbar = ({ handleSlideIn }) => {
                 &times;
               </button>
             )}
-            <img src={search} alt="search" width="18" className="search-icon" />
+            <span className="keyboard-shortcut-hint">/</span>
           </form>
         </div>
-        <div className="navbar-2">
+
+        <div className="navbar-right">
+          <button 
+            type="button" 
+            className="mobile-search-toggle" 
+            onClick={() => setIsSearchExpanded(!isSearchExpanded)}
+          >
+            <SearchIconSVG />
+          </button>
+
           {User === null ? (
-            <Link to="/Auth" className="nav-item nav-links">
-              Log in
-            </Link>
+            <>
+              <Link to="/Auth" className="btn btn-ghost login-btn">
+                <span className="login-text-desktop">Log in</span>
+                <span className="login-icon-mobile"><UserIconSVG /></span>
+              </Link>
+              <Link to="/Auth" className="btn btn-primary signup-btn">
+                Sign up
+              </Link>
+            </>
           ) : (
             <>
               {/* Notification Bell */}
@@ -144,13 +205,13 @@ const Navbar = ({ handleSlideIn }) => {
                   className="navbar-bell-btn"
                   onClick={() => setIsBellOpen(!isBellOpen)}
                 >
-                  🔔
+                  <BellIconSVG />
                   {unreadCount > 0 && (
-                    <span className="navbar-bell-badge">{unreadCount}</span>
+                    <span className="navbar-bell-badge"></span>
                   )}
                 </button>
                 {isBellOpen && (
-                  <div className="navbar-bell-dropdown">
+                  <div className="notifications-dropdown">
                     <div className="bell-dropdown-header">
                       <h4>Notifications</h4>
                       {unreadCount > 0 && (
@@ -189,21 +250,14 @@ const Navbar = ({ handleSlideIn }) => {
                 )}
               </div>
 
-              <Avatar
-                backgroundColor="#009dff"
-                px="10px"
-                py="7px"
-                borderRadius="50%"
-                color="white"
-              >
-                <Link
-                  to={`/Users/${User?.result?._id}`}
-                  style={{ color: "white", textDecoration: "none" }}
-                >
+              {/* Avatar circle */}
+              <div className="navbar-avatar">
+                <Link to={`/Users/${User?.result?._id}`}>
                   {User.result.name.charAt(0).toUpperCase()}
                 </Link>
-              </Avatar>
-              <button className="nav-item nav-links" onClick={handleLogout}>
+              </div>
+
+              <button className="btn btn-ghost logout-btn" onClick={handleLogout}>
                 Log out
               </button>
             </>

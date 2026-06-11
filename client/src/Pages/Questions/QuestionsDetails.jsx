@@ -1,18 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { formatDistanceToNow } from "date-fns";
 import copy from "copy-to-clipboard";
 import ReactQuill from "react-quill";
 
-import upvote from "../../assets/sort-up.svg";
-import downvote from "../../assets/sort-down.svg";
 import "./Questions.css";
-import Avatar from "../../components/Avatar/Avatar";
 import DisplayAnswer from "./DisplayAnswer";
 import LoadingSkeleton from "../../components/LoadingSkeleton/LoadingSkeleton";
 import SafeHtml from "../../components/SafeHtml/SafeHtml";
 import Comments from "../../components/Comments/Comments";
+import UserBadge from "../../components/UserBadge/UserBadge";
 import { toggleSaveQuestion } from "../../actions/users";
 import {
   postAnswer,
@@ -20,6 +18,26 @@ import {
   voteQuestion,
   updateQuestion,
 } from "../../actions/question";
+import { useToast } from "../../components/Toast/ToastContext";
+
+// Custom SVGs
+const UpVoteIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="18 15 12 9 6 15"></polyline>
+  </svg>
+);
+
+const DownVoteIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="6 9 12 15 18 9"></polyline>
+  </svg>
+);
+
+const BookmarkIconSVG = ({ filled }) => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill={filled ? "var(--color-warning)" : "none"} stroke={filled ? "var(--color-warning)" : "currentColor"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+  </svg>
+);
 
 const modules = {
   toolbar: [
@@ -59,6 +77,7 @@ const QuestionsDetails = () => {
   const User = useSelector((state) => state.currentUserReducer);
   const location = useLocation();
   const url = process.env.REACT_APP_CLIENT_URL || window.location.origin;
+  const { showToast } = useToast();
 
   const handlePostAns = (e, answerLength) => {
     e.preventDefault();
@@ -77,6 +96,7 @@ const QuestionsDetails = () => {
             userAnswered: User.result.name,
           })
         );
+        showToast("Answer posted successfully!", "success");
         setAnswer("");
       }
     }
@@ -89,6 +109,7 @@ const QuestionsDetails = () => {
 
   const handleDelete = () => {
     dispatch(deleteQuestion(id, Navigate));
+    showToast("Question deleted successfully!", "success");
   };
 
   const handleEditClick = (question) => {
@@ -111,6 +132,7 @@ const QuestionsDetails = () => {
         questionTags: editTags.trim().split(/\s+/),
       })
     );
+    showToast("Question updated successfully!", "success");
     setIsEditing(false);
   };
 
@@ -120,6 +142,7 @@ const QuestionsDetails = () => {
       Navigate("/Auth");
     } else {
       dispatch(voteQuestion(id, "upVote"));
+      showToast("Upvoted successfully!", "success");
     }
   };
 
@@ -129,6 +152,7 @@ const QuestionsDetails = () => {
       Navigate("/Auth");
     } else {
       dispatch(voteQuestion(id, "downVote"));
+      showToast("Downvoted successfully!", "success");
     }
   };
 
@@ -138,7 +162,47 @@ const QuestionsDetails = () => {
       Navigate("/Auth");
     } else {
       dispatch(toggleSaveQuestion(User.result._id, questionId));
+      const alreadySaved = User?.result?.savedQuestions?.includes(questionId);
+      showToast(alreadySaved ? "Bookmark removed!" : "Question bookmarked!", "success");
     }
+  };
+
+  // Add Copy Button to code pre blocks dynamically (Section 10 of micro-interactions)
+  useEffect(() => {
+    if (questionsList.data) {
+      const preBlocks = document.querySelectorAll(".prose pre");
+      preBlocks.forEach((pre) => {
+        if (pre.querySelector(".code-copy-btn")) return;
+
+        const button = document.createElement("button");
+        button.className = "code-copy-btn";
+        button.type = "button";
+        button.innerText = "Copy";
+
+        button.addEventListener("click", async () => {
+          const codeText = pre.querySelector("code")?.innerText || pre.innerText.replace(/Copy$/, "");
+          try {
+            await navigator.clipboard.writeText(codeText);
+            button.innerText = "Copied ✓";
+            showToast("Code copied to clipboard!", "success");
+            setTimeout(() => {
+              button.innerText = "Copy";
+            }, 2000);
+          } catch (err) {
+            console.error("Failed to copy code block:", err);
+            showToast("Failed to copy code block", "error");
+          }
+        });
+
+        pre.appendChild(button);
+      });
+    }
+  }, [questionsList.data, Answer, isEditing]);
+
+  const scoreClass = (score) => {
+    if (score > 0) return "positive";
+    if (score < 0) return "negative";
+    return "";
   };
 
   return (
@@ -149,202 +213,208 @@ const QuestionsDetails = () => {
         <>
           {questionsList.data
             .filter((question) => question._id === id)
-            .map((question) => (
-              <div key={question._id}>
-                {isEditing ? (
-                  <section className="question-details-container" style={{ padding: "20px", border: "1px solid #d2d2d2", borderRadius: "5px" }}>
-                    <h2>Edit Question</h2>
-                    <form onSubmit={handleSaveEdit}>
-                      <div className="ask-form-container">
-                        <label>
-                          <h4>Title</h4>
-                          <input
-                            type="text"
-                            value={editTitle}
-                            onChange={(e) => setEditTitle(e.target.value)}
-                            style={{ width: "100%", padding: "8px", margin: "8px 0", border: "1px solid #ccc", borderRadius: "4px" }}
-                          />
-                        </label>
-                        <label>
-                          <h4>Body</h4>
-                          <ReactQuill
-                            theme="snow"
-                            value={editBody}
-                            onChange={setEditBody}
-                            modules={modules}
-                            formats={formats}
-                          />
-                        </label>
-                        <label style={{ display: "block", marginTop: "15px" }}>
-                          <h4>Tags (space-separated)</h4>
-                          <input
-                            type="text"
-                            value={editTags}
-                            onChange={(e) => setEditTags(e.target.value)}
-                            style={{ width: "100%", padding: "8px", margin: "8px 0", border: "1px solid #ccc", borderRadius: "4px" }}
-                          />
-                        </label>
-                        <div style={{ marginTop: "15px" }}>
-                          <button type="submit" className="post-ans-btn" style={{ marginRight: "10px", margin: "10px 0" }}>Save</button>
-                          <button type="button" onClick={() => setIsEditing(false)} className="edit-question-btn">Cancel</button>
-                        </div>
-                      </div>
-                    </form>
-                  </section>
-                ) : (
-                  <section className="question-details-container">
-                    <h1>{question.questionTitle}</h1>
-                    <div className="question-header-meta" style={{ display: "flex", flexWrap: "wrap", gap: "15px", fontSize: "13px", color: "#6a737c", borderBottom: "1px solid #e3e6e8", paddingBottom: "8px", marginBottom: "15px" }}>
-                      <span>Asked <strong style={{ color: "#232629" }}>{formatDistanceToNow(new Date(question.askedOn), { addSuffix: true })}</strong></span>
-                      {question.editedOn && <span>Active <strong style={{ color: "#232629" }}>{formatDistanceToNow(new Date(question.editedOn), { addSuffix: true })}</strong></span>}
-                      <span>Viewed <strong style={{ color: "#232629" }}>{question.views || 0} times</strong></span>
-                    </div>
-                    <div className="question-details-container-2">
-                      <div className="question-votes">
-                        <img
-                          src={upvote}
-                          alt=""
-                          width="18"
-                          className="votes-icon"
-                          onClick={handleUpVote}
-                        />
-                        <p>{question.upVote.length - question.downVote.length}</p>
-                        <img
-                          src={downvote}
-                          alt=""
-                          width="18"
-                          className="votes-icon"
-                          onClick={handleDownVote}
-                        />
-                        <div
-                          className="bookmark-btn"
-                          onClick={() => handleBookmarkClick(question._id)}
-                          style={{
-                            cursor: "pointer",
-                            textAlign: "center",
-                            marginTop: "12px",
-                            fontSize: "22px",
-                            color: User?.result?.savedQuestions?.includes(question._id) ? "#f48024" : "#bbc0c4",
-                            transition: "color 0.2s"
-                          }}
-                          title={User?.result?.savedQuestions?.includes(question._id) ? "Remove bookmark" : "Bookmark this question"}
-                        >
-                          {User?.result?.savedQuestions?.includes(question._id) ? "🔖" : "☆"}
-                        </div>
-                      </div>
-                      <div style={{ width: "100%" }}>
-                        <SafeHtml content={question.questionBody} className="question-body" />
-                        <div className="question-details-tags">
-                          {question.questionTags.map((tag) => (
-                            <Link to={`/Tags/${tag}`} key={tag}>
-                              {tag}
-                            </Link>
-                          ))}
-                        </div>
-                        {question.editedOn && (
-                          <div className="edit-time-line" style={{ display: "flex", justifyContent: "flex-end", margin: "10px 0" }}>
-                            <p style={{ fontSize: "12px", color: "#6a737c", margin: 0 }}>
-                              edited {formatDistanceToNow(new Date(question.editedOn), { addSuffix: true })} by {question.editedBy}
-                            </p>
+            .map((question) => {
+              const currentScore = (question.upVote?.length || 0) - (question.downVote?.length || 0);
+              const isSaved = User?.result?.savedQuestions?.includes(question._id);
+              const hasUpvoted = question.upVote?.includes(User?.result?._id);
+              const hasDownvoted = question.downVote?.includes(User?.result?._id);
+
+              return (
+                <div key={question._id}>
+                  {isEditing ? (
+                    <section className="question-details-container edit-question-form">
+                      <h2>Edit Question</h2>
+                      <form onSubmit={handleSaveEdit}>
+                        <div className="ask-form-container">
+                          <div className="form-group">
+                            <label htmlFor="edit-title">Title</label>
+                            <input
+                              id="edit-title"
+                              type="text"
+                              value={editTitle}
+                              onChange={(e) => setEditTitle(e.target.value)}
+                            />
                           </div>
-                        )}
-                        <div className="question-actions-user">
-                          <div>
-                            <button type="button" onClick={handleShare}>
-                              Share
-                            </button>
-                            {User?.result?._id === question?.userId && (
-                              <>
-                                <button type="button" onClick={() => handleEditClick(question)}>
-                                  Edit
-                                </button>
-                                <button type="button" onClick={handleDelete}>
-                                  Delete
-                                </button>
-                              </>
-                            )}
+                          <div className="form-group">
+                            <label>Body</label>
+                            <div className="editor-wrapper">
+                              <ReactQuill
+                                theme="snow"
+                                value={editBody}
+                                onChange={setEditBody}
+                                modules={modules}
+                                formats={formats}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <p>asked {formatDistanceToNow(new Date(question.askedOn), { addSuffix: true })}</p>
-                            <Link
-                              to={`/Users/${question.userId}`}
-                              className="user-link"
-                              style={{ color: "#0086d8" }}
-                            >
-                              <Avatar
-                                backgroundColor="orange"
-                                px="8px"
-                                py="5px"
-                                borderRadius="4px"
-                              >
-                                {question.userPosted.charAt(0).toUpperCase()}
-                              </Avatar>
-                              <div>{question.userPosted}</div>
-                            </Link>
+                          <div className="form-group">
+                            <label htmlFor="edit-tags">Tags (space-separated)</label>
+                            <input
+                              id="edit-tags"
+                              type="text"
+                              value={editTags}
+                              onChange={(e) => setEditTags(e.target.value)}
+                            />
+                          </div>
+                          <div className="edit-form-buttons">
+                            <button type="submit" className="btn btn-primary">Save</button>
+                            <button type="button" onClick={() => setIsEditing(false)} className="btn btn-ghost">Cancel</button>
                           </div>
                         </div>
-                        <Comments
-                          questionId={question._id}
-                          parentId={question._id}
-                          comments={question.comments}
-                          type="question"
-                          postOwnerId={question.userId}
-                        />
+                      </form>
+                    </section>
+                  ) : (
+                    <section className="question-details-container">
+                      <div className="question-details-header">
+                        <h1>{question.questionTitle}</h1>
+                        <div className="question-details-meta">
+                          <span>Asked <strong>{formatDistanceToNow(new Date(question.askedOn), { addSuffix: true })}</strong></span>
+                          {question.editedOn && <span>Active <strong>{formatDistanceToNow(new Date(question.editedOn), { addSuffix: true })}</strong></span>}
+                          <span>Viewed <strong>{question.views || 0} times</strong></span>
+                        </div>
                       </div>
-                    </div>
-                  </section>
-                )}
-                {question.noOfAnswers !== 0 && (
-                  <section>
-                    <h3>{question.noOfAnswers} Answers</h3>
-                    <DisplayAnswer
-                      key={question._id}
-                      question={question}
-                      handleShare={handleShare}
-                    />
-                  </section>
-                )}
-                <section className="post-ans-container">
-                  <h3>Your Answer</h3>
-                  <form
-                    onSubmit={(e) => {
-                      handlePostAns(e, question.answer.length);
-                    }}
-                  >
-                    <ReactQuill
-                      theme="snow"
-                      value={Answer}
-                      onChange={setAnswer}
-                      modules={modules}
-                      formats={formats}
-                    />
-                    <br />
-                    <input
-                      type="submit"
-                      className="post-ans-btn"
-                      value="Post Your Answer"
-                    />
-                  </form>
-                  <p>
-                    Browse other Question tagged
-                    {question.questionTags.map((tag) => (
-                      <Link to={`/Tags/${tag}`} key={tag} className="ans-tags">
-                        {" "}
-                        {tag}{" "}
-                      </Link>
-                    ))}{" "}
-                    or
-                    <Link
-                      to="/AskQuestion"
-                      style={{ textDecoration: "none", color: "#009dff" }}
+                      
+                      <div className="question-details-container-2">
+                        {/* Voting column */}
+                        <div className="question-votes">
+                          <button
+                            type="button"
+                            className={`votes-icon-btn upvote-btn ${hasUpvoted ? "active" : ""}`}
+                            onClick={handleUpVote}
+                            title="Upvote"
+                          >
+                            <UpVoteIcon />
+                          </button>
+                          <p className={`vote-score ${scoreClass(currentScore)}`}>
+                            {currentScore}
+                          </p>
+                          <button
+                            type="button"
+                            className={`votes-icon-btn downvote-btn ${hasDownvoted ? "active" : ""}`}
+                            onClick={handleDownVote}
+                            title="Downvote"
+                          >
+                            <DownVoteIcon />
+                          </button>
+                          <button
+                            type="button"
+                            className="bookmark-btn"
+                            onClick={() => handleBookmarkClick(question._id)}
+                            title={isSaved ? "Remove bookmark" : "Bookmark this question"}
+                          >
+                            <BookmarkIconSVG filled={isSaved} />
+                          </button>
+                        </div>
+
+                        {/* Content column */}
+                        <div className="question-body-content">
+                          <div className="prose">
+                            <SafeHtml content={question.questionBody} />
+                          </div>
+                          <div className="display-tags">
+                            {question.questionTags.map((tag) => (
+                              <Link to={`/Tags/${tag}`} key={tag} className="tag-chip">
+                                {tag}
+                              </Link>
+                            ))}
+                          </div>
+                          {question.editedOn && (
+                            <div className="edit-time-line">
+                              <p className="author-date">
+                                edited {formatDistanceToNow(new Date(question.editedOn), { addSuffix: true })} by {question.editedBy}
+                              </p>
+                            </div>
+                          )}
+                          <div className="question-actions-user">
+                            <div className="question-action-btns">
+                              <button type="button" onClick={handleShare}>
+                                Share
+                              </button>
+                              {User?.result?._id === question?.userId && (
+                                <>
+                                  <button type="button" onClick={() => handleEditClick(question)}>
+                                    Edit
+                                  </button>
+                                  <button type="button" className="text-danger" onClick={handleDelete}>
+                                    Delete
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                            <div className="question-author-meta">
+                              <div className="author-info-text">
+                                <span className="author-date">asked {formatDistanceToNow(new Date(question.askedOn), { addSuffix: true })}</span>
+                                <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "4px" }}>
+                                  <Link to={`/Users/${question.userId}`} className="author-link">
+                                    {question.userPosted}
+                                  </Link>
+                                  <UserBadge userId={question.userId} />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <Comments
+                            questionId={question._id}
+                            parentId={question._id}
+                            comments={question.comments}
+                            type="question"
+                            postOwnerId={question.userId}
+                          />
+                        </div>
+                      </div>
+                    </section>
+                  )}
+                  {question.noOfAnswers !== 0 && (
+                    <section>
+                      <h3 className="answers-section-title">{question.noOfAnswers} Answers</h3>
+                      <DisplayAnswer
+                        key={question._id}
+                        question={question}
+                        handleShare={handleShare}
+                      />
+                    </section>
+                  )}
+                  <section className="post-ans-container">
+                    <h3>Your Answer</h3>
+                    <form
+                      onSubmit={(e) => {
+                        handlePostAns(e, question.answer?.length || 0);
+                      }}
                     >
-                      {" "}
-                      ask your own question.
-                    </Link>
-                  </p>
-                </section>
-              </div>
-            ))}
+                      <div className="editor-wrapper">
+                        <ReactQuill
+                          theme="snow"
+                          value={Answer}
+                          onChange={setAnswer}
+                          modules={modules}
+                          formats={formats}
+                        />
+                      </div>
+                      <input
+                        type="submit"
+                        className="btn btn-primary"
+                        value="Post Your Answer"
+                      />
+                    </form>
+                    <p style={{ marginTop: "var(--space-4)", fontSize: "14px", color: "var(--color-text-secondary)" }}>
+                      Browse other questions tagged{" "}
+                      {question.questionTags.map((tag) => (
+                        <Link to={`/Tags/${tag}`} key={tag} className="tag-chip" style={{ margin: "0 2px" }}>
+                          {tag}
+                        </Link>
+                      ))}{" "}
+                      or{" "}
+                      <Link
+                        to="/AskQuestion"
+                        style={{ color: "var(--color-brand-secondary)", fontWeight: "600", textDecoration: "underline" }}
+                      >
+                        ask your own question.
+                      </Link>
+                    </p>
+                  </section>
+                </div>
+              );
+            })}
         </>
       )}
     </div>

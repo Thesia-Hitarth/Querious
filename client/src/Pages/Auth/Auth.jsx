@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 import "./Auth.css";
-import icon from "../../assets/icon.png";
+import icon from "../../assets/Only-Symbol.png";
 import AboutAuth from "./AboutAuth";
 import { signup, login } from "../../actions/auth";
 import * as api from "../../api";
+
 const Auth = () => {
   const [isSignup, setIsSignup] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -68,37 +69,65 @@ const Auth = () => {
   return (
     <section className="auth-section">
       {isSignup && !isForgotPassword && <AboutAuth />}
-      <div className="auth-container-2">
-        <img src={icon} alt="stack overflow" className="login-logo" />
-        
+      
+      <div className="auth-card-container">
+        <div className="auth-card-logo">
+          <img src={icon} alt="Querious" />
+        </div>
+
+        {/* Tab Switcher Header (Section 8) */}
+        {!isForgotPassword && (
+          <div className="auth-tab-switcher">
+            <button
+              type="button"
+              className={`auth-tab ${!isSignup ? "active" : ""}`}
+              onClick={() => {
+                setIsSignup(false);
+                setIsForgotPassword(false);
+              }}
+            >
+              Log in
+            </button>
+            <button
+              type="button"
+              className={`auth-tab ${isSignup ? "active" : ""}`}
+              onClick={() => {
+                setIsSignup(true);
+                setIsForgotPassword(false);
+              }}
+            >
+              Sign up
+            </button>
+          </div>
+        )}
+
         {isForgotPassword ? (
-          <div>
-            <h3 style={{ textAlign: "center", marginBottom: "10px" }}>Reset Password</h3>
+          <div className="forgot-password-flow">
+            <h3 className="auth-heading">Reset Password</h3>
             {resetSent ? (
-              <p style={{ fontSize: "14px", color: "green", textAlign: "center", lineHeight: "20px" }}>
+              <p className="forgot-success-text">
                 A password reset link has been successfully logged to the server console log. Please check your server terminal.
               </p>
             ) : (
-              <p style={{ fontSize: "13px", color: "#666", textAlign: "center", marginBottom: "15px", lineHeight: "18px" }}>
+              <p className="forgot-hint-text">
                 Enter your email address and we'll log a recovery link to the server console log.
               </p>
             )}
             
             {!resetSent && (
-              <form onSubmit={handleSubmit}>
-                <label htmlFor="email">
-                  <h4>Email</h4>
+              <form onSubmit={handleSubmit} className="auth-form">
+                <div className="form-group">
+                  <label htmlFor="email">Email</label>
                   <input
                     type="email"
                     name="email"
                     id="email"
                     value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                    }}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
-                </label>
-                <button type="submit" className="auth-btn" style={{ marginTop: "10px" }}>
+                </div>
+                <button type="submit" className="btn-auth-submit">
                   Send Recovery Link
                 </button>
               </form>
@@ -106,54 +135,54 @@ const Auth = () => {
             
             <button
               type="button"
-              className="handle-switch-btn"
+              className="back-login-btn"
               onClick={() => {
                 setIsForgotPassword(false);
                 setResetSent(false);
               }}
-              style={{ display: "block", margin: "15px auto 0 auto", color: "#007ac6" }}
             >
               Back to Log in
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="auth-form">
+            <h2 className="auth-heading">
+              {isSignup ? "Join Querious" : "Welcome back"}
+            </h2>
+            
             {isSignup && (
-              <label htmlFor="name">
-                <h4>Display Name</h4>
+              <div className="form-group">
+                <label htmlFor="name">Display Name</label>
                 <input
                   type="text"
                   id="name"
                   name="name"
                   value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                  }}
+                  onChange={(e) => setName(e.target.value)}
+                  required
                 />
-              </label>
+              </div>
             )}
-            <label htmlFor="email">
-              <h4>Email</h4>
+
+            <div className="form-group">
+              <label htmlFor="email">Email Address</label>
               <input
                 type="email"
                 name="email"
                 id="email"
                 value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                }}
+                onChange={(e) => setEmail(e.target.value)}
+                required
               />
-            </label>
-            <label htmlFor="password">
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <h4>Password</h4>
+            </div>
+
+            <div className="form-group">
+              <div className="password-label-row">
+                <label htmlFor="password">Password</label>
                 {!isSignup && (
-                  <p
-                    style={{ color: "#007ac6", fontSize: "13px", cursor: "pointer" }}
-                    onClick={handleForgotPasswordClick}
-                  >
-                    forgot password?
-                  </p>
+                  <span className="forgot-link" onClick={handleForgotPasswordClick}>
+                    Forgot password?
+                  </span>
                 )}
               </div>
               <input
@@ -161,27 +190,23 @@ const Auth = () => {
                 name="password"
                 id="password"
                 value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                }}
+                onChange={(e) => setPassword(e.target.value)}
+                required
               />
-            </label>
-            <button type="submit" className="auth-btn">
+            </div>
+
+            <button type="submit" className="btn-auth-submit">
               {isSignup ? "Sign up" : "Log in"}
             </button>
           </form>
         )}
         
         {!isForgotPassword && (
-          <p>
-            {isSignup ? "Already have an account?" : "Don't have an account?"}
-            <button
-              type="button"
-              className="handle-switch-btn"
-              onClick={handleSwitch}
-            >
-              {isSignup ? "Log in" : "sign up"}
-            </button>
+          <p className="auth-footer-toggle">
+            {isSignup ? "Already have an account? " : "Don't have an account? "}
+            <span className="auth-toggle-link" onClick={handleSwitch}>
+              {isSignup ? "Log in" : "Sign up"}
+            </span>
           </p>
         )}
       </div>

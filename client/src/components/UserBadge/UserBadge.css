@@ -1,0 +1,46 @@
+.user-badge-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.user-reputation {
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.badge-circle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.badge-circle .circle-dot {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.badge-circle.gold .circle-dot {
+  color: #ffcc00;
+}
+
+.badge-circle.silver .circle-dot {
+  color: #b4b8bc;
+}
+
+.badge-circle.bronze .circle-dot {
+  color: #d1a684;
+}
+
+.badge-count {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.user-reputation-only {
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}

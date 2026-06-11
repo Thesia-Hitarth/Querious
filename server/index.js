@@ -6,7 +6,6 @@ import { Server } from "socket.io";
 import helmet from "helmet";
 import mongoSanitize from "express-mongo-sanitize";
 import { rateLimit } from "express-rate-limit";
-import morgan from "morgan";
 
 import userRoutes from "./routes/users.js";
 import questionRoutes from "./routes/Questions.js";
@@ -22,7 +21,7 @@ const app = express();
 
 app.use(helmet());
 app.use(mongoSanitize());
-app.use(morgan("dev"));
+
 
 app.use(express.json({ limit: "30mb", extended: true }));
 app.use(express.urlencoded({ limit: "30mb", extended: true }));

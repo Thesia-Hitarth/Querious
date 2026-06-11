@@ -12,6 +12,7 @@ const TagQuestions = lazy(() => import("./Pages/Tags/TagQuestions"));
 const Users = lazy(() => import("./Pages/Users/Users"));
 const UserProfile = lazy(() => import("./Pages/UserProfile/UserProfile"));
 const ResetPassword = lazy(() => import("./Pages/Auth/ResetPassword"));
+const Blogs = lazy(() => import("./Pages/Blogs/Blogs"));
 
 const AllRoutes = ({ slideIn, handleSlideIn }) => {
   return (
@@ -54,6 +55,14 @@ const AllRoutes = ({ slideIn, handleSlideIn }) => {
           element={
             <UserProfile slideIn={slideIn} handleSlideIn={handleSlideIn} />
           }
+        />
+        <Route
+          path="/Blogs"
+          element={<Blogs slideIn={slideIn} handleSlideIn={handleSlideIn} />}
+        />
+        <Route
+          path="/Blogs/:id"
+          element={<Blogs slideIn={slideIn} handleSlideIn={handleSlideIn} />}
         />
       </Routes>
     </Suspense>

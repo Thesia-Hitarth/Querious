@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import LeftSidebar from "../../components/LeftSidebar/LeftSidebar";
@@ -10,6 +10,7 @@ import { fetchTagsAggregation } from "../../actions/question";
 const Tags = ({ slideIn, handleSlideIn }) => {
   const dispatch = useDispatch();
   const tagsAggregation = useSelector((state) => state.questionsReducer.tagsAggregation) || [];
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     dispatch(fetchTagsAggregation());
@@ -27,25 +28,46 @@ const Tags = ({ slideIn, handleSlideIn }) => {
     };
   });
 
-  const tagsToDisplay = mergedTags.length > 0 ? mergedTags : tagsList;
+  // If no dynamic tags are fetched yet, merge count=0 or similar for the default tagsList
+  const baseTags = mergedTags.length > 0 ? mergedTags : tagsList.map(t => ({ ...t, count: 0 }));
+
+  // Filter based on search query
+  const filteredTags = baseTags.filter((tag) =>
+    tag.tagName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="home-container-1">
       <LeftSidebar slideIn={slideIn} handleSlideIn={handleSlideIn} />
       <div className="home-container-2">
-        <h1 className="tags-h1">Tags</h1>
-        <p className="tags-p">
-          A tag is a keyword or label that categorizes your question with other,
-          similar questions.
-        </p>
-        <p className="tags-p">
-          Using the right tags makes it easier for others to find and answer
-          your question.
-        </p>
-        <div className="tags-list-container">
-          {tagsToDisplay.map((tag, index) => (
-            <TagsList tag={tag} key={index} />
-          ))}
+        <div className="tags-container-inner" style={{ width: "100%" }}>
+          <h1 className="tags-h1">Tags</h1>
+          <p className="tags-p-subtitle">
+            Browse {baseTags.length} tags used to categorize questions on Querious.
+          </p>
+          <p className="tags-p-desc">
+            Using the right tags makes it easier for others to find and answer your question.
+          </p>
+          
+          <div className="tags-search-container">
+            <input
+              type="text"
+              placeholder="Filter by tag name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="tags-search-input"
+            />
+          </div>
+
+          <div className="tags-list-container">
+            {filteredTags.length > 0 ? (
+              filteredTags.map((tag, index) => (
+                <TagsList tag={tag} key={index} />
+              ))
+            ) : (
+              <p className="tags-empty-text">No tags match your search.</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
