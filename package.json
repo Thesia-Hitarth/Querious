@@ -1,0 +1,15 @@
+{
+  "name": "stack-overflow-clone-root",
+  "version": "1.0.0",
+  "description": "Root workspace setup for Stack Overflow Clone",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm run start --prefix client\"",
+    "build": "npm run build --prefix client",
+    "clear-db": "node server/clearDb.js",
+    "server": "npm run dev --prefix server",
+    "client": "npm run start --prefix client"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
