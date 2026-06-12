@@ -82,11 +82,11 @@ const QuestionsDetails = () => {
   const handlePostAns = (e, answerLength) => {
     e.preventDefault();
     if (User === null) {
-      alert("Login or Signup to answer a question");
+      showToast("Please login or signup to answer a question", "warning");
       Navigate("/Auth");
     } else {
       if (Answer === "") {
-        alert("Enter an answer before submitting");
+        showToast("Enter an answer before submitting", "error");
       } else {
         dispatch(
           postAnswer({
@@ -104,7 +104,7 @@ const QuestionsDetails = () => {
 
   const handleShare = () => {
     copy(url + location.pathname);
-    alert("Copied url : " + url + location.pathname);
+    showToast("URL copied to clipboard!", "success");
   };
 
   const handleDelete = () => {
@@ -122,7 +122,7 @@ const QuestionsDetails = () => {
   const handleSaveEdit = (e) => {
     e.preventDefault();
     if (!editTitle || !editBody || !editTags) {
-      alert("Please fill in all fields");
+      showToast("Please fill in all fields", "error");
       return;
     }
     dispatch(
@@ -138,7 +138,7 @@ const QuestionsDetails = () => {
 
   const handleUpVote = () => {
     if (User === null) {
-      alert("Login or Signup to up vote a question");
+      showToast("Please login or signup to up vote a question", "warning");
       Navigate("/Auth");
     } else {
       dispatch(voteQuestion(id, "upVote"));
@@ -148,7 +148,7 @@ const QuestionsDetails = () => {
 
   const handleDownVote = () => {
     if (User === null) {
-      alert("Login or Signup to down vote a question");
+      showToast("Please login or signup to down vote a question", "warning");
       Navigate("/Auth");
     } else {
       dispatch(voteQuestion(id, "downVote"));
@@ -158,7 +158,7 @@ const QuestionsDetails = () => {
 
   const handleBookmarkClick = (questionId) => {
     if (User === null) {
-      alert("Login or Signup to bookmark a question");
+      showToast("Please login or signup to bookmark a question", "warning");
       Navigate("/Auth");
     } else {
       dispatch(toggleSaveQuestion(User.result._id, questionId));

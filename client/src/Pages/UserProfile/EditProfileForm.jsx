@@ -1,17 +1,19 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { updateProfile } from "../../actions/users";
+import { useToast } from "../../components/Toast/ToastContext";
 
 const EditProfileForm = ({ currentUser, setSwitch }) => {
   const [name, setName] = useState(currentUser?.result?.name);
   const [about, setAbout] = useState(currentUser?.result?.about);
   const [tags, setTags] = useState([]);
   const dispatch = useDispatch();
+  const { showToast } = useToast();
   console.log(tags);
   const handleSubmit = (e) => {
     e.preventDefault();
     if (tags[0] === "" || tags.length === 0) {
-      alert("Update tags field");
+      showToast("Please update your tags field", "warning");
     } else {
       dispatch(updateProfile(currentUser?.result?._id, { name, about, tags }));
     }

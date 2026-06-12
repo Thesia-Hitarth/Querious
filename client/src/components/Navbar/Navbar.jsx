@@ -10,7 +10,7 @@ import { setCurrentUser } from "../../actions/currentUser";
 import { fetchAllQuestions } from "../../actions/question";
 import { markAsRead, markAllAsRead } from "../../actions/notifications";
 
-// Custom Inline SVG Icons to avoid importing heavy libraries
+// Custom Inline SVG Icons
 const MenuIconSVG = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -27,7 +27,7 @@ const SearchIconSVG = () => (
 );
 
 const BellIconSVG = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
     <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
   </svg>
@@ -45,12 +45,10 @@ const Navbar = ({ handleSlideIn }) => {
   const User = useSelector((state) => state.currentUserReducer);
   const navigate = useNavigate();
 
-  // Search state & debounce
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const debounceTimeout = useRef(null);
 
-  // Notifications state
   const notificationsList = useSelector((state) => state.notificationsReducer) || { data: [] };
   const notifications = notificationsList.data || [];
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -61,16 +59,11 @@ const Navbar = ({ handleSlideIn }) => {
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchQuery(value);
-
-    if (debounceTimeout.current) {
-      clearTimeout(debounceTimeout.current);
-    }
-
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
     debounceTimeout.current = setTimeout(() => {
       const tagMatch = value.match(/\[([^\]]+)\]/);
       const parsedTag = tagMatch ? tagMatch[1].trim() : "";
       const searchVal = tagMatch ? value.replace(/\[[^\]]+\]/g, "").trim() : value;
-
       dispatch({ type: "SET_SEARCH_QUERY", payload: value });
       dispatch(fetchAllQuestions({ search: searchVal, tag: parsedTag }));
     }, 300);
@@ -98,13 +91,16 @@ const Navbar = ({ handleSlideIn }) => {
     dispatch(markAllAsRead());
   };
 
-  // Keyboard shortcut '/' to focus search bar
   const searchInputRef = useRef(null);
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === "/" && document.activeElement !== searchInputRef.current && 
-          document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== "TEXTAREA" &&
-          !document.activeElement.isContentEditable) {
+      if (
+        e.key === "/" &&
+        document.activeElement !== searchInputRef.current &&
+        document.activeElement.tagName !== "INPUT" &&
+        document.activeElement.tagName !== "TEXTAREA" &&
+        !document.activeElement.isContentEditable
+      ) {
         e.preventDefault();
         searchInputRef.current?.focus();
       }
@@ -114,13 +110,35 @@ const Navbar = ({ handleSlideIn }) => {
   }, []);
 
   useEffect(() => {
+    let prevScrollPos = window.pageYOffset || document.documentElement.scrollTop;
+
+    const handleScroll = () => {
+      const currentScrollPos = window.pageYOffset || document.documentElement.scrollTop;
+      // Show navbar if scrolling up or if close to the top (within 80px)
+      const isVisible = prevScrollPos > currentScrollPos || currentScrollPos < 80;
+
+      if (isVisible) {
+        document.documentElement.classList.remove("navbar-hidden");
+      } else {
+        document.documentElement.classList.add("navbar-hidden");
+      }
+
+      prevScrollPos = currentScrollPos;
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      document.documentElement.classList.remove("navbar-hidden");
+    };
+  }, []);
+
+  useEffect(() => {
     const token = User?.token;
     if (token) {
       try {
         const decodedToken = decode(token);
-        if (decodedToken.exp * 1000 < new Date().getTime()) {
-          handleLogout();
-        }
+        if (decodedToken.exp * 1000 < new Date().getTime()) handleLogout();
       } catch (e) {
         console.error("Failed to decode token, logging out:", e);
         handleLogout();
@@ -142,33 +160,45 @@ const Navbar = ({ handleSlideIn }) => {
   return (
     <nav className="main-nav">
       <div className="navbar">
-        <button className="slide-in-icon" onClick={() => handleSlideIn()}>
+        {/* Mobile hamburger */}
+        <button className="slide-in-icon" onClick={() => handleSlideIn()} aria-label="Open menu">
           <MenuIconSVG />
         </button>
 
+        {/* Logo */}
         <div className="navbar-left">
           <Link to="/" className="nav-item nav-logo">
-            <img src={logo} alt="Querious logo" />
+            <img src={logo} alt="Querious" className="nav-logo-img" />
+            <span>
+              <span className="nav-logo-text-accent">Q</span>
+              <span className="nav-logo-text">uerious</span>
+            </span>
           </Link>
         </div>
 
+        {/* Search */}
         <div className="navbar-center">
-          <form className={`navbar-search-form ${isSearchExpanded ? "mobile-expanded" : ""}`} onSubmit={(e) => e.preventDefault()}>
+          <form
+            className={`navbar-search-form ${isSearchExpanded ? "mobile-expanded" : ""}`}
+            onSubmit={(e) => e.preventDefault()}
+          >
             <span className="search-icon">
               <SearchIconSVG />
             </span>
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search... (Press '/' to focus)"
+              placeholder="Search questions… (Press '/' to focus)"
               value={searchQuery}
               onChange={handleSearchChange}
+              aria-label="Search questions"
             />
             {searchQuery && (
               <button
                 type="button"
                 className="search-clear-btn"
                 onClick={handleClearSearch}
+                aria-label="Clear search"
               >
                 &times;
               </button>
@@ -177,70 +207,65 @@ const Navbar = ({ handleSlideIn }) => {
           </form>
         </div>
 
+        {/* Right side */}
         <div className="navbar-right">
-          <button 
-            type="button" 
-            className="mobile-search-toggle" 
+          {/* Mobile search toggle */}
+          <button
+            type="button"
+            className="mobile-search-toggle"
             onClick={() => setIsSearchExpanded(!isSearchExpanded)}
+            aria-label="Toggle search"
           >
             <SearchIconSVG />
           </button>
 
           {User === null ? (
             <>
-              <Link to="/Auth" className="btn btn-ghost login-btn">
+              <Link to="/Auth" className="btn login-btn">
                 <span className="login-text-desktop">Log in</span>
                 <span className="login-icon-mobile"><UserIconSVG /></span>
               </Link>
-              <Link to="/Auth" className="btn btn-primary signup-btn">
+              <Link to="/Auth" className="btn signup-btn">
                 Sign up
               </Link>
             </>
           ) : (
             <>
-              {/* Notification Bell */}
+              {/* Bell */}
               <div className="navbar-bell-container" ref={bellRef}>
                 <button
                   type="button"
                   className="navbar-bell-btn"
                   onClick={() => setIsBellOpen(!isBellOpen)}
+                  aria-label="Notifications"
                 >
                   <BellIconSVG />
-                  {unreadCount > 0 && (
-                    <span className="navbar-bell-badge"></span>
-                  )}
+                  {unreadCount > 0 && <span className="navbar-bell-badge" />}
                 </button>
+
                 {isBellOpen && (
                   <div className="notifications-dropdown">
                     <div className="bell-dropdown-header">
-                      <h4>Notifications</h4>
+                      <h4>Notifications {unreadCount > 0 && <span style={{ color: "var(--color-brand-primary)", fontSize: "13px" }}>({unreadCount})</span>}</h4>
                       {unreadCount > 0 && (
-                        <button
-                          type="button"
-                          className="mark-all-read-btn"
-                          onClick={handleMarkAllRead}
-                        >
+                        <button type="button" className="mark-all-read-btn" onClick={handleMarkAllRead}>
                           Mark all read
                         </button>
                       )}
                     </div>
                     {notifications.length === 0 ? (
-                      <p className="no-notifications">No new notifications</p>
+                      <p className="no-notifications">🔔 No notifications yet</p>
                     ) : (
                       <div className="notifications-list">
                         {notifications.map((notif) => (
                           <div
                             key={notif._id}
-                            className={`notification-item ${
-                              notif.read ? "read" : "unread"
-                            }`}
+                            className={`notification-item ${notif.read ? "read" : "unread"}`}
                             onClick={() => handleNotificationClick(notif)}
                           >
                             <span className="notif-message">{notif.message}</span>
                             <span className="notif-time">
-                              {formatDistanceToNow(new Date(notif.createdAt), {
-                                addSuffix: true,
-                              })}
+                              {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
                             </span>
                           </div>
                         ))}
@@ -250,14 +275,14 @@ const Navbar = ({ handleSlideIn }) => {
                 )}
               </div>
 
-              {/* Avatar circle */}
+              {/* Avatar */}
               <div className="navbar-avatar">
-                <Link to={`/Users/${User?.result?._id}`}>
+                <Link to={`/Users/${User?.result?._id}`} aria-label="View profile">
                   {User.result.name.charAt(0).toUpperCase()}
                 </Link>
               </div>
 
-              <button className="btn btn-ghost logout-btn" onClick={handleLogout}>
+              <button className="btn logout-btn" onClick={handleLogout}>
                 Log out
               </button>
             </>

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import * as api from "../../api";
 import "./Auth.css";
+import { useToast } from "../../components/Toast/ToastContext";
 
 const ResetPassword = () => {
   const { token } = useParams();
@@ -9,19 +10,20 @@ const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newPassword || !confirmPassword) {
-      alert("Please enter password fields");
+      showToast("Please enter all password fields", "error");
       return;
     }
     if (newPassword.length < 6) {
-      alert("Password must be at least 6 characters long");
+      showToast("Password must be at least 6 characters long", "error");
       return;
     }
     if (newPassword !== confirmPassword) {
-      alert("Passwords do not match");
+      showToast("Passwords do not match", "error");
       return;
     }
 
@@ -29,11 +31,11 @@ const ResetPassword = () => {
     try {
       setLoading(true);
       await api.resetPassword(token, newPassword);
-      alert("Password has been reset successfully! Redirecting to login...");
+      showToast("Password has been reset successfully! Redirecting...", "success");
       navigate("/Auth");
     } catch (error) {
       console.error(error);
-      alert(error.response?.data?.message || "Failed to reset password.");
+      showToast(error.response?.data?.message || "Failed to reset password.", "error");
     } finally {
       setLoading(false);
     }

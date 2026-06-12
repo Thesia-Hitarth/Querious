@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 import "./Auth.css";
 import icon from "../../assets/Only-Symbol.png";
 import AboutAuth from "./AboutAuth";
 import { signup, login } from "../../actions/auth";
 import * as api from "../../api";
+import { useToast } from "../../components/Toast/ToastContext";
 
 const Auth = () => {
   const [isSignup, setIsSignup] = useState(false);
@@ -18,6 +20,7 @@ const Auth = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const handleSwitch = () => {
     setIsSignup(!isSignup);
@@ -38,26 +41,27 @@ const Auth = () => {
     e.preventDefault();
     if (isForgotPassword) {
       if (!email) {
-        alert("Please enter your email");
+        showToast("Please enter your email", "error");
         return;
       }
       try {
         await api.forgotPassword(email);
         setResetSent(true);
+        showToast("Password reset link has been sent to your email", "success");
       } catch (error) {
         console.error(error);
-        alert(error.response?.data?.message || "Something went wrong.");
+        showToast(error.response?.data?.message || "Something went wrong.", "error");
       }
       return;
     }
 
     if (!email || !password) {
-      alert("Enter email and password");
+      showToast("Please enter email and password", "error");
       return;
     }
     if (isSignup) {
       if (!name) {
-        alert("Enter a name to continue");
+        showToast("Please enter a name to continue", "error");
         return;
       }
       dispatch(signup({ name, email, password }, navigate));
@@ -70,9 +74,18 @@ const Auth = () => {
     <section className="auth-section">
       {isSignup && !isForgotPassword && <AboutAuth />}
       
-      <div className="auth-card-container">
+      <motion.div
+        className="auth-card-container"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+      >
         <div className="auth-card-logo">
           <img src={icon} alt="Querious" />
+          <span>
+            <span className="auth-card-logo-text-accent">Q</span>
+            <span className="auth-card-logo-text">uerious</span>
+          </span>
         </div>
 
         {/* Tab Switcher Header (Section 8) */}
@@ -209,7 +222,7 @@ const Auth = () => {
             </span>
           </p>
         )}
-      </div>
+      </motion.div>
     </section>
   );
 };

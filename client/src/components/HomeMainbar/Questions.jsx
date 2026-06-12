@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { toggleSaveQuestion } from "../../actions/users";
 import UserBadge from "../UserBadge/UserBadge";
 import "../../Pages/Questions/Questions.css";
+import { useToast } from "../Toast/ToastContext";
 
 // SVG Bookmark Icon
 const BookmarkIconSVG = ({ filled }) => (
@@ -23,12 +24,13 @@ const Questions = ({ question }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const User = useSelector((state) => state.currentUserReducer);
+  const { showToast } = useToast();
 
   const handleBookmarkClick = (e, questionId) => {
     e.preventDefault();
     e.stopPropagation();
     if (User === null) {
-      alert("Login or Signup to bookmark a question");
+      showToast("Please login or signup to bookmark a question", "warning");
       navigate("/Auth");
     } else {
       dispatch(toggleSaveQuestion(User.result._id, questionId));

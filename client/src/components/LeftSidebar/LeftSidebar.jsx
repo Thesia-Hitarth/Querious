@@ -1,9 +1,10 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
 import "./LeftSidebar.css";
 
-// SVG Icons (16px) drawn as custom inline vectors
+// SVG Icons
 const HomeIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -48,11 +49,35 @@ const ProfileIcon = () => (
   </svg>
 );
 
+const BlogIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+  </svg>
+);
+
+// Animation variants
+const sidebarVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.3,
+      staggerChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, x: -12 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.25 } },
+};
+
 const LeftSidebar = ({ slideIn, handleSlideIn }) => {
   const User = useSelector((state) => state.currentUserReducer);
 
   const handleLinkClick = () => {
-    // Close sidebar on link click in mobile view
     if (window.innerWidth <= 760 && handleSlideIn) {
       handleSlideIn();
     }
@@ -61,69 +86,114 @@ const LeftSidebar = ({ slideIn, handleSlideIn }) => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const isSavesTab = searchParams.get("tab") === "saves";
-  const isSelfProfile = User?.result?._id && location.pathname === `/Users/${User?.result?._id}`;
+  const isSelfProfile =
+    User?.result?._id && location.pathname === `/Users/${User?.result?._id}`;
 
   return (
     <>
-      {/* Mobile background overlay */}
-      {slideIn && (
-        <div className="left-sidebar-overlay" onClick={handleLinkClick} />
-      )}
+      {/* Mobile overlay */}
+      <AnimatePresence>
+        {slideIn && (
+          <motion.div
+            className="left-sidebar-overlay"
+            onClick={handleLinkClick}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
+        )}
+      </AnimatePresence>
 
       <div className={`left-sidebar ${slideIn ? "slide-in" : ""}`}>
-        <nav className="side-nav">
+        <motion.nav
+          className="side-nav"
+          variants={sidebarVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {/* DISCOVER */}
           <div className="side-nav-section">
-            <span className="side-nav-label">DISCOVER</span>
-            
-            <NavLink to="/" className="side-nav-links" onClick={handleLinkClick} end>
-              <HomeIcon />
-              <span>Home</span>
-            </NavLink>
+            <span className="side-nav-label">Discover</span>
 
-            <NavLink to="/Questions" className="side-nav-links" onClick={handleLinkClick}>
-              <QuestionsIcon />
-              <span>Questions</span>
-            </NavLink>
+            <motion.div variants={itemVariants}>
+              <NavLink to="/" className="side-nav-links" onClick={handleLinkClick} end>
+                <HomeIcon />
+                <span>Home</span>
+              </NavLink>
+            </motion.div>
 
-            <NavLink to="/Tags" className="side-nav-links" onClick={handleLinkClick}>
-              <TagsIcon />
-              <span>Tags</span>
-            </NavLink>
+            <motion.div variants={itemVariants}>
+              <NavLink to="/Questions" className="side-nav-links" onClick={handleLinkClick}>
+                <QuestionsIcon />
+                <span>Questions</span>
+              </NavLink>
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
+              <NavLink to="/Tags" className="side-nav-links" onClick={handleLinkClick}>
+                <TagsIcon />
+                <span>Tags</span>
+              </NavLink>
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
+              <NavLink to="/Blogs" className="side-nav-links" onClick={handleLinkClick}>
+                <BlogIcon />
+                <span>Blogs</span>
+              </NavLink>
+            </motion.div>
           </div>
 
+          {/* COMMUNITY */}
           <div className="side-nav-section">
-            <span className="side-nav-label">COMMUNITY</span>
-            
-            <NavLink to="/Users" className="side-nav-links" onClick={handleLinkClick} end>
-              <UsersIcon />
-              <span>Users</span>
-            </NavLink>
+            <span className="side-nav-label">Community</span>
+
+            <motion.div variants={itemVariants}>
+              <NavLink to="/Users" className="side-nav-links" onClick={handleLinkClick} end>
+                <UsersIcon />
+                <span>Users</span>
+              </NavLink>
+            </motion.div>
           </div>
 
+          {/* MY ACTIVITY */}
           {User && (
             <div className="side-nav-section">
-              <span className="side-nav-label">MY ACTIVITY</span>
-              
-              <NavLink 
-                to={`/Users/${User?.result?._id}?tab=saves`} 
-                className={({ isActive }) => `side-nav-links ${isSavesTab && location.pathname.startsWith(`/Users/${User?.result?._id}`) ? "active" : ""}`}
-                onClick={handleLinkClick}
-              >
-                <SavedIcon />
-                <span>Saved</span>
-              </NavLink>
+              <span className="side-nav-label">My Activity</span>
 
-              <NavLink 
-                to={`/Users/${User?.result?._id}`} 
-                className={({ isActive }) => `side-nav-links ${!isSavesTab && isSelfProfile ? "active" : ""}`}
-                onClick={handleLinkClick}
-              >
-                <ProfileIcon />
-                <span>Profile</span>
-              </NavLink>
+              <motion.div variants={itemVariants}>
+                <NavLink
+                  to={`/Users/${User?.result?._id}?tab=saves`}
+                  className={({ isActive }) =>
+                    `side-nav-links ${
+                      isSavesTab && location.pathname.startsWith(`/Users/${User?.result?._id}`)
+                        ? "active"
+                        : ""
+                    }`
+                  }
+                  onClick={handleLinkClick}
+                >
+                  <SavedIcon />
+                  <span>Saved</span>
+                </NavLink>
+              </motion.div>
+
+              <motion.div variants={itemVariants}>
+                <NavLink
+                  to={`/Users/${User?.result?._id}`}
+                  className={({ isActive }) =>
+                    `side-nav-links ${!isSavesTab && isSelfProfile ? "active" : ""}`
+                  }
+                  onClick={handleLinkClick}
+                >
+                  <ProfileIcon />
+                  <span>Profile</span>
+                </NavLink>
+              </motion.div>
             </div>
           )}
-        </nav>
+        </motion.nav>
       </div>
     </>
   );

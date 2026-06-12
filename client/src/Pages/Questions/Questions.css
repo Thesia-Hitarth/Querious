@@ -2,10 +2,11 @@
 .display-question-container {
   display: flex;
   gap: var(--space-5);
-  padding: var(--space-5);
+  padding: var(--space-5) var(--space-6);
   background-color: var(--color-bg-surface);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border-light);
   transition: background-color var(--transition-fast);
+  cursor: pointer;
 }
 
 .display-question-container:last-child {
@@ -13,7 +14,7 @@
 }
 
 .display-question-container:hover {
-  background-color: var(--color-bg-elevated);
+  background-color: #fffbf7;
 }
 
 /* Question Cards Entry Animation (Section 3 of micro-interactions) */
@@ -36,13 +37,14 @@
 .question-card:nth-child(9) { animation-delay: 320ms; }
 .question-card:nth-child(10) { animation-delay: 360ms; }
 
-/* Left Stacked Stats Column (Section 5) */
+/* Left Stacked Stats Column */
 .question-stats-col {
-  width: 90px;
+  width: 80px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  align-items: center;
 }
 
 .question-stat-pill {
@@ -50,29 +52,35 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 6px var(--space-1);
-  background-color: transparent;
-  border: 1px solid transparent;
-  border-radius: 3px;
+  padding: 5px var(--space-2);
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  min-width: 58px;
   transition: all var(--transition-fast);
 }
 
 .question-stat-pill .stat-number {
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 700;
   color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+  font-family: var(--font-display);
 }
 
 .question-stat-pill .stat-label {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--color-text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   margin-top: 1px;
 }
 
-/* Green borders for answers count > 0 */
+/* Answered indicator */
 .question-stat-pill.has-answers {
-  background-color: transparent;
-  border: 1px solid var(--color-success);
+  background-color: #f0fdf4;
+  border: 1.5px solid #86efac;
 }
 .question-stat-pill.has-answers .stat-number {
   color: var(--color-success);
@@ -81,15 +89,15 @@
   color: var(--color-success);
 }
 
-/* Custom accepted checkmark styling */
+/* Accepted answer indicator */
 .question-stat-pill.accepted {
   background-color: var(--color-success);
-  border: 1px solid var(--color-success);
+  border: 1.5px solid var(--color-success);
 }
 .question-stat-pill.accepted .stat-number,
 .question-stat-pill.accepted .stat-label {
   color: #ffffff;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 /* Right content details styling */
@@ -110,32 +118,36 @@
 .bookmark-btn {
   background: transparent;
   border: none;
-  color: var(--color-text-muted);
+  color: var(--color-text-faint);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2px;
-  margin-top: 2px;
-  transition: color var(--transition-fast), transform var(--transition-fast);
+  padding: 3px;
+  margin-top: 1px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .bookmark-btn:hover {
   color: var(--color-warning);
-  transform: scale(1.15);
+  background: var(--color-warning-bg);
+  transform: scale(1.1);
 }
 
 .question-title-link {
   font-size: 15px;
   font-weight: 600;
   color: var(--color-text-link);
-  line-height: 1.4;
+  line-height: 1.45;
   word-break: break-word;
+  transition: color var(--transition-fast);
 }
 
 .question-title-link:hover {
-  color: var(--color-text-link-hover);
-  text-decoration: underline;
+  color: #1d4ed8;
+  text-decoration: none;
 }
 
 .question-body-snippet {
@@ -184,9 +196,10 @@
 .question-details-container {
   background-color: var(--color-bg-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
   margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-sm);
 }
 
 .question-details-header {
@@ -493,10 +506,15 @@
 .display-ans {
   background-color: var(--color-bg-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6) var(--space-8);
   margin-bottom: var(--space-4);
-  transition: border-left-color var(--transition-base), background-color var(--transition-base);
+  box-shadow: var(--shadow-xs);
+  transition: all var(--transition-base);
+}
+.display-ans:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--color-border-strong);
 }
 
 /* Green border and light green fill for accepted answers */

@@ -9,18 +9,25 @@
 .widget-card {
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-xl);
   padding: var(--space-5);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-xs);
+  transition: box-shadow var(--transition-base), border-color var(--transition-base);
+}
+.widget-card:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--color-border-strong);
 }
 
 .widget-card h3 {
+  font-family: var(--font-display);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text-primary);
   margin-bottom: var(--space-4);
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border-light);
+  padding-bottom: var(--space-3);
+  letter-spacing: -0.02em;
 }
 
 /* Yellow Blog Widget */
@@ -151,8 +158,9 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid rgba(46, 46, 69, 0.4);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background var(--transition-fast);
 }
 
 .contributor-item:last-child {

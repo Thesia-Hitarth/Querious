@@ -9,10 +9,12 @@ import {
   commentAnswer,
   deleteCommentAnswer,
 } from "../../actions/question";
+import { useToast } from "../Toast/ToastContext";
 
 const Comments = ({ questionId, parentId, comments = [], type, postOwnerId }) => {
   const dispatch = useDispatch();
   const User = useSelector((state) => state.currentUserReducer);
+  const { showToast } = useToast();
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [showInput, setShowInput] = useState(false);
@@ -23,11 +25,11 @@ const Comments = ({ questionId, parentId, comments = [], type, postOwnerId }) =>
   const handleAddComment = (e) => {
     e.preventDefault();
     if (User === null) {
-      alert("Please login to comment");
+      showToast("Please login to comment", "warning");
       return;
     }
     if (!commentText.trim()) {
-      alert("Comment cannot be empty");
+      showToast("Comment cannot be empty", "error");
       return;
     }
 

@@ -69,7 +69,7 @@ const DisplayAnswer = ({ question, handleShare }) => {
   const handleSaveEdit = (e, answerId) => {
     e.preventDefault();
     if (!editAnswerBody) {
-      alert("Answer body cannot be empty");
+      showToast("Answer body cannot be empty", "error");
       return;
     }
     dispatch(updateAnswer(id, answerId, { answerBody: editAnswerBody }));
@@ -84,7 +84,7 @@ const DisplayAnswer = ({ question, handleShare }) => {
 
   const handleUpVote = (answerId) => {
     if (User === null) {
-      alert("Login or Signup to vote an answer");
+      showToast("Please login or signup to vote", "warning");
     } else {
       dispatch(voteAnswer(id, answerId, "upVote"));
       showToast("Answer upvoted successfully!", "success");
@@ -93,7 +93,7 @@ const DisplayAnswer = ({ question, handleShare }) => {
 
   const handleDownVote = (answerId) => {
     if (User === null) {
-      alert("Login or Signup to vote an answer");
+      showToast("Please login or signup to vote", "warning");
     } else {
       dispatch(voteAnswer(id, answerId, "downVote"));
       showToast("Answer downvoted successfully!", "success");
@@ -102,7 +102,7 @@ const DisplayAnswer = ({ question, handleShare }) => {
 
   const handleAcceptAnswer = (answerId) => {
     if (User === null) {
-      alert("Login or Signup to accept an answer");
+      showToast("Please login or signup to accept an answer", "warning");
     } else {
       dispatch(acceptAnswer(id, answerId));
       showToast("Answer status updated!", "success");

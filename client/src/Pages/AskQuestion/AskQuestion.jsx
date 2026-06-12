@@ -91,8 +91,8 @@ const AskQuestion = () => {
           )
         );
         showToast("Question posted successfully!", "success");
-      } else alert("Please enter all the fields");
-    } else alert("Login to ask question");
+      } else showToast("Please fill in all question fields", "error");
+    } else showToast("Please login to ask a question", "warning");
   };
 
   return (

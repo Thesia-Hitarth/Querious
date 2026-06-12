@@ -25,6 +25,13 @@ export const getAllQuestions = async (req, res) => {
     const search = req.query.search || "";
     const tag = req.query.tag || "";
 
+    // Parse filter query parameters
+    const filterNoAnswers = req.query.filterNoAnswers === "true";
+    const filterNoAccepted = req.query.filterNoAccepted === "true";
+    const filterDaysOld = parseInt(req.query.filterDaysOld) || null;
+    const filterTags = req.query.filterTags || "";
+    const filterSort = req.query.filterSort || "";
+
     let query = {};
 
     if (search) {
@@ -35,15 +42,50 @@ export const getAllQuestions = async (req, res) => {
       query.questionTags = tag;
     }
 
-    if (tab === "unanswered") {
+    // Apply filters
+    if (filterNoAnswers) {
       query.noOfAnswers = 0;
     }
 
+    if (filterNoAccepted) {
+      query.$or = [{ acceptedAnswerId: null }, { acceptedAnswerId: "" }];
+    }
+
+    if (filterDaysOld) {
+      const cutOffDate = new Date();
+      cutOffDate.setDate(cutOffDate.getDate() - filterDaysOld);
+      query.askedOn = { $gte: cutOffDate };
+    }
+
+    if (filterTags) {
+      const tagsArray = filterTags.split(/[\s,]+/).filter(Boolean);
+      if (tagsArray.length > 0) {
+        query.questionTags = { $in: tagsArray };
+      }
+    }
+
+    // Determine sorting options
     let sortOption = { askedOn: -1 };
-    if (tab === "active") {
-      sortOption = { noOfAnswers: -1, askedOn: -1 };
-    } else if (tab === "newest") {
-      sortOption = { askedOn: -1 };
+    if (filterSort) {
+      if (filterSort === "newest") {
+        sortOption = { askedOn: -1 };
+      } else if (filterSort === "activity") {
+        sortOption = { editedOn: -1, askedOn: -1 };
+      } else if (filterSort === "score") {
+        // Approximate score sorting by views and date
+        sortOption = { views: -1, askedOn: -1 };
+      } else if (filterSort === "views") {
+        sortOption = { views: -1 };
+      }
+    } else {
+      if (tab === "active") {
+        sortOption = { noOfAnswers: -1, askedOn: -1 };
+      } else if (tab === "newest") {
+        sortOption = { askedOn: -1 };
+      } else if (tab === "unanswered") {
+        query.noOfAnswers = 0;
+        sortOption = { askedOn: -1 };
+      }
     }
 
     const total = await Questions.countDocuments(query);

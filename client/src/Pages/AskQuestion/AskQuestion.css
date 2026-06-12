@@ -1,8 +1,8 @@
 .ask-question {
-  min-height: calc(100vh - 60px);
+  min-height: calc(100vh - var(--navbar-height));
   background-color: var(--color-bg-base);
-  background-image: radial-gradient(ellipse at 20% 50%, rgba(108,99,255,0.06) 0%, transparent 60%),
-                    radial-gradient(ellipse at 80% 20%, rgba(167,139,250,0.04) 0%, transparent 50%);
+  background-image: radial-gradient(ellipse 60% 40% at 10% 60%, rgba(249,115,22,0.05) 0%, transparent 70%),
+                    radial-gradient(ellipse 50% 40% at 90% 20%, rgba(37,99,235,0.04) 0%, transparent 60%);
   padding: var(--space-6) 0 var(--space-12) 0;
 }
 
@@ -13,10 +13,12 @@
 }
 
 .ask-ques-heading {
-  font-size: 26px;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
   color: var(--color-text-primary);
   margin-bottom: var(--space-6);
+  letter-spacing: -0.04em;
 }
 
 /* Two-column layout grid */
@@ -36,9 +38,9 @@
 .ask-form-container {
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   padding: var(--space-8);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
 }
@@ -81,8 +83,9 @@
 
 .form-group input[type="text"]:focus {
   outline: none;
-  border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+  border-color: var(--color-brand-primary);
+  box-shadow: var(--shadow-glow);
+  background: #fffbf7;
 }
 
 /* React Quill Theme Customization */
@@ -151,12 +154,14 @@
 }
 
 .tips-heading {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-brand-secondary);
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: var(--space-2);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-brand-primary);
+  border-bottom: 1px solid var(--color-border-light);
+  padding-bottom: var(--space-3);
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .tips-intro {
@@ -194,9 +199,9 @@
 /* Similar questions suggestion panel */
 .similar-questions-panel {
   margin-top: 10px;
-  background-color: #fdf7e2;
-  border: 1px solid #f1e5bc;
-  border-radius: 4px;
+  background-color: #fffbf7;
+  border: 1px solid var(--color-brand-primary-light);
+  border-radius: var(--radius-md);
   padding: 12px 16px;
 }
 

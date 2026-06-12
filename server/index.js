@@ -1,6 +1,16 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import dns from "dns";
+
+try {
+  dns.setServers(["8.8.8.8", "1.1.1.1"]);
+} catch (e) {
+  console.warn("Could not set DNS servers, using defaults:", e.message);
+}
+
+dns.setDefaultResultOrder("ipv4first");
+
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
