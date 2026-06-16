@@ -514,6 +514,10 @@
   .keyboard-shortcut-hint { display: none; }
   .mobile-search-toggle { display: flex; }
   .navbar-center { display: none; }
+  .navbar-center.mobile-expanded {
+    display: flex !important;
+    position: static;
+  }
 
   .navbar-search-form.mobile-expanded {
     display: flex;

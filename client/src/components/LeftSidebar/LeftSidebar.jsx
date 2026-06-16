@@ -82,7 +82,7 @@ const LeftSidebar = ({ slideIn, handleSlideIn }) => {
     if (window.innerWidth <= 760 && slideIn && handleSlideIn) {
       handleSlideIn();
     }
-  }, [location, handleSlideIn, slideIn]);
+  }, [location.pathname]);
 
   const handleLinkClick = () => {
     if (window.innerWidth <= 760 && handleSlideIn) {

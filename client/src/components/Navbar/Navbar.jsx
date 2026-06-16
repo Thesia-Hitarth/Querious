@@ -213,7 +213,7 @@ const Navbar = ({ handleSlideIn }) => {
         </div>
 
         {/* Search */}
-        <div className="navbar-center">
+        <div className={`navbar-center ${isSearchExpanded ? "mobile-expanded" : ""}`}>
           <form
             className={`navbar-search-form ${isSearchExpanded ? "mobile-expanded" : ""}`}
             onSubmit={(e) => e.preventDefault()}
