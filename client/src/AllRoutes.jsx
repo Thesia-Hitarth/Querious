@@ -13,6 +13,8 @@ const Users = lazy(() => import("./Pages/Users/Users"));
 const UserProfile = lazy(() => import("./Pages/UserProfile/UserProfile"));
 const ResetPassword = lazy(() => import("./Pages/Auth/ResetPassword"));
 const Blogs = lazy(() => import("./Pages/Blogs/Blogs"));
+const ProtectedRoute = lazy(() => import("./components/ProtectedRoute/ProtectedRoute"));
+const NotFound = lazy(() => import("./Pages/NotFound/NotFound"));
 
 const AllRoutes = ({ slideIn, handleSlideIn }) => {
   return (
@@ -23,7 +25,14 @@ const AllRoutes = ({ slideIn, handleSlideIn }) => {
           element={<Home slideIn={slideIn} handleSlideIn={handleSlideIn} />}
         />
         <Route path="/Auth" element={<Auth />} />
-        <Route path="/AskQuestion" element={<AskQuestion />} />
+        <Route
+          path="/AskQuestion"
+          element={
+            <ProtectedRoute>
+              <AskQuestion />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/Questions"
           element={<Questions slideIn={slideIn} handleSlideIn={handleSlideIn} />}
@@ -64,6 +73,8 @@ const AllRoutes = ({ slideIn, handleSlideIn }) => {
           path="/Blogs/:id"
           element={<Blogs slideIn={slideIn} handleSlideIn={handleSlideIn} />}
         />
+        {/* Catch-all unknown route */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
   );

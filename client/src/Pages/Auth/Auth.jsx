@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 
 import "./Auth.css";
@@ -20,7 +20,18 @@ const Auth = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { showToast } = useToast();
+
+  const from = location.state?.from?.pathname || "/";
+  const redirectMessage = location.state?.message;
+
+  useEffect(() => {
+    if (redirectMessage) {
+      showToast(redirectMessage, "warning");
+      window.history.replaceState({}, document.title);
+    }
+  }, [redirectMessage, showToast]);
 
   const handleSwitch = () => {
     setIsSignup(!isSignup);
@@ -59,14 +70,21 @@ const Auth = () => {
       showToast("Please enter email and password", "error");
       return;
     }
-    if (isSignup) {
-      if (!name) {
-        showToast("Please enter a name to continue", "error");
-        return;
+    try {
+      if (isSignup) {
+        if (!name) {
+          showToast("Please enter a name to continue", "error");
+          return;
+        }
+        await dispatch(signup({ name, email, password }, navigate, from));
+        showToast("Account created successfully!", "success");
+      } else {
+        await dispatch(login({ email, password }, navigate, from));
+        showToast("Logged in successfully!", "success");
       }
-      dispatch(signup({ name, email, password }, navigate));
-    } else {
-      dispatch(login({ email, password }, navigate));
+    } catch (error) {
+      console.error(error);
+      showToast(error.response?.data?.message || "Authentication failed. Please verify your credentials.", "error");
     }
   };
 
@@ -119,11 +137,11 @@ const Auth = () => {
             <h3 className="auth-heading">Reset Password</h3>
             {resetSent ? (
               <p className="forgot-success-text">
-                A password reset link has been successfully logged to the server console log. Please check your server terminal.
+                A password reset link has been successfully sent to your email inbox. Please check your email.
               </p>
             ) : (
               <p className="forgot-hint-text">
-                Enter your email address and we'll log a recovery link to the server console log.
+                Enter your email address and we'll send a password recovery link to your inbox.
               </p>
             )}
             
@@ -193,9 +211,9 @@ const Auth = () => {
               <div className="password-label-row">
                 <label htmlFor="password">Password</label>
                 {!isSignup && (
-                  <span className="forgot-link" onClick={handleForgotPasswordClick}>
+                  <button type="button" className="forgot-link" onClick={handleForgotPasswordClick}>
                     Forgot password?
-                  </span>
+                  </button>
                 )}
               </div>
               <input
@@ -217,9 +235,9 @@ const Auth = () => {
         {!isForgotPassword && (
           <p className="auth-footer-toggle">
             {isSignup ? "Already have an account? " : "Don't have an account? "}
-            <span className="auth-toggle-link" onClick={handleSwitch}>
+            <button type="button" className="auth-toggle-link" onClick={handleSwitch}>
               {isSignup ? "Log in" : "Sign up"}
-            </span>
+            </button>
           </p>
         )}
       </motion.div>

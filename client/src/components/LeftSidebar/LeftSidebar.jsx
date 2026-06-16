@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
@@ -76,6 +76,13 @@ const itemVariants = {
 
 const LeftSidebar = ({ slideIn, handleSlideIn }) => {
   const User = useSelector((state) => state.currentUserReducer);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (window.innerWidth <= 760 && slideIn && handleSlideIn) {
+      handleSlideIn();
+    }
+  }, [location, handleSlideIn]);
 
   const handleLinkClick = () => {
     if (window.innerWidth <= 760 && handleSlideIn) {
@@ -83,7 +90,6 @@ const LeftSidebar = ({ slideIn, handleSlideIn }) => {
     }
   };
 
-  const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const isSavesTab = searchParams.get("tab") === "saves";
   const isSelfProfile =

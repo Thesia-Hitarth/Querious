@@ -7,6 +7,11 @@ const userSchema = mongoose.Schema({
   about: { type: String },
   tags: { type: [String] },
   reputation: { type: Number, default: 1 },
+  badges: {
+    gold: { type: Number, default: 0 },
+    silver: { type: Number, default: 0 },
+    bronze: { type: Number, default: 0 },
+  },
   avatar: { type: String, default: "" },
   location: { type: String, default: "" },
   website: { type: String, default: "" },

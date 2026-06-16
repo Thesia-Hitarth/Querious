@@ -50,41 +50,52 @@ Referencing is preferred when the child documents are unbounded in size or share
 
 const Blogs = ({ slideIn, handleSlideIn }) => {
   const { id } = useParams();
+  const hasId = Boolean(id);
 
   // If a specific ID is requested, show that post, otherwise show the list
-  const blogPost = id ? blogsData.find((b) => b.id === parseInt(id)) : null;
+  const blogPost = hasId ? blogsData.find((b) => b.id === parseInt(id)) : null;
 
   return (
     <div className="home-container-1">
       <LeftSidebar slideIn={slideIn} handleSlideIn={handleSlideIn} />
       <div className="home-container-2">
         <div className="blogs-container-inner" style={{ width: "100%" }}>
-          {blogPost ? (
-            <div className="blog-post-details">
-              <Link to="/Blogs" className="back-blogs-link">
-                ← Back to Blogs
-              </Link>
-              <h1 className="blog-post-title">{blogPost.title}</h1>
-              <div className="blog-post-meta">
-                <span>By <strong>{blogPost.author}</strong></span>
-                <span>·</span>
-                <span>{blogPost.date}</span>
-                <span>·</span>
-                <span>{blogPost.readTime}</span>
+          {hasId ? (
+            blogPost ? (
+              <div className="blog-post-details">
+                <Link to="/Blogs" className="back-blogs-link">
+                  ← Back to Blogs
+                </Link>
+                <h1 className="blog-post-title">{blogPost.title}</h1>
+                <div className="blog-post-meta">
+                  <span>By <strong>{blogPost.author}</strong></span>
+                  <span>·</span>
+                  <span>{blogPost.date}</span>
+                  <span>·</span>
+                  <span>{blogPost.readTime}</span>
+                </div>
+                <div className="blog-post-tags">
+                  {blogPost.tags.map((tag) => (
+                    <span key={tag} className="tag-chip">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <div className="blog-post-content">
+                  {blogPost.content.split("\n\n").map((para, idx) => (
+                    <p key={idx}>{para}</p>
+                  ))}
+                </div>
               </div>
-              <div className="blog-post-tags">
-                {blogPost.tags.map((tag) => (
-                  <span key={tag} className="tag-chip">
-                    {tag}
-                  </span>
-                ))}
+            ) : (
+              <div className="blog-not-found">
+                <Link to="/Blogs" className="back-blogs-link">
+                  ← Back to Blogs
+                </Link>
+                <h2>Article not found</h2>
+                <p>The blog article you are looking for does not exist or has been removed.</p>
               </div>
-              <div className="blog-post-content">
-                {blogPost.content.split("\n\n").map((para, idx) => (
-                  <p key={idx}>{para}</p>
-                ))}
-              </div>
-            </div>
+            )
           ) : (
             <div className="blogs-list-page">
               <h1 className="blogs-heading">The Querious Blog</h1>

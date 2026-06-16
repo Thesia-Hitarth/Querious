@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
 import users from "../models/auth.js";
+import { sendResetEmail } from "../utils/mailHelper.js";
 
 export const signup = async (req, res) => {
   const { name, email, password } = req.body;
@@ -24,7 +25,7 @@ export const signup = async (req, res) => {
     );
     res.status(200).json({ result: newUser, token });
   } catch (error) {
-    res.status(500).json("Something went worng...");
+    res.status(500).json({ message: "Something went wrong..." });
   }
 };
 
@@ -46,7 +47,7 @@ export const login = async (req, res) => {
     );
     res.status(200).json({ result: existinguser, token });
   } catch (error) {
-    res.status(500).json("Something went worng...");
+    res.status(500).json({ message: "Something went wrong..." });
   }
 };
 
@@ -55,7 +56,7 @@ export const forgotPassword = async (req, res) => {
   try {
     const user = await users.findOne({ email });
     if (!user) {
-      return res.status(404).json({ message: "User with this email does not exist." });
+      return res.status(200).json({ message: "If an account exists with this email, a reset link has been sent." });
     }
 
     const resetToken = jwt.sign(
@@ -72,12 +73,9 @@ export const forgotPassword = async (req, res) => {
     const clientUrl = process.env.REACT_APP_CLIENT_URL || "http://localhost:3000";
     const resetLink = `${clientUrl}/reset-password/${resetToken}`;
 
-    console.log("======================================");
-    console.log(`PASSWORD RESET REQUEST for: ${email}`);
-    console.log(`Reset Link: ${resetLink}`);
-    console.log("======================================");
+    await sendResetEmail(email, resetLink);
 
-    res.status(200).json({ message: "Password reset link logged to server console successfully." });
+    res.status(200).json({ message: "If an account exists with this email, a reset link has been sent." });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Something went wrong..." });

@@ -1,4 +1,5 @@
 import * as api from "../api/index";
+import axios from "axios";
 
 export const askQuestion = (questionData, navigate) => async (dispatch) => {
   try {
@@ -6,17 +7,25 @@ export const askQuestion = (questionData, navigate) => async (dispatch) => {
     dispatch({ type: "POST_QUESTION", payload: data });
     dispatch(fetchAllQuestions());
     navigate("/");
+    return data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
-export const fetchAllQuestions = (params = {}) => async (dispatch) => {
+export const fetchAllQuestions = (params = {}, cancelToken) => async (dispatch) => {
   try {
-    const { data } = await api.getAllQuestions(params);
+    const { data } = await api.getAllQuestions(params, cancelToken);
     dispatch({ type: "FETCH_ALL_QUESTIONS", payload: data });
+    return data;
   } catch (error) {
-    console.error(error);
+    if (axios.isCancel(error)) {
+      console.log("Request canceled:", error.message);
+    } else {
+      console.error(error);
+    }
+    throw error;
   }
 };
 
@@ -24,37 +33,45 @@ export const fetchQuestionDetails = (id) => async (dispatch) => {
   try {
     const { data } = await api.getQuestionDetails(id);
     dispatch({ type: "FETCH_QUESTION_DETAILS", payload: data });
+    return data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
 export const deleteQuestion = (id, navigate) => async (dispatch) => {
   try {
-    await api.deleteQuestion(id);
+    const { data } = await api.deleteQuestion(id);
     dispatch(fetchAllQuestions());
     navigate("/");
+    return data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
-export const updateQuestion = (id, questionData, navigate) => async (dispatch) => {
+export const updateQuestion = (id, questionData) => async (dispatch) => {
   try {
-    await api.updateQuestion(id, questionData);
+    const { data } = await api.updateQuestion(id, questionData);
     dispatch(fetchQuestionDetails(id));
+    return data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
 export const voteQuestion = (id, value) => async (dispatch) => {
   try {
-    await api.voteQuestion(id, value);
+    const { data } = await api.voteQuestion(id, value);
     dispatch(fetchAllQuestions());
     dispatch(fetchQuestionDetails(id));
+    return data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
@@ -70,81 +87,99 @@ export const postAnswer = (answerData) => async (dispatch) => {
     dispatch({ type: "POST_ANSWER", payload: data });
     dispatch(fetchAllQuestions());
     dispatch(fetchQuestionDetails(id));
+    return data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
 export const deleteAnswer = (id, answerId) => async (dispatch) => {
   try {
-    await api.deleteAnswer(id, answerId);
+    const { data } = await api.deleteAnswer(id, answerId);
     dispatch(fetchAllQuestions());
     dispatch(fetchQuestionDetails(id));
+    return data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
 export const updateAnswer = (id, answerId, answerData) => async (dispatch) => {
   try {
-    await api.updateAnswer(answerId, answerData);
+    const { data } = await api.updateAnswer(answerId, answerData);
     dispatch(fetchQuestionDetails(id));
+    return data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
 export const voteAnswer = (id, answerId, value) => async (dispatch) => {
   try {
-    await api.voteAnswer(answerId, value);
+    const { data } = await api.voteAnswer(answerId, value);
     dispatch(fetchQuestionDetails(id));
+    return data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
 export const acceptAnswer = (id, answerId) => async (dispatch) => {
   try {
-    await api.acceptAnswer(answerId);
+    const { data } = await api.acceptAnswer(answerId);
     dispatch(fetchQuestionDetails(id));
+    return data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
 export const commentQuestion = (id, commentBody) => async (dispatch) => {
   try {
-    await api.commentQuestion(id, commentBody);
+    const { data } = await api.commentQuestion(id, commentBody);
     dispatch(fetchQuestionDetails(id));
+    return data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
 export const deleteCommentQuestion = (id, commentId) => async (dispatch) => {
   try {
-    await api.deleteCommentQuestion(id, commentId);
+    const { data } = await api.deleteCommentQuestion(id, commentId);
     dispatch(fetchQuestionDetails(id));
+    return data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
 export const commentAnswer = (id, answerId, commentBody) => async (dispatch) => {
   try {
-    await api.commentAnswer(answerId, commentBody);
+    const { data } = await api.commentAnswer(answerId, commentBody);
     dispatch(fetchQuestionDetails(id));
+    return data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
 export const deleteCommentAnswer = (id, answerId, commentId) => async (dispatch) => {
   try {
-    await api.deleteCommentAnswer(answerId, commentId);
+    const { data } = await api.deleteCommentAnswer(answerId, commentId);
     dispatch(fetchQuestionDetails(id));
+    return data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
@@ -152,8 +187,9 @@ export const fetchTagsAggregation = () => async (dispatch) => {
   try {
     const { data } = await api.getTagsAggregation();
     dispatch({ type: "FETCH_TAGS_AGGREGATION", payload: data });
+    return data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
-

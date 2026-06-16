@@ -24,7 +24,7 @@ export const signUp = (authData) => API.post("/user/signup", authData);
 
 export const postQuestion = (questionData) =>
   API.post("/questions/Ask", questionData);
-export const getAllQuestions = (params) => API.get("/questions/get", { params });
+export const getAllQuestions = (params, cancelToken) => API.get("/questions/get", { params, cancelToken });
 export const getQuestionDetails = (id) => API.get(`/questions/get/${id}`);
 export const deleteQuestion = (id) => API.delete(`/questions/delete/${id}`);
 export const updateQuestion = (id, questionData) => API.put(`/questions/${id}`, questionData);

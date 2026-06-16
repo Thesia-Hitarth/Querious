@@ -1,0 +1,61 @@
+.notfound-container {
+  min-height: calc(100vh - var(--navbar-height));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--color-bg-base);
+  background-image:
+    radial-gradient(ellipse 60% 50% at 20% 60%, rgba(249,115,22,0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 80% 20%, rgba(37,99,235,0.03) 0%, transparent 60%);
+  padding: var(--space-4);
+  box-sizing: border-box;
+}
+
+.notfound-card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-10) var(--space-8);
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  animation: fadeInUp 0.4s ease both;
+}
+
+.notfound-icon {
+  font-size: 64px;
+  margin-bottom: var(--space-4);
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+}
+
+.notfound-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-3);
+  letter-spacing: -0.04em;
+}
+
+.notfound-message {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--space-6);
+}
+
+.notfound-btn {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.notfound-btn:hover {
+  transform: translateY(-1px);
+}

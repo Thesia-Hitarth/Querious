@@ -24,23 +24,35 @@ function App() {
 
   useEffect(() => {
     if (User?.result?._id) {
-      // Connect to the API server
-      const apiUrl = window.location.hostname === "localhost"
-        ? "http://localhost:5000"
-        : window.location.origin;
-      
-      const socket = io(apiUrl);
-      socket.emit("join", User.result._id);
-
-      socket.on("notification", (notif) => {
-        dispatch({ type: "ADD_NOTIFICATION", payload: notif });
-      });
-
       dispatch(fetchNotifications());
 
-      return () => {
-        socket.disconnect();
-      };
+      const enableSocket = process.env.REACT_APP_ENABLE_SOCKET === "true" || window.location.hostname === "localhost";
+
+      if (enableSocket) {
+        const apiUrl = window.location.hostname === "localhost"
+          ? "http://localhost:5000"
+          : window.location.origin;
+
+        const socket = io(apiUrl);
+        socket.emit("join", User.result._id);
+
+        socket.on("notification", (notif) => {
+          dispatch({ type: "ADD_NOTIFICATION", payload: notif });
+        });
+
+        return () => {
+          socket.disconnect();
+        };
+      } else {
+        // Fallback polling for serverless deployment
+        const interval = setInterval(() => {
+          dispatch(fetchNotifications());
+        }, 30000);
+
+        return () => {
+          clearInterval(interval);
+        };
+      }
     }
   }, [User?.result?._id, dispatch]);
 

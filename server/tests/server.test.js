@@ -17,14 +17,14 @@ describe("Stack Overflow Clone Server Integration Tests", () => {
 
   beforeAll(async () => {
     // Clear test collections
-    await User.deleteMany({ email: /test.*@example\.com/ });
+    await User.deleteMany({ email: { $in: ["testuser@example.com", "otheruser@example.com"] } });
     await Questions.deleteMany({ questionTitle: /Test Question/ });
     await Answers.deleteMany({ userAnswered: /Test User/ });
   });
 
   afterAll(async () => {
     // Clean up test data and close connection
-    await User.deleteMany({ email: /test.*@example\.com/ });
+    await User.deleteMany({ email: { $in: ["testuser@example.com", "otheruser@example.com"] } });
     await Questions.deleteMany({ questionTitle: /Test Question/ });
     await Answers.deleteMany({ userAnswered: /Test User/ });
     await mongoose.connection.close();

@@ -3,6 +3,7 @@ import Questions from "../models/Questions.js";
 import Answers from "../models/Answers.js";
 import User from "../models/auth.js";
 import { sendNotification } from "../utils/notificationHelper.js";
+import { updateReputationAndBadges } from "../utils/reputationHelper.js";
 
 export const postAnswer = async (req, res) => {
   const { id: questionId } = req.params;
@@ -69,7 +70,7 @@ export const deleteAnswer = async (req, res) => {
     res.status(200).json({ message: "Successfully deleted..." });
   } catch (error) {
     console.error(error);
-    res.status(405).json(error);
+    res.status(405).json({ message: error.message || "Failed to delete answer" });
   }
 };
 
@@ -88,33 +89,37 @@ export const voteAnswer = async (req, res) => {
       return res.status(404).send("Answer not found...");
     }
 
-    const upIndex = answer.upVote.findIndex((id) => id === String(userId));
-    const downIndex = answer.downVote.findIndex((id) => id === String(userId));
+    if (String(answer.userId) === String(userId)) {
+      return res.status(403).json({ message: "Cannot vote on your own answer" });
+    }
+
+    const upIndex = answer.upVote.findIndex((id) => String(id) === String(userId));
+    const downIndex = answer.downVote.findIndex((id) => String(id) === String(userId));
 
     let repDelta = 0;
 
     if (value === "upVote") {
       if (downIndex !== -1) {
-        answer.downVote = answer.downVote.filter((id) => id !== String(userId));
+        answer.downVote = answer.downVote.filter((id) => String(id) !== String(userId));
         repDelta += 2;
       }
       if (upIndex === -1) {
         answer.upVote.push(userId);
         repDelta += 10;
       } else {
-        answer.upVote = answer.upVote.filter((id) => id !== String(userId));
+        answer.upVote = answer.upVote.filter((id) => String(id) !== String(userId));
         repDelta -= 10;
       }
     } else if (value === "downVote") {
       if (upIndex !== -1) {
-        answer.upVote = answer.upVote.filter((id) => id !== String(userId));
+        answer.upVote = answer.upVote.filter((id) => String(id) !== String(userId));
         repDelta -= 10;
       }
       if (downIndex === -1) {
         answer.downVote.push(userId);
         repDelta -= 2;
       } else {
-        answer.downVote = answer.downVote.filter((id) => id !== String(userId));
+        answer.downVote = answer.downVote.filter((id) => String(id) !== String(userId));
         repDelta += 2;
       }
     }
@@ -122,9 +127,7 @@ export const voteAnswer = async (req, res) => {
     await Answers.findByIdAndUpdate(answerId, answer);
 
     if (answer.userId && repDelta !== 0) {
-      await User.findByIdAndUpdate(answer.userId, {
-        $inc: { reputation: repDelta },
-      });
+      await updateReputationAndBadges(answer.userId, repDelta);
     }
 
     // Notify answer author if not voting on own answer
@@ -178,12 +181,8 @@ export const acceptAnswer = async (req, res) => {
       question.acceptedAnswerId = null;
       await question.save();
 
-      await User.findByIdAndUpdate(answer.userId, {
-        $inc: { reputation: -15 },
-      });
-      await User.findByIdAndUpdate(question.userId, {
-        $inc: { reputation: -2 },
-      });
+      await updateReputationAndBadges(answer.userId, -15);
+      await updateReputationAndBadges(question.userId, -2);
 
       return res
         .status(200)
@@ -196,9 +195,7 @@ export const acceptAnswer = async (req, res) => {
       if (prevAcceptedAnswer) {
         prevAcceptedAnswer.isAccepted = false;
         await prevAcceptedAnswer.save();
-        await User.findByIdAndUpdate(prevAcceptedAnswer.userId, {
-          $inc: { reputation: -15 },
-        });
+        await updateReputationAndBadges(prevAcceptedAnswer.userId, -15);
       }
 
       answer.isAccepted = true;
@@ -207,14 +204,10 @@ export const acceptAnswer = async (req, res) => {
       question.acceptedAnswerId = answerId;
       await question.save();
 
-      await User.findByIdAndUpdate(answer.userId, {
-        $inc: { reputation: 15 },
-      });
+      await updateReputationAndBadges(answer.userId, 15);
 
       if (!prevAcceptedAnswer) {
-        await User.findByIdAndUpdate(question.userId, {
-          $inc: { reputation: 2 },
-        });
+        await updateReputationAndBadges(question.userId, 2);
       }
 
       return res

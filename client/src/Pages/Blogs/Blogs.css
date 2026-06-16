@@ -129,3 +129,28 @@
 .blog-post-content p {
   margin-bottom: var(--space-5);
 }
+
+.blog-not-found {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  text-align: center;
+  max-width: 600px;
+  margin: var(--space-6) auto;
+  box-shadow: var(--shadow-sm);
+}
+
+.blog-not-found h2 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: var(--space-4) 0 var(--space-2);
+}
+
+.blog-not-found p {
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  margin-bottom: var(--space-6);
+}

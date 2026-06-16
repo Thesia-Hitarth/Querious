@@ -3,6 +3,7 @@ import Answers from "../models/Answers.js";
 import User from "../models/auth.js";
 import mongoose from "mongoose";
 import { sendNotification } from "../utils/notificationHelper.js";
+import { updateReputationAndBadges } from "../utils/reputationHelper.js";
 
 export const AskQuestion = async (req, res) => {
   const postQuestionData = req.body;
@@ -192,37 +193,54 @@ export const voteQuestion = async (req, res) => {
       return res.status(404).send("Question not found...");
     }
 
-    const upIndex = question.upVote.findIndex((id) => id === String(userId));
+    if (String(question.userId) === String(userId)) {
+      return res.status(403).json({ message: "Cannot vote on your own question" });
+    }
+
+    const upIndex = question.upVote.findIndex((id) => String(id) === String(userId));
     const downIndex = question.downVote.findIndex(
-      (id) => id === String(userId)
+      (id) => String(id) === String(userId)
     );
+
+    let repDelta = 0;
 
     if (value === "upVote") {
       if (downIndex !== -1) {
         question.downVote = question.downVote.filter(
-          (id) => id !== String(userId)
+          (id) => String(id) !== String(userId)
         );
+        repDelta += 2;
       }
       if (upIndex === -1) {
         question.upVote.push(userId);
+        repDelta += 10;
       } else {
-        question.upVote = question.upVote.filter((id) => id !== String(userId));
+        question.upVote = question.upVote.filter((id) => String(id) !== String(userId));
+        repDelta -= 10;
       }
     } else if (value === "downVote") {
       if (upIndex !== -1) {
-        question.upVote = question.upVote.filter((id) => id !== String(userId));
+        question.upVote = question.upVote.filter((id) => String(id) !== String(userId));
+        repDelta -= 10;
       }
       if (downIndex === -1) {
         question.downVote.push(userId);
+        repDelta -= 2;
       } else {
         question.downVote = question.downVote.filter(
-          (id) => id !== String(userId)
+          (id) => String(id) !== String(userId)
         );
+        repDelta += 2;
       }
     }
     const updated = await Questions.findByIdAndUpdate(_id, question, {
       new: true,
     });
+
+    if (question.userId && repDelta !== 0) {
+      await updateReputationAndBadges(question.userId, repDelta);
+    }
+
     res.status(200).json({ message: "voted successfully...", data: updated });
   } catch (error) {
     console.error(error);

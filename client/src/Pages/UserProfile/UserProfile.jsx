@@ -138,10 +138,9 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
               )}
 
               {(() => {
-                const rep = profileData?.reputation || 1;
-                const gold = Math.floor(rep / 500);
-                const silver = Math.floor((rep % 500) / 100);
-                const bronze = Math.floor((rep % 100) / 20);
+                const gold = profileData?.badges?.gold || 0;
+                const silver = profileData?.badges?.silver || 0;
+                const bronze = profileData?.badges?.bronze || 0;
 
                 if (gold === 0 && silver === 0 && bronze === 0) return null;
 

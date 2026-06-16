@@ -9,6 +9,7 @@ import "./Navbar.css";
 import { setCurrentUser } from "../../actions/currentUser";
 import { fetchAllQuestions } from "../../actions/question";
 import { markAsRead, markAllAsRead } from "../../actions/notifications";
+import axios from "axios";
 
 // Custom Inline SVG Icons
 const MenuIconSVG = () => (
@@ -47,7 +48,9 @@ const Navbar = ({ handleSlideIn }) => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const debounceTimeout = useRef(null);
+  const cancelTokenSourceRef = useRef(null);
 
   const notificationsList = useSelector((state) => state.notificationsReducer) || { data: [] };
   const notifications = notificationsList.data || [];
@@ -60,17 +63,40 @@ const Navbar = ({ handleSlideIn }) => {
     const value = e.target.value;
     setSearchQuery(value);
     if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-    debounceTimeout.current = setTimeout(() => {
+    
+    setIsSearching(true);
+    
+    debounceTimeout.current = setTimeout(async () => {
+      if (cancelTokenSourceRef.current) {
+        cancelTokenSourceRef.current.cancel("Search request cancelled due to new keystroke.");
+      }
+      
+      const source = axios.CancelToken.source();
+      cancelTokenSourceRef.current = source;
+
       const tagMatch = value.match(/\[([^\]]+)\]/);
       const parsedTag = tagMatch ? tagMatch[1].trim() : "";
       const searchVal = tagMatch ? value.replace(/\[[^\]]+\]/g, "").trim() : value;
+      
       dispatch({ type: "SET_SEARCH_QUERY", payload: value });
-      dispatch(fetchAllQuestions({ search: searchVal, tag: parsedTag }));
-    }, 300);
+      try {
+        await dispatch(fetchAllQuestions({ search: searchVal, tag: parsedTag }, source.token));
+      } catch (err) {
+        if (!axios.isCancel(err)) {
+          console.error("Search API error:", err);
+        }
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
   };
 
   const handleClearSearch = () => {
     setSearchQuery("");
+    if (cancelTokenSourceRef.current) {
+      cancelTokenSourceRef.current.cancel("Search cleared.");
+    }
+    setIsSearching(false);
     dispatch({ type: "SET_SEARCH_QUERY", payload: "" });
     dispatch(fetchAllQuestions({ search: "", tag: "" }));
   };
@@ -102,12 +128,17 @@ const Navbar = ({ handleSlideIn }) => {
         !document.activeElement.isContentEditable
       ) {
         e.preventDefault();
+        document.documentElement.classList.remove("navbar-hidden");
         searchInputRef.current?.focus();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  const handleSearchFocus = () => {
+    document.documentElement.classList.remove("navbar-hidden");
+  };
 
   useEffect(() => {
     let prevScrollPos = window.pageYOffset || document.documentElement.scrollTop;
@@ -183,7 +214,7 @@ const Navbar = ({ handleSlideIn }) => {
             onSubmit={(e) => e.preventDefault()}
           >
             <span className="search-icon">
-              <SearchIconSVG />
+              {isSearching ? <span className="search-spinner" /> : <SearchIconSVG />}
             </span>
             <input
               ref={searchInputRef}
@@ -191,6 +222,7 @@ const Navbar = ({ handleSlideIn }) => {
               placeholder="Search questions… (Press '/' to focus)"
               value={searchQuery}
               onChange={handleSearchChange}
+              onFocus={handleSearchFocus}
               aria-label="Search questions"
             />
             {searchQuery && (

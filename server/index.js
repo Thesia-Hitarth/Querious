@@ -46,7 +46,13 @@ app.use(mongoSanitize());
 
 app.use(express.json({ limit: "30mb", extended: true }));
 app.use(express.urlencoded({ limit: "30mb", extended: true }));
-app.use(cors());
+const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
+app.use(
+  cors({
+    origin: clientUrl.split(",").map((url) => url.trim()),
+    credentials: true,
+  })
+);
 
 // Rate limiters
 const generalLimiter = rateLimit({
@@ -70,6 +76,7 @@ const authLimiter = rateLimit({
 // Apply rate limits
 app.use("/user/login", authLimiter);
 app.use("/user/signup", authLimiter);
+app.use("/user/forgot-password", authLimiter);
 app.use(generalLimiter);
 
 // Routes
