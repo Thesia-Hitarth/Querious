@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import * as api from "../../api";
 import "./Auth.css";
+import icon from "../../assets/Only-Symbol.png";
 import { useToast } from "../../components/Toast/ToastContext";
 
 const ResetPassword = () => {
@@ -27,7 +29,6 @@ const ResetPassword = () => {
       return;
     }
 
-    setLoading(false);
     try {
       setLoading(true);
       await api.resetPassword(token, newPassword);
@@ -43,35 +44,51 @@ const ResetPassword = () => {
 
   return (
     <section className="auth-section">
-      <div className="auth-container-2" style={{ padding: "30px", marginTop: "100px" }}>
-        <h2>Reset Password</h2>
-        <p style={{ fontSize: "14px", color: "#666", marginBottom: "15px" }}>
-          Please enter your new password below.
+      <motion.div
+        className="auth-card-container"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+      >
+        <div className="auth-card-logo">
+          <img src={icon} alt="Querious" />
+          <span>
+            <span className="auth-card-logo-text-accent">Q</span>
+            <span className="auth-card-logo-text">uerious</span>
+          </span>
+        </div>
+
+        <h3 className="auth-heading">Reset Password</h3>
+        <p className="forgot-hint-text" style={{ textAlign: "center", marginBottom: "var(--space-4)" }}>
+          Please enter and confirm your new password below.
         </p>
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="newPassword">
-            <h4>New Password</h4>
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label htmlFor="newPassword">New Password</label>
             <input
               type="password"
               id="newPassword"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Minimum 6 characters"
             />
-          </label>
-          <label htmlFor="confirmPassword">
-            <h4>Confirm Password</h4>
+          </div>
+          <div className="form-group" style={{ marginTop: "var(--space-2)" }}>
+            <label htmlFor="confirmPassword">Confirm Password</label>
             <input
               type="password"
               id="confirmPassword"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Re-enter your password"
             />
-          </label>
-          <button type="submit" className="auth-btn" disabled={loading}>
+          </div>
+          <button type="submit" className="btn-auth-submit" disabled={loading}>
             {loading ? "Resetting..." : "Reset Password"}
           </button>
         </form>
-      </div>
+      </motion.div>
     </section>
   );
 };
