@@ -70,7 +70,7 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
     await user.save();
 
-    const clientUrl = process.env.CLIENT_URL || process.env.REACT_APP_CLIENT_URL || "http://localhost:3000";
+    const clientUrl = process.env.REACT_APP_CLIENT_URL || "http://localhost:3000";
     const resetLink = `${clientUrl}/reset-password/${resetToken}`;
 
     await sendResetEmail(email, resetLink);
