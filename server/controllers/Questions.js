@@ -41,7 +41,12 @@ export const getAllQuestions = async (req, res) => {
 
     if (search) {
       const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      query.$text = { $search: escapedSearch };
+      const searchRegex = new RegExp(escapedSearch, "i");
+      query.$or = [
+        { questionTitle: searchRegex },
+        { questionBody: searchRegex },
+        { questionTags: searchRegex }
+      ];
     }
 
     if (tag) {
