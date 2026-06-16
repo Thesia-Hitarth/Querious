@@ -118,6 +118,7 @@
   }
 
   .left-sidebar {
+    top: 0;
     transform: translateX(-100%);
     z-index: 200;
     box-shadow: none;

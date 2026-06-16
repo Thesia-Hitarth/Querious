@@ -82,6 +82,7 @@ const LeftSidebar = ({ slideIn, handleSlideIn }) => {
     if (window.innerWidth <= 760 && slideIn && handleSlideIn) {
       handleSlideIn();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
   const handleLinkClick = () => {

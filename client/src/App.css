@@ -27,14 +27,14 @@
 }
 
 /* Right sidebar fixed width */
-.home-container-2 > *:last-child {
+.right-sidebar {
   width: 280px;
   flex-shrink: 0;
 }
 
 /* Tablet: hide right sidebar */
 @media screen and (max-width: 1100px) {
-  .home-container-2 > *:last-child {
+  .right-sidebar {
     display: none !important;
   }
 }

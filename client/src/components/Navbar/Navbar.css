@@ -547,7 +547,13 @@
     justify-content: center;
   }
   .signup-btn { padding: 7px 14px; font-size: 13px; }
-  .notifications-dropdown { width: calc(100vw - 32px); right: -4px; }
+  .notifications-dropdown {
+    position: fixed;
+    top: calc(var(--navbar-height) + 8px);
+    left: 16px;
+    right: 16px;
+    width: auto;
+  }
 }
 
 @keyframes slideDown {
