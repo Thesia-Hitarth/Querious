@@ -1,18 +1,26 @@
 import nodemailer from "nodemailer";
 
+const mailUser = process.env.GMAIL_USER || process.env.SMTP_USER || "";
+const mailPass = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || "";
+
+// Default to Gmail SMTP settings if GMAIL_USER is specified, otherwise use Mailtrap as fallback
+const defaultHost = (process.env.GMAIL_USER || process.env.SMTP_USER?.includes("gmail")) ? "smtp.gmail.com" : "smtp.mailtrap.io";
+const defaultPort = (process.env.GMAIL_USER || process.env.SMTP_USER?.includes("gmail")) ? 587 : 2525;
+
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.mailtrap.io",
-  port: parseInt(process.env.SMTP_PORT) || 2525,
+  host: process.env.SMTP_HOST || defaultHost,
+  port: parseInt(process.env.SMTP_PORT) || defaultPort,
+  secure: false,
   auth: {
-    user: process.env.SMTP_USER || "",
-    pass: process.env.SMTP_PASS || "",
+    user: mailUser,
+    pass: mailPass,
   },
 });
 
 export const sendResetEmail = async (email, resetLink) => {
   let activeTransporter = transporter;
 
-  if (!process.env.SMTP_USER && process.env.NODE_ENV !== "production") {
+  if (!mailUser && process.env.NODE_ENV !== "production") {
     try {
       const testAccount = await nodemailer.createTestAccount();
       activeTransporter = nodemailer.createTransport({
@@ -49,7 +57,7 @@ export const sendResetEmail = async (email, resetLink) => {
 
   const info = await activeTransporter.sendMail(mailOptions);
   
-  if (!process.env.SMTP_USER && process.env.NODE_ENV !== "production") {
+  if (!mailUser && process.env.NODE_ENV !== "production") {
     const previewUrl = nodemailer.getTestMessageUrl(info);
     if (previewUrl) {
       console.log("========================================");
