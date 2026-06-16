@@ -78,6 +78,7 @@ const QuestionsDetails = () => {
   
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
+  const [isVoting, setIsVoting] = useState(false);
 
   const Navigate = useNavigate();
   const dispatch = useDispatch();
@@ -102,6 +103,8 @@ const QuestionsDetails = () => {
     } else {
       if (Answer.trim() === "" || Answer === "<p><br></p>") {
         showToast("Enter an answer before submitting", "error");
+      } else if (Answer.length > 30000) {
+        showToast("Answer body cannot exceed 30,000 characters", "error");
       } else {
         setIsSubmittingAnswer(true);
         try {
@@ -161,6 +164,10 @@ const QuestionsDetails = () => {
       showToast("Title cannot exceed 300 characters", "error");
       return;
     }
+    if (editBody.length > 30000) {
+      showToast("Body cannot exceed 30,000 characters", "error");
+      return;
+    }
     try {
       await dispatch(
         updateQuestion(id, {
@@ -182,12 +189,15 @@ const QuestionsDetails = () => {
       Navigate("/Auth");
     } else if (User?.result?._id === question.userId) {
       showToast("You cannot vote on your own question", "warning");
-    } else {
+    } else if (!isVoting) {
       try {
+        setIsVoting(true);
         await dispatch(voteQuestion(id, "upVote"));
         showToast("Vote updated successfully!", "success");
       } catch (err) {
         showToast(err.response?.data?.message || "Failed to upvote", "error");
+      } finally {
+        setIsVoting(false);
       }
     }
   };
@@ -198,12 +208,15 @@ const QuestionsDetails = () => {
       Navigate("/Auth");
     } else if (User?.result?._id === question.userId) {
       showToast("You cannot vote on your own question", "warning");
-    } else {
+    } else if (!isVoting) {
       try {
+        setIsVoting(true);
         await dispatch(voteQuestion(id, "downVote"));
         showToast("Vote updated successfully!", "success");
       } catch (err) {
         showToast(err.response?.data?.message || "Failed to downvote", "error");
+      } finally {
+        setIsVoting(false);
       }
     }
   };
@@ -265,6 +278,7 @@ const QuestionsDetails = () => {
                         onChange={setEditBody}
                         modules={modules}
                         formats={formats}
+                        placeholder="Type your question body here..."
                       />
                     </div>
                   </div>
@@ -289,7 +303,13 @@ const QuestionsDetails = () => {
                 <h1>{question.questionTitle}</h1>
                 <div className="question-details-meta">
                   <span>Asked <strong>{formatDistanceToNow(new Date(question.askedOn), { addSuffix: true })}</strong></span>
-                  {question.editedOn && <span>Active <strong>{formatDistanceToNow(new Date(question.editedOn), { addSuffix: true })}</strong></span>}
+                  <span className="meta-separator" aria-hidden="true">·</span>
+                  {question.editedOn && (
+                    <>
+                      <span>Active <strong>{formatDistanceToNow(new Date(question.editedOn), { addSuffix: true })}</strong></span>
+                      <span className="meta-separator" aria-hidden="true">·</span>
+                    </>
+                  )}
                   <span>Viewed <strong>{question.views || 0} times</strong></span>
                 </div>
               </div>
@@ -310,19 +330,19 @@ const QuestionsDetails = () => {
                           className={`votes-icon-btn upvote-btn ${hasUpvoted ? "active" : ""} ${isAuthor ? "disabled" : ""}`}
                           onClick={handleUpVote}
                           title={isAuthor ? "You cannot vote on your own question" : "Upvote"}
-                          disabled={isAuthor}
+                          disabled={isAuthor || isVoting}
                         >
                           <UpVoteIcon />
                         </button>
                         <p className={`vote-score ${scoreClass(currentScore)}`}>
-                          {currentScore}
+                          {isVoting ? "..." : currentScore}
                         </p>
                         <button
                           type="button"
                           className={`votes-icon-btn downvote-btn ${hasDownvoted ? "active" : ""} ${isAuthor ? "disabled" : ""}`}
                           onClick={handleDownVote}
                           title={isAuthor ? "You cannot vote on your own question" : "Downvote"}
-                          disabled={isAuthor}
+                          disabled={isAuthor || isVoting}
                         >
                           <DownVoteIcon />
                         </button>
@@ -422,6 +442,7 @@ const QuestionsDetails = () => {
                   onChange={setAnswer}
                   modules={modules}
                   formats={formats}
+                  placeholder="Type your answer here..."
                 />
               </div>
               <input

@@ -23,6 +23,26 @@ const Auth = () => {
   const location = useLocation();
   const { showToast } = useToast();
 
+  const getPasswordStrength = (pwd) => {
+    let score = 0;
+    if (!pwd) return { score, text: "", color: "" };
+    if (pwd.length >= 8) score++;
+    if (/[a-z]/.test(pwd)) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    
+    let text = "Weak";
+    let color = "#e05151";
+    if (score === 3) {
+      text = "Medium";
+      color = "#ffac38";
+    } else if (score === 4) {
+      text = "Strong";
+      color = "#2ecc71";
+    }
+    return { score, text, color };
+  };
+
   const from = location.state?.from?.pathname || "/";
   const redirectMessage = location.state?.message;
 
@@ -74,6 +94,18 @@ const Auth = () => {
       if (isSignup) {
         if (!name) {
           showToast("Please enter a name to continue", "error");
+          return;
+        }
+        if (password.length < 8) {
+          showToast("Password must be at least 8 characters long", "error");
+          return;
+        }
+        if (!/[A-Z]/.test(password)) {
+          showToast("Password must contain at least one uppercase letter", "error");
+          return;
+        }
+        if (!/[0-9]/.test(password)) {
+          showToast("Password must contain at least one number", "error");
           return;
         }
         await dispatch(signup({ name, email, password }, navigate, from));
@@ -224,6 +256,28 @@ const Auth = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+              {isSignup && password && (
+                <div className="password-strength-meter" style={{ marginTop: "10px" }}>
+                  <div className="strength-bar-bg" style={{ background: "rgba(255, 255, 255, 0.1)", height: "6px", borderRadius: "3px", overflow: "hidden", display: "flex" }}>
+                    <div className="strength-bar-fill" style={{ 
+                      width: `${(getPasswordStrength(password).score / 4) * 100}%`, 
+                      background: getPasswordStrength(password).color, 
+                      height: "100%", 
+                      transition: "width 0.3s ease" 
+                    }} />
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px" }}>
+                    <span style={{ fontSize: "12px", color: getPasswordStrength(password).color, fontWeight: "600" }}>
+                      Strength: {getPasswordStrength(password).text}
+                    </span>
+                  </div>
+                  <ul className="password-requirements" style={{ fontSize: "11px", color: "var(--color-text-secondary)", marginTop: "8px", paddingLeft: "16px", margin: "8px 0 0 0", textAlign: "left" }}>
+                    <li style={{ color: password.length >= 8 ? "#2ecc71" : "inherit", transition: "color 0.2s" }}>At least 8 characters</li>
+                    <li style={{ color: /[A-Z]/.test(password) ? "#2ecc71" : "inherit", transition: "color 0.2s" }}>At least one uppercase letter</li>
+                    <li style={{ color: /[0-9]/.test(password) ? "#2ecc71" : "inherit", transition: "color 0.2s" }}>At least one number</li>
+                  </ul>
+                </div>
+              )}
             </div>
 
             <button type="submit" className="btn-auth-submit">

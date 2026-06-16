@@ -381,8 +381,76 @@
   color: var(--color-text-primary);
 }
 
+/* Badges styling */
+.profile-badges-list {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge-tile {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-elevated);
+}
+
+.badge-tile.gold-tile {
+  border-color: #f1e5bc;
+  background-color: #fdf7e2;
+}
+
+.badge-tile.silver-tile {
+  border-color: #d6d9dc;
+  background-color: #f1f2f3;
+}
+
+.badge-tile.bronze-tile {
+  border-color: #e1ecf4;
+  background-color: #f9fbfd;
+}
+
+.badge-dot {
+  font-size: 16px;
+}
+
+.badge-dot.gold-dot {
+  color: #ffcc00;
+}
+
+.badge-dot.silver-dot {
+  color: #b4b8bc;
+}
+
+.badge-dot.bronze-dot {
+  color: #d1a684;
+}
+
+.badge-count {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.badge-label {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
 /* Responsive details */
 @media screen and (max-width: 1024px) {
+  .profile-content-grid {
+    grid-template-columns: 220px 1fr;
+  }
+  .profile-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 768px) {
   .profile-content-grid {
     grid-template-columns: 1fr;
   }
@@ -407,4 +475,5 @@
     grid-template-columns: 1fr;
   }
 }
+
 

@@ -58,6 +58,8 @@ const Navbar = ({ handleSlideIn }) => {
 
   const [isBellOpen, setIsBellOpen] = useState(false);
   const bellRef = useRef(null);
+  const [isAvatarOpen, setIsAvatarOpen] = useState(false);
+  const avatarRef = useRef(null);
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
@@ -183,6 +185,9 @@ const Navbar = ({ handleSlideIn }) => {
       if (bellRef.current && !bellRef.current.contains(e.target)) {
         setIsBellOpen(false);
       }
+      if (avatarRef.current && !avatarRef.current.contains(e.target)) {
+        setIsAvatarOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -272,7 +277,11 @@ const Navbar = ({ handleSlideIn }) => {
                   aria-label="Notifications"
                 >
                   <BellIconSVG />
-                  {unreadCount > 0 && <span className="navbar-bell-badge" />}
+                  {unreadCount > 0 && (
+                    <span className="navbar-bell-badge">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
                 </button>
 
                 {isBellOpen && (
@@ -307,11 +316,43 @@ const Navbar = ({ handleSlideIn }) => {
                 )}
               </div>
 
-              {/* Avatar */}
-              <div className="navbar-avatar">
-                <Link to={`/Users/${User?.result?._id}`} aria-label="View profile">
+              {/* Avatar and Dropdown */}
+              <div className="navbar-avatar-container" ref={avatarRef}>
+                <button
+                  type="button"
+                  className="navbar-avatar-btn"
+                  onClick={() => setIsAvatarOpen(!isAvatarOpen)}
+                  aria-label="User menu"
+                >
                   {User.result.name.charAt(0).toUpperCase()}
-                </Link>
+                </button>
+
+                {isAvatarOpen && (
+                  <div className="avatar-dropdown">
+                    <div className="avatar-dropdown-header">
+                      <strong>{User.result.name}</strong>
+                      <span className="avatar-dropdown-email">{User.result.email}</span>
+                    </div>
+                    <div className="avatar-dropdown-divider"></div>
+                    <Link
+                      to={`/Users/${User?.result?._id}`}
+                      className="avatar-dropdown-item"
+                      onClick={() => setIsAvatarOpen(false)}
+                    >
+                      View Profile
+                    </Link>
+                    <button
+                      type="button"
+                      className="avatar-dropdown-item logout-dropdown-btn"
+                      onClick={() => {
+                        setIsAvatarOpen(false);
+                        handleLogout();
+                      }}
+                    >
+                      Log out
+                    </button>
+                  </div>
+                )}
               </div>
 
               <button className="btn logout-btn" onClick={handleLogout}>

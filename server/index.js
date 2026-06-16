@@ -1,6 +1,10 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+if (!process.env.JWT_SECRET || !(process.env.CONNECTION_URL || process.env.MONGO_URL)) {
+  throw new Error("Critical environment variables (JWT_SECRET and CONNECTION_URL/MONGO_URL) are missing.");
+}
+
 import dns from "dns";
 
 try {
@@ -44,8 +48,8 @@ app.set('trust proxy', 1);
 app.use(helmet());
 app.use(mongoSanitize());
 
-app.use(express.json({ limit: "30mb", extended: true }));
-app.use(express.urlencoded({ limit: "30mb", extended: true }));
+app.use(express.json({ limit: "100kb", extended: true }));
+app.use(express.urlencoded({ limit: "100kb", extended: true }));
 const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
 app.use(
   cors({

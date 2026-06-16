@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBirthdayCake, faPen } from "@fortawesome/free-solid-svg-icons";
 import { formatDistanceToNow } from "date-fns";
 
 import LeftSidebar from "../../components/LeftSidebar/LeftSidebar";
@@ -12,6 +10,22 @@ import EditProfileForm from "./EditProfileForm";
 import ProfileBio from "./ProfileBio";
 import "./UsersProfile.css";
 import { fetchUserDetails } from "../../actions/users";
+
+// Inline SVGs replacing FontAwesome
+const BirthdayCakeIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "4px", display: "inline-block", verticalAlign: "middle" }}>
+    <path d="M12 2v4M6 8v3M18 8v3" />
+    <path d="M3 12h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8z" />
+    <path d="M3 16h18" />
+  </svg>
+);
+
+const PenIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "4px", display: "inline-block", verticalAlign: "middle" }}>
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z" />
+  </svg>
+);
 
 const UserProfile = ({ slideIn, handleSlideIn }) => {
   const { id } = useParams();
@@ -77,7 +91,7 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
               <div className="profile-meta-row">
                 {profileData?.joinedOn && (
                   <span className="profile-meta-item">
-                    <FontAwesomeIcon icon={faBirthdayCake} /> Joined {formatDistanceToNow(new Date(profileData.joinedOn), { addSuffix: true })}
+                    <BirthdayCakeIcon /> Joined {formatDistanceToNow(new Date(profileData.joinedOn), { addSuffix: true })}
                   </span>
                 )}
                 {profileData?.location && (
@@ -99,7 +113,7 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
                 onClick={() => setSwitch(true)}
                 className="edit-profile-btn"
               >
-                <FontAwesomeIcon icon={faPen} /> Edit Profile
+                <PenIcon /> Edit Profile
               </button>
             )}
           </div>
@@ -147,26 +161,26 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
                 return (
                   <div className="profile-badges-widget" style={{ marginTop: "20px" }}>
                     <h3 className="profile-sec-title">Badges</h3>
-                    <div className="profile-badges-list" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                    <div className="profile-badges-list">
                       {gold > 0 && (
-                        <div className="badge-tile gold-tile" style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 12px", border: "1px solid #f1e5bc", backgroundColor: "#fdf7e2", borderRadius: "4px" }}>
-                          <span style={{ color: "#ffcc00", fontSize: "16px" }}>●</span>
-                          <span style={{ fontWeight: "600", fontSize: "14px" }}>{gold}</span>
-                          <span style={{ color: "#6a737c", fontSize: "12px" }}>Gold</span>
+                        <div className="badge-tile gold-tile">
+                          <span className="badge-dot gold-dot">●</span>
+                          <span className="badge-count">{gold}</span>
+                          <span className="badge-label">Gold</span>
                         </div>
                       )}
                       {silver > 0 && (
-                        <div className="badge-tile silver-tile" style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 12px", border: "1px solid #d6d9dc", backgroundColor: "#f1f2f3", borderRadius: "4px" }}>
-                          <span style={{ color: "#b4b8bc", fontSize: "16px" }}>●</span>
-                          <span style={{ fontWeight: "600", fontSize: "14px" }}>{silver}</span>
-                          <span style={{ color: "#6a737c", fontSize: "12px" }}>Silver</span>
+                        <div className="badge-tile silver-tile">
+                          <span className="badge-dot silver-dot">●</span>
+                          <span className="badge-count">{silver}</span>
+                          <span className="badge-label">Silver</span>
                         </div>
                       )}
                       {bronze > 0 && (
-                        <div className="badge-tile bronze-tile" style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 12px", border: "1px solid #e1ecf4", backgroundColor: "#f9fbfd", borderRadius: "4px" }}>
-                          <span style={{ color: "#d1a684", fontSize: "16px" }}>●</span>
-                          <span style={{ fontWeight: "600", fontSize: "14px" }}>{bronze}</span>
-                          <span style={{ color: "#6a737c", fontSize: "12px" }}>Bronze</span>
+                        <div className="badge-tile bronze-tile">
+                          <span className="badge-dot bronze-dot">●</span>
+                          <span className="badge-count">{bronze}</span>
+                          <span className="badge-label">Bronze</span>
                         </div>
                       )}
                     </div>

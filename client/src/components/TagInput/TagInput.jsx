@@ -59,21 +59,20 @@ const TagInput = ({ tags = [], onChange, placeholder = "Add tags..." }) => {
             </button>
           </span>
         ))}
-        {tags.length < 5 && (
-          <input
-            type="text"
-            className="tag-pill-input"
-            value={inputVal}
-            onChange={(e) => setInputVal(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={addTag} // add tag when focus leaves input
-            placeholder={tags.length === 0 ? placeholder : ""}
-            aria-label="Tags input"
-          />
-        )}
+        <input
+          type="text"
+          className="tag-pill-input"
+          value={inputVal}
+          onChange={(e) => setInputVal(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onBlur={addTag} // add tag when focus leaves input
+          placeholder={tags.length === 0 ? placeholder : (tags.length >= 5 ? "Maximum tags reached" : "")}
+          disabled={tags.length >= 5}
+          aria-label="Tags input"
+        />
       </div>
       <div className="tag-input-footer">
-        <span className="tag-input-counter">{tags.length}/5 tags</span>
+        <span className={`tag-input-counter ${tags.length >= 5 ? "limit-reached" : ""}`}>{tags.length}/5 tags</span>
       </div>
     </div>
   );

@@ -271,8 +271,14 @@
 
 .login-icon-mobile { display: none; }
 
-/* ── Avatar ── */
-.navbar-avatar {
+/* ── Avatar Dropdown & Styling ── */
+.navbar-avatar-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-avatar-btn {
   width: 34px;
   height: 34px;
   border-radius: var(--radius-full);
@@ -282,23 +288,82 @@
   justify-content: center;
   font-weight: 700;
   font-size: 13px;
+  color: white !important;
+  border: none;
   box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--color-brand-primary);
   transition: transform var(--transition-spring), box-shadow var(--transition-fast);
   cursor: pointer;
 }
-.navbar-avatar:hover {
+
+.navbar-avatar-btn:hover {
   transform: scale(1.08);
   box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px #ea6c10, var(--shadow-brand);
 }
-.navbar-avatar a {
-  color: white !important;
+
+.avatar-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 220px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  z-index: 300;
+  padding: var(--space-3) 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
+  flex-direction: column;
+  animation: fadeInUp 0.18s ease both;
+}
+
+.avatar-dropdown-header {
+  padding: var(--space-2) var(--space-4);
+  display: flex;
+  flex-direction: column;
+}
+
+.avatar-dropdown-header strong {
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.avatar-dropdown-email {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  word-break: break-all;
+}
+
+.avatar-dropdown-divider {
+  height: 1px;
+  background-color: var(--color-border-light);
+  margin: var(--space-2) 0;
+}
+
+.avatar-dropdown-item {
+  padding: var(--space-2) var(--space-4);
+  font-size: 13.5px;
+  color: var(--color-text-secondary);
   text-decoration: none;
-  line-height: 1;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+  width: 100%;
+}
+
+.avatar-dropdown-item:hover {
+  background-color: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+}
+
+.avatar-dropdown-item.logout-dropdown-btn {
+  color: var(--color-danger);
+}
+
+.avatar-dropdown-item.logout-dropdown-btn:hover {
+  background-color: var(--color-danger-bg);
+  color: var(--color-danger);
 }
 
 /* ── Bell & Notifications ── */
@@ -330,14 +395,22 @@
 
 .navbar-bell-badge {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 8px;
-  height: 8px;
+  top: -3px;
+  right: -3px;
   background: #ef4444;
+  color: white;
   border-radius: var(--radius-full);
-  border: 2px solid white;
-  animation: pulse-ring 2s infinite;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border: 1.5px solid var(--color-bg-surface);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  box-shadow: var(--shadow-xs);
 }
 
 /* Notifications Dropdown */

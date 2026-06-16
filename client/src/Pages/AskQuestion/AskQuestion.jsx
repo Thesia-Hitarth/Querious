@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import ReactQuill from "react-quill";
@@ -6,6 +6,7 @@ import ReactQuill from "react-quill";
 import "./AskQuestion.css";
 import { askQuestion } from "../../actions/question";
 import { useToast } from "../../components/Toast/ToastContext";
+import TagInput from "../../components/TagInput/TagInput";
 
 const modules = {
   toolbar: [
@@ -33,52 +34,63 @@ const formats = [
 const AskQuestion = () => {
   const [questionTitle, setQuestionTitle] = useState("");
   const [questionBody, setQuestionBody] = useState("");
-  const [questionTags, setQuestionTags] = useState("");
+  const [questionTags, setQuestionTags] = useState([]);
 
   const dispatch = useDispatch();
   const User = useSelector((state) => state.currentUserReducer);
-  const questionsList = useSelector((state) => state.questionsReducer.data) || [];
+  const questionsList = useSelector((state) => state.questionsReducer.data);
   const navigate = useNavigate();
   const { showToast } = useToast();
 
   const [similarQuestions, setSimilarQuestions] = useState([]);
 
-  const handleTitleChange = (e) => {
-    const val = e.target.value;
-    setQuestionTitle(val);
-
-    if (val.trim().length < 3) {
+  useEffect(() => {
+    if (questionTitle.trim().length < 3) {
       setSimilarQuestions([]);
       return;
     }
 
-    const searchWords = val.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-    if (searchWords.length === 0) {
-      setSimilarQuestions([]);
-      return;
-    }
+    const timer = setTimeout(() => {
+      const searchWords = questionTitle.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+      if (searchWords.length === 0) {
+        setSimilarQuestions([]);
+        return;
+      }
 
-    // Rank matching questions by title word overlap
-    const matches = questionsList.map((q) => {
-      const qTitleLower = q.questionTitle.toLowerCase();
-      let overlapCount = 0;
-      searchWords.forEach((word) => {
-        if (qTitleLower.includes(word)) overlapCount++;
-      });
-      return { question: q, score: overlapCount };
-    })
-    .filter(m => m.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 4)
-    .map(m => m.question);
+      const listToSearch = questionsList || [];
 
-    setSimilarQuestions(matches);
-  };
+      // Rank matching questions by title word overlap
+      const matches = listToSearch.map((q) => {
+        const qTitleLower = q.questionTitle.toLowerCase();
+        let overlapCount = 0;
+        searchWords.forEach((word) => {
+          if (qTitleLower.includes(word)) overlapCount++;
+        });
+        return { question: q, score: overlapCount };
+      })
+      .filter(m => m.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 4)
+      .map(m => m.question);
+
+      setSimilarQuestions(matches);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [questionTitle, questionsList]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (User) {
-      if (questionTitle && questionBody && questionTags) {
+      if (questionTitle && questionBody && questionTags.length > 0) {
+        if (questionTitle.length > 300) {
+          showToast("Title cannot exceed 300 characters", "error");
+          return;
+        }
+        if (questionBody.length > 30000) {
+          showToast("Body cannot exceed 30,000 characters", "error");
+          return;
+        }
         dispatch(
           askQuestion(
             {
@@ -91,7 +103,11 @@ const AskQuestion = () => {
           )
         );
         showToast("Question posted successfully!", "success");
-      } else showToast("Please fill in all question fields", "error");
+      } else {
+        if (!questionTitle) showToast("Please specify a question title", "error");
+        else if (!questionBody) showToast("Please write a question body", "error");
+        else if (questionTags.length === 0) showToast("Please add at least one tag", "error");
+      }
     } else showToast("Please login to ask a question", "warning");
   };
 
@@ -111,7 +127,7 @@ const AskQuestion = () => {
                   <input
                     type="text"
                     id="ask-ques-title"
-                    onChange={handleTitleChange}
+                    onChange={(e) => setQuestionTitle(e.target.value)}
                     placeholder="e.g. Is there an R function for finding the index of an element in a vector?"
                     required
                   />
@@ -149,14 +165,10 @@ const AskQuestion = () => {
                 <div className="form-group">
                   <label htmlFor="ask-ques-tags">Tags</label>
                   <span className="field-hint">Add up to 5 tags to describe what your question is about</span>
-                  <input
-                    type="text"
-                    id="ask-ques-tags"
-                    onChange={(e) => {
-                      setQuestionTags(e.target.value.split(" "));
-                    }}
+                  <TagInput
+                    tags={questionTags}
+                    onChange={setQuestionTags}
                     placeholder="e.g. (reactjs quill javascript)"
-                    required
                   />
                 </div>
               </div>

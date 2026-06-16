@@ -37,7 +37,7 @@ describe("Stack Overflow Clone Server Integration Tests", () => {
         .send({
           name: "Test User",
           email: "testuser@example.com",
-          password: "password123",
+          password: "Password123",
         });
 
       expect(res.statusCode).toBe(200);
@@ -54,7 +54,7 @@ describe("Stack Overflow Clone Server Integration Tests", () => {
         .send({
           name: "Test User 2",
           email: "testuser@example.com",
-          password: "password123",
+          password: "Password123",
         });
 
       expect(res.statusCode).toBe(404);
@@ -80,7 +80,7 @@ describe("Stack Overflow Clone Server Integration Tests", () => {
         .send({
           name: "Other Test User",
           email: "otheruser@example.com",
-          password: "password123",
+          password: "Password123",
         });
       otherUserToken = otherRes.body.token;
       otherTestUser = otherRes.body.result;

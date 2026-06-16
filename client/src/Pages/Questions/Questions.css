@@ -143,6 +143,10 @@
   line-height: 1.45;
   word-break: break-word;
   transition: color var(--transition-fast);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .question-title-link:hover {
@@ -220,7 +224,8 @@
 .question-details-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-4);
+  align-items: center;
+  gap: var(--space-2);
   font-size: 13px;
   color: var(--color-text-muted);
 }
@@ -230,10 +235,10 @@
   align-items: center;
 }
 
-.question-details-meta span:not(:last-child)::after {
-  content: "·";
-  margin-left: var(--space-4);
+.question-details-meta .meta-separator {
   color: var(--color-text-muted);
+  user-select: none;
+  margin: 0 var(--space-1);
 }
 
 .question-details-container-2 {
@@ -580,32 +585,32 @@
   font-size: 15px;
 }
 
-/* Override Quill light styles to make them fit dark mode */
-.ql-snow .ql-stroke {
-  stroke: var(--color-text-secondary) !important;
+/* Override Quill light styles to make them fit dark mode with high contrast */
+.editor-wrapper .ql-snow .ql-stroke {
+  stroke: var(--color-text-primary);
 }
 
-.ql-snow .ql-fill {
-  fill: var(--color-text-secondary) !important;
+.editor-wrapper .ql-snow .ql-fill {
+  fill: var(--color-text-primary);
 }
 
-.ql-snow .ql-picker {
-  color: var(--color-text-secondary) !important;
+.editor-wrapper .ql-snow .ql-picker {
+  color: var(--color-text-primary);
 }
 
-.ql-snow .ql-picker-options {
-  background-color: var(--color-bg-elevated) !important;
-  border-color: var(--color-border) !important;
+.editor-wrapper .ql-snow .ql-picker-options {
+  background-color: var(--color-bg-elevated);
+  border-color: var(--color-border);
 }
 
-.ql-snow.ql-toolbar button:hover .ql-stroke,
-.ql-snow.ql-toolbar button.ql-active .ql-stroke {
-  stroke: var(--color-brand-secondary) !important;
+.editor-wrapper .ql-snow.ql-toolbar button:hover .ql-stroke,
+.editor-wrapper .ql-snow.ql-toolbar button.ql-active .ql-stroke {
+  stroke: var(--color-brand-secondary);
 }
 
-.ql-snow.ql-toolbar button:hover .ql-fill,
-.ql-snow.ql-toolbar button.ql-active .ql-fill {
-  fill: var(--color-brand-secondary) !important;
+.editor-wrapper .ql-snow.ql-toolbar button:hover .ql-fill,
+.editor-wrapper .ql-snow.ql-toolbar button.ql-active .ql-fill {
+  fill: var(--color-brand-secondary);
 }
 
 /* Responsive adjustments */

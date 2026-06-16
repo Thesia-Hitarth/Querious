@@ -4,10 +4,14 @@ import User from "../models/auth.js";
 import mongoose from "mongoose";
 import { sendNotification } from "../utils/notificationHelper.js";
 import { updateReputationAndBadges } from "../utils/reputationHelper.js";
+import xss from "xss";
 
 export const AskQuestion = async (req, res) => {
   const postQuestionData = req.body;
   const userId = req.userId;
+  if (postQuestionData.questionBody) {
+    postQuestionData.questionBody = xss(postQuestionData.questionBody);
+  }
   const postQuestion = new Questions({ ...postQuestionData, userId });
   try {
     await postQuestion.save();
@@ -36,7 +40,8 @@ export const getAllQuestions = async (req, res) => {
     let query = {};
 
     if (search) {
-      query.$text = { $search: search };
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      query.$text = { $search: escapedSearch };
     }
 
     if (tag) {
@@ -296,12 +301,14 @@ export const updateQuestion = async (req, res) => {
     const user = await User.findById(userId);
     const editorName = user ? user.name : "Anonymous";
 
+    const sanitizedBody = questionBody ? xss(questionBody) : questionBody;
+
     const updatedQuestion = await Questions.findByIdAndUpdate(
       _id,
       {
         $set: {
           questionTitle,
-          questionBody,
+          questionBody: sanitizedBody,
           questionTags,
           editedOn: Date.now(),
           editedBy: editorName,

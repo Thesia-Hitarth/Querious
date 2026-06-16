@@ -14,14 +14,42 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
 
+  const getPasswordStrength = (pwd) => {
+    let score = 0;
+    if (!pwd) return { score, text: "", color: "" };
+    if (pwd.length >= 8) score++;
+    if (/[a-z]/.test(pwd)) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    
+    let text = "Weak";
+    let color = "#e05151";
+    if (score === 3) {
+      text = "Medium";
+      color = "#ffac38";
+    } else if (score === 4) {
+      text = "Strong";
+      color = "#2ecc71";
+    }
+    return { score, text, color };
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newPassword || !confirmPassword) {
       showToast("Please enter all password fields", "error");
       return;
     }
-    if (newPassword.length < 6) {
-      showToast("Password must be at least 6 characters long", "error");
+    if (newPassword.length < 8) {
+      showToast("Password must be at least 8 characters long", "error");
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      showToast("Password must contain at least one uppercase letter", "error");
+      return;
+    }
+    if (!/[0-9]/.test(newPassword)) {
+      showToast("Password must contain at least one number", "error");
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -71,8 +99,30 @@ const ResetPassword = () => {
               id="newPassword"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Minimum 6 characters"
+              placeholder="Minimum 8 characters"
             />
+            {newPassword && (
+              <div className="password-strength-meter" style={{ marginTop: "10px" }}>
+                <div className="strength-bar-bg" style={{ background: "rgba(255, 255, 255, 0.1)", height: "6px", borderRadius: "3px", overflow: "hidden", display: "flex" }}>
+                  <div className="strength-bar-fill" style={{ 
+                    width: `${(getPasswordStrength(newPassword).score / 4) * 100}%`, 
+                    background: getPasswordStrength(newPassword).color, 
+                    height: "100%", 
+                    transition: "width 0.3s ease" 
+                  }} />
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px" }}>
+                  <span style={{ fontSize: "12px", color: getPasswordStrength(newPassword).color, fontWeight: "600" }}>
+                    Strength: {getPasswordStrength(newPassword).text}
+                  </span>
+                </div>
+                <ul className="password-requirements" style={{ fontSize: "11px", color: "var(--color-text-secondary)", marginTop: "8px", paddingLeft: "16px", margin: "8px 0 0 0", textAlign: "left" }}>
+                  <li style={{ color: newPassword.length >= 8 ? "#2ecc71" : "inherit", transition: "color 0.2s" }}>At least 8 characters</li>
+                  <li style={{ color: /[A-Z]/.test(newPassword) ? "#2ecc71" : "inherit", transition: "color 0.2s" }}>At least one uppercase letter</li>
+                  <li style={{ color: /[0-9]/.test(newPassword) ? "#2ecc71" : "inherit", transition: "color 0.2s" }}>At least one number</li>
+                </ul>
+              </div>
+            )}
           </div>
           <div className="form-group" style={{ marginTop: "var(--space-2)" }}>
             <label htmlFor="confirmPassword">Confirm Password</label>

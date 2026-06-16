@@ -4,6 +4,7 @@ import Answers from "../models/Answers.js";
 import User from "../models/auth.js";
 import { sendNotification } from "../utils/notificationHelper.js";
 import { updateReputationAndBadges } from "../utils/reputationHelper.js";
+import xss from "xss";
 
 export const postAnswer = async (req, res) => {
   const { id: questionId } = req.params;
@@ -15,9 +16,10 @@ export const postAnswer = async (req, res) => {
   }
 
   try {
+    const sanitizedBody = answerBody ? xss(answerBody) : answerBody;
     const newAnswer = new Answers({
       questionId,
-      answerBody,
+      answerBody: sanitizedBody,
       userAnswered,
       userId,
     });
@@ -239,11 +241,13 @@ export const updateAnswer = async (req, res) => {
       return res.status(403).json({ message: "Action forbidden: You are not the author." });
     }
 
+    const sanitizedBody = answerBody ? xss(answerBody) : answerBody;
+
     const updatedAnswer = await Answers.findByIdAndUpdate(
       answerId,
       {
         $set: {
-          answerBody,
+          answerBody: sanitizedBody,
           editedOn: Date.now(),
         },
       },

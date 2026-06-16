@@ -1,7 +1,12 @@
 import React, { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { updateProfile } from "../../actions/users";
 import "./RightSidebar.css";
 
 const WidgetCollectives = () => {
+  const User = useSelector((state) => state.currentUserReducer);
+  const dispatch = useDispatch();
+
   const collectivesList = [
     {
       id: "mern",
@@ -44,12 +49,27 @@ const WidgetCollectives = () => {
 
   const [hoveredCollectiveId, setHoveredCollectiveId] = useState(null);
 
-  const handleToggleJoinCollective = (cId) => {
-    const updated = joinedCollectives.includes(cId)
-      ? joinedCollectives.filter((id) => id !== cId)
-      : [...joinedCollectives, cId];
-    setJoinedCollectives(updated);
-    localStorage.setItem("joined_collectives", JSON.stringify(updated));
+  const userCollectives = User?.result?.collectives || [];
+
+  const handleToggleJoinCollective = async (cId) => {
+    if (User?.result?._id) {
+      const isJoined = userCollectives.includes(cId);
+      const updated = isJoined
+        ? userCollectives.filter((id) => id !== cId)
+        : [...userCollectives, cId];
+      
+      try {
+        await dispatch(updateProfile(User.result._id, { collectives: updated }));
+      } catch (err) {
+        console.error("Failed to update collectives on server", err);
+      }
+    } else {
+      const updated = joinedCollectives.includes(cId)
+        ? joinedCollectives.filter((id) => id !== cId)
+        : [...joinedCollectives, cId];
+      setJoinedCollectives(updated);
+      localStorage.setItem("joined_collectives", JSON.stringify(updated));
+    }
   };
 
   return (
@@ -60,7 +80,9 @@ const WidgetCollectives = () => {
       </div>
       <div className="collectives-list">
         {collectivesList.map((c) => {
-          const isJoined = joinedCollectives.includes(c.id);
+          const isJoined = User?.result?._id
+            ? userCollectives.includes(c.id)
+            : joinedCollectives.includes(c.id);
           const isHovered = hoveredCollectiveId === c.id;
           return (
             <div key={c.id} className="collective-item">

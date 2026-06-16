@@ -63,6 +63,7 @@ const DisplayAnswer = ({ question, handleShare }) => {
   const [editAnswerBody, setEditAnswerBody] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteAnswerId, setDeleteAnswerId] = useState(null);
+  const [votingAnswerId, setVotingAnswerId] = useState(null);
 
   const handleEditClick = (ans) => {
     setEditingAnswerId(ans._id);
@@ -110,10 +111,13 @@ const DisplayAnswer = ({ question, handleShare }) => {
       showToast("You cannot vote on your own answer", "warning");
     } else {
       try {
+        setVotingAnswerId(answerId);
         await dispatch(voteAnswer(id, answerId, "upVote"));
         showToast("Answer upvoted successfully!", "success");
       } catch (err) {
         showToast(err.response?.data?.message || "Failed to upvote answer", "error");
+      } finally {
+        setVotingAnswerId(null);
       }
     }
   };
@@ -125,10 +129,13 @@ const DisplayAnswer = ({ question, handleShare }) => {
       showToast("You cannot vote on your own answer", "warning");
     } else {
       try {
+        setVotingAnswerId(answerId);
         await dispatch(voteAnswer(id, answerId, "downVote"));
         showToast("Answer downvoted successfully!", "success");
       } catch (err) {
         showToast(err.response?.data?.message || "Failed to downvote answer", "error");
+      } finally {
+        setVotingAnswerId(null);
       }
     }
   };
@@ -222,38 +229,43 @@ const DisplayAnswer = ({ question, handleShare }) => {
                 <div className="question-votes">
                   <button
                     type="button"
-                    className={`votes-icon-btn upvote-btn ${hasUpvoted ? "active" : ""} ${isAuthor ? "disabled" : ""}`}
+                    className={`votes-icon-btn upvote-btn ${hasUpvoted ? "active" : ""} ${isAuthor || votingAnswerId === ans._id ? "disabled" : ""}`}
                     onClick={() => handleUpVote(ans._id, ans.userId)}
-                    disabled={isAuthor}
+                    disabled={isAuthor || votingAnswerId === ans._id}
                     title={isAuthor ? "You cannot vote on your own answer" : "Upvote"}
                   >
                     <UpVoteIcon />
                   </button>
-                  <p className={`vote-score ${scoreClass(currentScore)}`}>
-                    {currentScore}
+                  <p className={`vote-score ${scoreClass(currentScore)} ${votingAnswerId === ans._id ? "animating" : ""}`}>
+                    {votingAnswerId === ans._id ? "..." : currentScore}
                   </p>
                   <button
                     type="button"
-                    className={`votes-icon-btn downvote-btn ${hasDownvoted ? "active" : ""} ${isAuthor ? "disabled" : ""}`}
+                    className={`votes-icon-btn downvote-btn ${hasDownvoted ? "active" : ""} ${isAuthor || votingAnswerId === ans._id ? "disabled" : ""}`}
                     onClick={() => handleDownVote(ans._id, ans.userId)}
-                    disabled={isAuthor}
+                    disabled={isAuthor || votingAnswerId === ans._id}
                     title={isAuthor ? "You cannot vote on your own answer" : "Downvote"}
                   >
                     <DownVoteIcon />
                   </button>
 
-                  {(String(User?.result?._id) === String(question.userId) || ans.isAccepted) && (
+                  {String(User?.result?._id) === String(question.userId) ? (
                     <button
                       type="button"
                       className={`accept-checkmark-btn ${ans.isAccepted ? "accepted" : ""}`}
                       onClick={() => handleAcceptAnswer(ans._id)}
-                      disabled={String(User?.result?._id) !== String(question.userId)}
                       title={
-                        ans.isAccepted ? "Accepted answer" : "Accept this answer"
+                        ans.isAccepted ? "Accepted answer (Click to undo)" : "Accept this answer"
                       }
                     >
                       <CheckIcon />
                     </button>
+                  ) : (
+                    ans.isAccepted && (
+                      <div className="accept-checkmark-static-icon accepted" title="Accepted answer">
+                        <CheckIcon />
+                      </div>
+                    )
                   )}
                 </div>
 
@@ -268,6 +280,7 @@ const DisplayAnswer = ({ question, handleShare }) => {
                           onChange={setEditAnswerBody}
                           modules={modules}
                           formats={formats}
+                          placeholder="Type your answer here..."
                         />
                       </div>
                       <div className="edit-form-buttons" style={{ marginBottom: "var(--space-4)" }}>

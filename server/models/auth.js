@@ -16,6 +16,7 @@ const userSchema = mongoose.Schema({
   location: { type: String, default: "" },
   website: { type: String, default: "" },
   savedQuestions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
+  collectives: { type: [String], default: [] },
   resetPasswordToken: { type: String },
   resetPasswordExpires: { type: Date },
   joinedOn: { type: Date, default: Date.now },

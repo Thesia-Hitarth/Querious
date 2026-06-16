@@ -12,6 +12,14 @@ export const updateProfile = (id, updateData) => async (dispatch) => {
   try {
     const { data } = await api.updateProfile(id, updateData);
     dispatch({ type: "UPDATE_CURRENT_USER", payload: data });
+
+    // Sync localStorage Profile data
+    const localProfile = JSON.parse(localStorage.getItem("Profile"));
+    if (localProfile && localProfile.result && localProfile.result._id === id) {
+      localProfile.result = data;
+      localStorage.setItem("Profile", JSON.stringify(localProfile));
+      dispatch({ type: "FETCH_CURRENT_USER", payload: localProfile });
+    }
   } catch (error) {
     console.log(error);
   }

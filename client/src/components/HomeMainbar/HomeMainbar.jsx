@@ -42,7 +42,9 @@ const HomeMainbar = ({ tag }) => {
 
   const questionsList = useSelector((state) => state.questionsReducer);
   const searchQuery = questionsList.searchQuery;
+  const usersList = useSelector((state) => state.usersReducer) || [];
   const [activeTab, setActiveTab] = useState("newest");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Filter Drawer State Variables
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -61,11 +63,21 @@ const HomeMainbar = ({ tag }) => {
       tag,
       ...appliedFilters
     };
-    if (tag) {
-      dispatch(fetchAllQuestions(queryParams));
-    } else if (location.pathname === "/" || location.pathname === "/Questions") {
-      dispatch(fetchAllQuestions(queryParams));
-    }
+    const loadQuestions = async () => {
+      setIsLoading(true);
+      try {
+        if (tag) {
+          await dispatch(fetchAllQuestions(queryParams));
+        } else if (location.pathname === "/" || location.pathname === "/Questions") {
+          await dispatch(fetchAllQuestions(queryParams));
+        }
+      } catch (err) {
+        console.error("Error fetching questions:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadQuestions();
   }, [location.pathname, tag, activeTab, dispatch, appliedFilters]);
 
   const checkAuth = () => {
@@ -81,8 +93,15 @@ const HomeMainbar = ({ tag }) => {
     setActiveTab(tabName);
   };
 
-  const handlePageChange = (pageNumber) => {
-    dispatch(fetchAllQuestions({ page: pageNumber, tab: activeTab, tag, ...appliedFilters }));
+  const handlePageChange = async (pageNumber) => {
+    setIsLoading(true);
+    try {
+      await dispatch(fetchAllQuestions({ page: pageNumber, tab: activeTab, tag, ...appliedFilters }));
+    } catch (err) {
+      console.error("Error fetching questions on page change:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleApplyFilter = (e) => {
@@ -185,12 +204,14 @@ const HomeMainbar = ({ tag }) => {
                 <span className="hero-stat-label">Questions</span>
               </div>
               <div className="hero-stat">
-                <span className="hero-stat-number">100%</span>
-                <span className="hero-stat-label">Free</span>
+                <span className="hero-stat-number">
+                  {questionsList.data?.reduce((acc, q) => acc + (q.answer?.length || 0), 0) || 0}+
+                </span>
+                <span className="hero-stat-label">Answers</span>
               </div>
               <div className="hero-stat">
-                <span className="hero-stat-number">Open</span>
-                <span className="hero-stat-label">Source</span>
+                <span className="hero-stat-number">{usersList.length || 0}+</span>
+                <span className="hero-stat-label">Users</span>
               </div>
             </motion.div>
           </motion.div>
@@ -395,7 +416,7 @@ const HomeMainbar = ({ tag }) => {
 
       {/* Questions Feed */}
       <motion.div className="questions-feed-wrapper" variants={itemVariants}>
-        {!questionsList.data ? (
+        {isLoading || !questionsList.data ? (
           <LoadingSkeleton type="question-list" count={4} />
         ) : (
           <>

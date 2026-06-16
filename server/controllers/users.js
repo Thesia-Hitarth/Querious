@@ -17,6 +17,7 @@ export const getAllUsers = async (req, res) => {
         website: user.website,
         avatar: user.avatar,
         savedQuestions: user.savedQuestions,
+        collectives: user.collectives,
         joinedOn: user.joinedOn,
       });
     });
@@ -49,6 +50,7 @@ export const getUserDetails = async (req, res) => {
       website: user.website,
       avatar: user.avatar,
       savedQuestions: user.savedQuestions,
+      collectives: user.collectives,
       joinedOn: user.joinedOn,
     });
   } catch (error) {
@@ -58,7 +60,7 @@ export const getUserDetails = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   const { id: _id } = req.params;
-  const { name, about, tags, location, website, avatar } = req.body;
+  const { name, about, tags, location, website, avatar, collectives } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(_id)) {
     return res.status(404).send("User unavailable...");
@@ -67,7 +69,7 @@ export const updateProfile = async (req, res) => {
   try {
     const updatedProfile = await users.findByIdAndUpdate(
       _id,
-      { $set: { name, about, tags, location, website, avatar } },
+      { $set: { name, about, tags, location, website, avatar, collectives } },
       { new: true }
     );
     res.status(200).json(updatedProfile);
