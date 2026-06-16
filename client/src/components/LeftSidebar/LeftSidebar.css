@@ -71,7 +71,7 @@
 
 .side-nav-links.active {
   color: var(--color-brand-primary);
-  background-color: #fff7ed;
+  background-color: var(--color-active-link-bg);
   font-weight: 600;
 }
 

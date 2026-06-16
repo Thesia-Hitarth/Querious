@@ -93,6 +93,10 @@
   /* ── Navbar height ── */
   --navbar-height: 64px;
   --sidebar-width: 230px;
+
+  /* ── Custom Theme Tokens ── */
+  --color-navbar-bg: rgba(255, 255, 255, 0.92);
+  --color-active-link-bg: #fff7ed;
 }
 
 *, *::before, *::after {
@@ -440,6 +444,10 @@ input::placeholder { color: var(--color-text-faint); }
     --shadow-md:              0 4px 12px rgba(0,0,0,0.4);
     --shadow-lg:              0 10px 30px rgba(0,0,0,0.5);
     --shadow-xl:              0 20px 50px rgba(0,0,0,0.6);
+
+    /* -- Custom Theme Tokens -- */
+    --color-navbar-bg: rgba(15, 23, 42, 0.85);
+    --color-active-link-bg: rgba(249, 115, 22, 0.15);
   }
 
   /* Specific elements dark tweaks */
@@ -459,6 +467,62 @@ input::placeholder { color: var(--color-text-faint); }
   }
 
   .bell-dropdown-header {
+    background-color: var(--color-bg-surface) !important;
+  }
+
+  /* Logo text visibility in dark mode */
+  .nav-logo-text {
+    background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+  }
+
+  /* Yellow Blog Widget in dark mode */
+  .yellow-widget {
+    background-color: #2c2514 !important;
+    border-color: #7c5e10 !important;
+  }
+  .yellow-widget:hover {
+    border-color: #a17c18 !important;
+  }
+  .yellow-widget .widget-title {
+    background-color: #3d331a !important;
+    color: #fef3c7 !important;
+    border-bottom-color: #7c5e10 !important;
+  }
+  .yellow-widget .widget-list {
+    background-color: #2c2514 !important;
+  }
+  .yellow-widget .widget-item {
+    color: #fde047 !important;
+  }
+  .yellow-widget .widget-item a {
+    color: #fef08a !important;
+  }
+  .yellow-widget .widget-item a:hover {
+    color: var(--color-brand-primary) !important;
+  }
+  .yellow-widget .widget-item-icon {
+    color: #a1a1aa !important;
+  }
+  .yellow-widget .meta-post-count {
+    color: #a1a1aa !important;
+  }
+
+  /* Answer pills in dark mode */
+  .question-stat-pill.has-answers {
+    background-color: rgba(16, 185, 129, 0.1) !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+  }
+
+  /* Unread notification items in dark mode */
+  .notification-item.unread {
+    background: rgba(249, 115, 22, 0.1) !important;
+  }
+
+  /* Filter Drawer in dark mode */
+  .filter-drawer-panel {
     background-color: var(--color-bg-surface) !important;
   }
 }
