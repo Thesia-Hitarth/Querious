@@ -233,6 +233,7 @@
 .question-details-meta span {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-1);
 }
 
 .question-details-meta .meta-separator {

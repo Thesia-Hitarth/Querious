@@ -2,6 +2,7 @@ import Questions from "../models/Questions.js";
 import Answers from "../models/Answers.js";
 import User from "../models/auth.js";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 import { sendNotification } from "../utils/notificationHelper.js";
 import { updateReputationAndBadges } from "../utils/reputationHelper.js";
 import xss from "xss";
@@ -140,22 +141,37 @@ export const getQuestionDetails = async (req, res) => {
       return res.status(404).send("Question not found");
     }
 
-    const clientIp = req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-    const trackerKey = `${clientIp}-${id}`;
-    const now = Date.now();
-    const oneHour = 60 * 60 * 1000;
-
-    // Clear stale entries
-    for (const [key, value] of viewTracker.entries()) {
-      if (now - value > oneHour) {
-        viewTracker.delete(key);
+    let currentUserId = null;
+    try {
+      const token = req.headers.authorization?.split(" ")[1];
+      if (token) {
+        let decodeData = jwt.verify(token, process.env.JWT_SECRET);
+        currentUserId = decodeData?.id;
       }
+    } catch (err) {
+      // Ignore token errors for public views, treat as anonymous
     }
 
-    if (!viewTracker.has(trackerKey)) {
-      viewTracker.set(trackerKey, now);
-      question.views = (question.views || 0) + 1;
-      await Questions.findByIdAndUpdate(id, { $inc: { views: 1 } });
+    const isAuthor = currentUserId && question.userId === currentUserId;
+
+    if (!isAuthor) {
+      const clientIp = req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+      const trackerKey = currentUserId ? `${currentUserId}-${id}` : `${clientIp}-${id}`;
+      const now = Date.now();
+      const oneDay = 24 * 60 * 60 * 1000;
+
+      // Clear stale entries
+      for (const [key, value] of viewTracker.entries()) {
+        if (now - value > oneDay) {
+          viewTracker.delete(key);
+        }
+      }
+
+      if (!viewTracker.has(trackerKey)) {
+        viewTracker.set(trackerKey, now);
+        question.views = (question.views || 0) + 1;
+        await Questions.findByIdAndUpdate(id, { $inc: { views: 1 } });
+      }
     }
 
     const answers = await Answers.find({ questionId: id }).sort({
