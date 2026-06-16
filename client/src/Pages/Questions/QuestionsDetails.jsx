@@ -83,7 +83,7 @@ const QuestionsDetails = () => {
   const dispatch = useDispatch();
   const User = useSelector((state) => state.currentUserReducer);
   const location = useLocation();
-  const url = process.env.REACT_APP_CLIENT_URL || window.location.origin;
+  const url = window.location.origin;
   const { showToast } = useToast();
 
   useEffect(() => {
