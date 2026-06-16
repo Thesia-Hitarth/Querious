@@ -49,9 +49,8 @@ const Tags = ({ slideIn, handleSlideIn }) => {
           <p className="tags-p-desc">
             Using the right tags makes it easier for others to find and answer your question.
           </p>
-          
+
           <div className="tags-search-wrapper">
-            <span className="tags-search-icon">🔍</span>
             <input
               type="text"
               placeholder="Filter by tag name..."
