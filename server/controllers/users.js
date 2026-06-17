@@ -60,7 +60,7 @@ export const getUserDetails = async (req, res) => {
     res.status(200).json({
       _id: user._id,
       name: user.name,
-      email: user.email,
+      email: isSelf ? user.email : undefined,
       about: user.about,
       tags: user.tags,
       reputation: user.reputation,

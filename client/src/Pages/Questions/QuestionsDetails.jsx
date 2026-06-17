@@ -291,6 +291,7 @@ const QuestionsDetails = () => {
                   <div className="form-group">
                     <label>Tags</label>
                     <TagInput
+                      key={isEditing ? "edit" : "view"}
                       tags={editTags}
                       onChange={setEditTags}
                       placeholder="Add tags (up to 5)..."

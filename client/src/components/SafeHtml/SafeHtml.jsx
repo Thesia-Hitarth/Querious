@@ -42,7 +42,7 @@ const domToReact = (node, index = 0) => {
   if (tagName === "pre") {
     const codeNode = node.querySelector("code");
     if (codeNode) {
-      return <CodeBlock key={index} codeText={codeNode.innerText} />;
+      return <CodeBlock key={index} codeText={codeNode.textContent} />;
     }
   }
 

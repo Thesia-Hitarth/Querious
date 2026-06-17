@@ -35,6 +35,7 @@ const AskQuestion = () => {
   const [questionTitle, setQuestionTitle] = useState("");
   const [questionBody, setQuestionBody] = useState("");
   const [questionTags, setQuestionTags] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const dispatch = useDispatch();
   const User = useSelector((state) => state.currentUserReducer);
@@ -57,19 +58,30 @@ const AskQuestion = () => {
       return;
     }
 
+    // M-03: Use AbortController so a slow earlier request cannot overwrite
+    // the results of a faster later one when the user types quickly.
+    const controller = new AbortController();
+
     const timer = setTimeout(async () => {
       try {
-        // Search the full database, not just the current paginated page
-        const { data } = await import("../../api").then(m =>
-          m.getAllQuestions({ search: questionTitle.trim(), limit: 5, page: 1 })
+        const apiModule = await import("../../api");
+        const { data } = await apiModule.getAllQuestions(
+          { search: questionTitle.trim(), limit: 5, page: 1 },
+          { signal: controller.signal }
         );
         setSimilarQuestions(data?.data || []);
-      } catch {
-        setSimilarQuestions([]);
+      } catch (err) {
+        // Ignore abort errors — they are expected on cleanup
+        if (err.name !== "CanceledError" && err.code !== "ERR_CANCELED") {
+          setSimilarQuestions([]);
+        }
       }
     }, 300);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [questionTitle]);
 
   const handleSubmit = async (e) => {
@@ -85,6 +97,8 @@ const AskQuestion = () => {
           showToast("Body cannot exceed 30,000 characters", "error");
           return;
         }
+        // C-01: Guard against double-submission on slow connections
+        setIsSubmitting(true);
         try {
           await dispatch(
             askQuestion(
@@ -100,6 +114,8 @@ const AskQuestion = () => {
           showToast("Question posted successfully!", "success");
         } catch (error) {
           showToast(error.response?.data?.message || "Failed to post question. Please try again.", "error");
+        } finally {
+          setIsSubmitting(false);
         }
       } else {
         if (!questionTitle) showToast("Please specify a question title", "error");
@@ -121,14 +137,28 @@ const AskQuestion = () => {
               <div className="ask-form-container">
                 <div className="form-group">
                   <label htmlFor="ask-ques-title">Title</label>
-                  <span className="field-hint">Be specific and imagine you’re asking a question to another person</span>
+                  <span className="field-hint">Be specific and imagine you're asking a question to another person</span>
                   <input
                     type="text"
                     id="ask-ques-title"
                     onChange={handleTitleChange}
                     placeholder="e.g. Is there an R function for finding the index of an element in a vector?"
+                    maxLength={300}
                     required
                   />
+                  {/* U-03: Live character counter so users know before they hit the limit */}
+                  <span
+                    className="char-counter"
+                    style={{
+                      fontSize: "12px",
+                      color: questionTitle.length >= 280 ? "var(--color-error, #e54545)" : "var(--color-text-muted)",
+                      display: "block",
+                      textAlign: "right",
+                      marginTop: "4px",
+                    }}
+                  >
+                    {questionTitle.length}/300
+                  </span>
                   {similarQuestions.length > 0 && (
                     <div className="similar-questions-panel">
                       <span className="panel-title">💡 Similar questions already asked:</span>
@@ -172,10 +202,13 @@ const AskQuestion = () => {
               </div>
 
               <div className="ask-form-actions">
+                {/* C-01: Disable button while submitting to prevent double-post */}
                 <input
                   type="submit"
-                  value="Post your question"
+                  value={isSubmitting ? "Posting…" : "Post your question"}
                   className="btn btn-primary"
+                  disabled={isSubmitting}
+                  aria-disabled={isSubmitting}
                 />
               </div>
             </form>
