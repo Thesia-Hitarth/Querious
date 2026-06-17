@@ -6,14 +6,29 @@ export const getPasswordStrength = (pwd) => {
   if (/[A-Z]/.test(pwd)) score++;
   if (/[0-9]/.test(pwd)) score++;
   
-  let text = "Weak";
-  let color = "#e05151";
-  if (score === 3) {
-    text = "Medium";
-    color = "#ffac38";
-  } else if (score === 4) {
-    text = "Strong";
-    color = "#2ecc71";
+  let text = "";
+  let color = "";
+  switch (score) {
+    case 0:
+    case 1:
+      text = "Very Weak";
+      color = "#e05151";
+      break;
+    case 2:
+      text = "Fair";
+      color = "#f39c12";
+      break;
+    case 3:
+      text = "Medium";
+      color = "#ffac38";
+      break;
+    case 4:
+      text = "Strong";
+      color = "#2ecc71";
+      break;
+    default:
+      text = "";
+      color = "";
   }
   return { score, text, color };
 };

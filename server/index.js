@@ -21,7 +21,7 @@ try {
 
 dns.setDefaultResultOrder("ipv4first");
 
-import crypto from "crypto";
+
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
@@ -52,17 +52,12 @@ if (mongoUrl) {
 const app = express();
 app.set('trust proxy', 1);
 
-app.use((req, res, next) => {
-  res.locals.cspNonce = crypto.randomBytes(16).toString("base64");
-  next();
-});
-
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
         connectSrc: ["'self'", "http://localhost:5000", "ws://localhost:5000", "wss://*", "https://*"],
         imgSrc: ["'self'", "data:", "https://*"],
         styleSrc: ["'self'", "'unsafe-inline'"],

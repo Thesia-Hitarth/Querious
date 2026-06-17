@@ -62,6 +62,42 @@ const LoadingSkeleton = ({ type = "question-list", count = 3 }) => {
             ))}
           </div>
         );
+      case "user-profile":
+        return (
+          <div className="skeleton-user-profile">
+            <div className="skeleton-profile-header-card shimmer">
+              <div className="skeleton-profile-avatar"></div>
+              <div className="skeleton-profile-header-info">
+                <div className="skeleton-profile-name"></div>
+                <div className="skeleton-profile-meta-row">
+                  <div className="skeleton-profile-meta-item"></div>
+                  <div className="skeleton-profile-meta-item"></div>
+                </div>
+              </div>
+            </div>
+            <div className="skeleton-profile-content-grid">
+              <div className="skeleton-profile-left-column shimmer">
+                <div className="skeleton-profile-sec-title"></div>
+                <div className="skeleton-profile-stats-grid">
+                  <div className="skeleton-profile-stat-tile"></div>
+                  <div className="skeleton-profile-stat-tile"></div>
+                  <div className="skeleton-profile-stat-tile"></div>
+                </div>
+              </div>
+              <div className="skeleton-profile-right-column">
+                <div className="skeleton-profile-tabs-header shimmer">
+                  <div className="skeleton-profile-tab-btn"></div>
+                  <div className="skeleton-profile-tab-btn"></div>
+                </div>
+                <div className="skeleton-profile-tab-content shimmer">
+                  <div className="skeleton-profile-body-line"></div>
+                  <div className="skeleton-profile-body-line"></div>
+                  <div className="skeleton-profile-body-line"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
       default:
         return (
           <div className="skeleton-generic shimmer">

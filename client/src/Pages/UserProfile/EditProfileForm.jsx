@@ -30,6 +30,7 @@ const EditProfileForm = ({ currentUser, setSwitch }) => {
           <h3>Display name</h3>
           <input
             type="text"
+            id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />

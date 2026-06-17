@@ -117,6 +117,16 @@ const HomeMainbar = ({ tag }) => {
     setIsFilterOpen(false);
   };
 
+  const handleCancel = () => {
+    setFilterNoAnswers(appliedFilters.filterNoAnswers === "true");
+    setFilterNoAccepted(appliedFilters.filterNoAccepted === "true");
+    setFilterDaysOld(appliedFilters.filterDaysOld || "");
+    setFilterSort(appliedFilters.filterSort || "newest");
+    setFilterTags(appliedFilters.filterTags || "");
+    setFilterTagsOption(appliedFilters.filterTags ? "custom" : "any");
+    setIsFilterOpen(false);
+  };
+
   const handleResetFilter = () => {
     setFilterNoAnswers(false);
     setFilterNoAccepted(false);
@@ -403,7 +413,10 @@ const HomeMainbar = ({ tag }) => {
                 <button type="submit" className="btn filter-apply-btn">
                   Apply filter
                 </button>
-                <button type="button" onClick={handleResetFilter} className="filter-cancel-btn">
+                <button type="button" onClick={handleResetFilter} className="filter-reset-btn" style={{ marginLeft: "auto" }}>
+                  Reset Filters
+                </button>
+                <button type="button" onClick={handleCancel} className="filter-cancel-btn">
                   Cancel
                 </button>
               </div>

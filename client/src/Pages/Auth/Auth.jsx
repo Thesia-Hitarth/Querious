@@ -169,11 +169,11 @@ const Auth = () => {
             {!resetSent && (
               <form onSubmit={handleSubmit} className="auth-form">
                 <div className="form-group">
-                  <label htmlFor="email">Email</label>
+                  <label htmlFor="forgot-email">Email</label>
                   <input
                     type="email"
                     name="email"
-                    id="email"
+                    id="forgot-email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -217,11 +217,11 @@ const Auth = () => {
             )}
 
             <div className="form-group">
-              <label htmlFor="email">Email Address</label>
+              <label htmlFor="auth-email">Email Address</label>
               <input
                 type="email"
                 name="email"
-                id="email"
+                id="auth-email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -230,7 +230,7 @@ const Auth = () => {
 
             <div className="form-group">
               <div className="password-label-row">
-                <label htmlFor="password">Password</label>
+                <label htmlFor="auth-password">Password</label>
                 {!isSignup && (
                   <button type="button" className="forgot-link" onClick={handleForgotPasswordClick}>
                     Forgot password?
@@ -240,7 +240,7 @@ const Auth = () => {
               <input
                 type="password"
                 name="password"
-                id="password"
+                id="auth-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
