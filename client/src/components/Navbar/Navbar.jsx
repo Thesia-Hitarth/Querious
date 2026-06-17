@@ -377,11 +377,11 @@ const Navbar = ({ handleSlideIn }) => {
 
           {User === null ? (
             <>
-              <Link to="/Auth" className="btn login-btn">
+              <Link to="/Auth" state={{ isSignup: false }} className="btn login-btn">
                 <span className="login-text-desktop">Log in</span>
                 <span className="login-icon-mobile"><UserIconSVG /></span>
               </Link>
-              <Link to="/Auth" className="btn signup-btn">
+              <Link to="/Auth" state={{ isSignup: true }} className="btn signup-btn">
                 Sign up
               </Link>
             </>

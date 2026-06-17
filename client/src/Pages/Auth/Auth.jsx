@@ -12,22 +12,28 @@ import { useToast } from "../../components/Toast/ToastContext";
 import { getPasswordStrength } from "../../utils/passwordStrength";
 
 const Auth = () => {
-  const [isSignup, setIsSignup] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { showToast } = useToast();
+
+  const [isSignup, setIsSignup] = useState(location.state && typeof location.state.isSignup === "boolean" ? location.state.isSignup : false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { showToast } = useToast();
-
   const passwordStrength = getPasswordStrength(password);
 
   const from = location.state?.from?.pathname || "/";
   const redirectMessage = location.state?.message;
+
+  useEffect(() => {
+    if (location.state && typeof location.state.isSignup === "boolean") {
+      setIsSignup(location.state.isSignup);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     if (redirectMessage) {
