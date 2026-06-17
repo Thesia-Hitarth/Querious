@@ -38,7 +38,6 @@ const AskQuestion = () => {
 
   const dispatch = useDispatch();
   const User = useSelector((state) => state.currentUserReducer);
-  const questionsList = useSelector((state) => state.questionsReducer.data);
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -58,34 +57,20 @@ const AskQuestion = () => {
       return;
     }
 
-    const timer = setTimeout(() => {
-      const searchWords = questionTitle.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-      if (searchWords.length === 0) {
+    const timer = setTimeout(async () => {
+      try {
+        // Search the full database, not just the current paginated page
+        const { data } = await import("../../api").then(m =>
+          m.getAllQuestions({ search: questionTitle.trim(), limit: 5, page: 1 })
+        );
+        setSimilarQuestions(data?.data || []);
+      } catch {
         setSimilarQuestions([]);
-        return;
       }
-
-      const listToSearch = questionsList || [];
-
-      // Rank matching questions by title word overlap
-      const matches = listToSearch.map((q) => {
-        const qTitleLower = q.questionTitle.toLowerCase();
-        let overlapCount = 0;
-        searchWords.forEach((word) => {
-          if (qTitleLower.includes(word)) overlapCount++;
-        });
-        return { question: q, score: overlapCount };
-      })
-        .filter(m => m.score > 0)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 4)
-        .map(m => m.question);
-
-      setSimilarQuestions(matches);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [questionTitle, questionsList]);
+  }, [questionTitle]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

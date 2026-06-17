@@ -22,7 +22,7 @@ const Comments = ({ questionId, parentId, comments = [], type, postOwnerId }) =>
 
   const displayedComments = isExpanded ? comments : comments.slice(0, 5);
 
-  const handleAddComment = (e) => {
+  const handleAddComment = async (e) => {
     e.preventDefault();
     if (User === null) {
       showToast("Please login to comment", "warning");
@@ -32,15 +32,22 @@ const Comments = ({ questionId, parentId, comments = [], type, postOwnerId }) =>
       showToast("Comment cannot be empty", "error");
       return;
     }
-
-    if (type === "question") {
-      dispatch(commentQuestion(parentId, commentText));
-    } else {
-      dispatch(commentAnswer(questionId, parentId, commentText));
+    if (commentText.length > 600) {
+      showToast("Comment cannot exceed 600 characters", "error");
+      return;
     }
 
-    setCommentText("");
-    setShowInput(false);
+    try {
+      if (type === "question") {
+        await dispatch(commentQuestion(parentId, commentText));
+      } else {
+        await dispatch(commentAnswer(questionId, parentId, commentText));
+      }
+      setCommentText("");
+      setShowInput(false);
+    } catch (err) {
+      showToast("Failed to add comment. Please try again.", "error");
+    }
   };
 
   const handleDeleteComment = (commentId) => {

@@ -106,13 +106,16 @@ const HomeMainbar = ({ tag }) => {
 
   const handleApplyFilter = (e) => {
     e.preventDefault();
-    const filters = {
-      filterNoAnswers: filterNoAnswers,
-      filterNoAccepted: filterNoAccepted,
-      filterDaysOld: filterDaysOld ? parseInt(filterDaysOld) : "",
-      filterTags: filterTagsOption === "custom" ? filterTags.trim() : "",
-      filterSort,
-    };
+    const filters = {};
+    // Only include non-default values so Object.keys(appliedFilters).length
+    // correctly reflects whether any filters are actually active.
+    if (filterNoAnswers) filters.filterNoAnswers = true;
+    if (filterNoAccepted) filters.filterNoAccepted = true;
+    if (filterDaysOld) filters.filterDaysOld = parseInt(filterDaysOld);
+    if (filterTagsOption === "custom" && filterTags.trim()) {
+      filters.filterTags = filterTags.trim();
+    }
+    if (filterSort && filterSort !== "newest") filters.filterSort = filterSort;
     setAppliedFilters(filters);
     setIsFilterOpen(false);
   };

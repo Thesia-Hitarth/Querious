@@ -50,6 +50,7 @@ export const postAnswer = async (req, res) => {
 export const deleteAnswer = async (req, res) => {
   const { id: questionId } = req.params;
   const { answerId } = req.body;
+  const userId = req.userId;
 
   if (!mongoose.Types.ObjectId.isValid(questionId)) {
     return res.status(404).send("Question unavailable...");
@@ -59,10 +60,16 @@ export const deleteAnswer = async (req, res) => {
   }
 
   try {
-    const deletedAnswer = await Answers.findByIdAndDelete(answerId);
-    if (!deletedAnswer) {
+    const answer = await Answers.findById(answerId);
+    if (!answer) {
       return res.status(404).send("Answer not found...");
     }
+
+    if (String(answer.userId) !== String(userId)) {
+      return res.status(403).json({ message: "Action forbidden: You are not the author." });
+    }
+
+    await Answers.findByIdAndDelete(answerId);
 
     // Decrement answer count on Question
     await Questions.findByIdAndUpdate(questionId, {

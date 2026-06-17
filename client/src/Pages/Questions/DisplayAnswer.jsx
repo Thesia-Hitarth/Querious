@@ -76,6 +76,10 @@ const DisplayAnswer = ({ question, handleShare }) => {
       showToast("Answer body cannot be empty", "error");
       return;
     }
+    if (editAnswerBody.replace(/<[^>]+>/g, "").length > 30000) {
+      showToast("Answer cannot exceed 30,000 characters", "error");
+      return;
+    }
     try {
       await dispatch(updateAnswer(id, answerId, { answerBody: editAnswerBody }));
       showToast("Answer updated successfully!", "success");

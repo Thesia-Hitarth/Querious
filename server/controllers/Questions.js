@@ -223,15 +223,29 @@ export const getQuestionDetails = async (req, res) => {
 
 export const deleteQuestion = async (req, res) => {
   const { id: _id } = req.params;
+  const userId = req.userId;
 
   if (!mongoose.Types.ObjectId.isValid(_id)) {
     return res.status(404).send("question unavailable...");
   }
 
   try {
+    const question = await Questions.findById(_id);
+    if (!question) {
+      return res.status(404).send("Question not found...");
+    }
+
+    if (String(question.userId) !== String(userId)) {
+      return res.status(403).json({ message: "Action forbidden: You are not the author." });
+    }
+
     await Questions.findByIdAndDelete(_id);
     // Delete all answers associated with this question
     await Answers.deleteMany({ questionId: _id });
+
+    // Reverse the reputation gain the author earned for posting the question
+    await updateReputationAndBadges(question.userId, -5);
+
     res.status(200).json({ message: "successfully deleted..." });
   } catch (error) {
     console.error(error);

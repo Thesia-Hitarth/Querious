@@ -111,7 +111,6 @@ const QuestionsDetails = () => {
           await dispatch(
             postAnswer({
               id,
-              noOfAnswers: answerLength + 1,
               answerBody: Answer,
               userAnswered: User.result.name,
             })
