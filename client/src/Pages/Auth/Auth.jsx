@@ -9,6 +9,7 @@ import AboutAuth from "./AboutAuth";
 import { signup, login } from "../../actions/auth";
 import * as api from "../../api";
 import { useToast } from "../../components/Toast/ToastContext";
+import { getPasswordStrength } from "../../utils/passwordStrength";
 
 const Auth = () => {
   const [isSignup, setIsSignup] = useState(false);
@@ -23,25 +24,7 @@ const Auth = () => {
   const location = useLocation();
   const { showToast } = useToast();
 
-  const getPasswordStrength = (pwd) => {
-    let score = 0;
-    if (!pwd) return { score, text: "", color: "" };
-    if (pwd.length >= 8) score++;
-    if (/[a-z]/.test(pwd)) score++;
-    if (/[A-Z]/.test(pwd)) score++;
-    if (/[0-9]/.test(pwd)) score++;
-    
-    let text = "Weak";
-    let color = "#e05151";
-    if (score === 3) {
-      text = "Medium";
-      color = "#ffac38";
-    } else if (score === 4) {
-      text = "Strong";
-      color = "#2ecc71";
-    }
-    return { score, text, color };
-  };
+  const passwordStrength = getPasswordStrength(password);
 
   const from = location.state?.from?.pathname || "/";
   const redirectMessage = location.state?.message;
@@ -260,15 +243,15 @@ const Auth = () => {
                 <div className="password-strength-meter" style={{ marginTop: "10px" }}>
                   <div className="strength-bar-bg" style={{ background: "rgba(255, 255, 255, 0.1)", height: "6px", borderRadius: "3px", overflow: "hidden", display: "flex" }}>
                     <div className="strength-bar-fill" style={{ 
-                      width: `${(getPasswordStrength(password).score / 4) * 100}%`, 
-                      background: getPasswordStrength(password).color, 
+                      width: `${(passwordStrength.score / 4) * 100}%`, 
+                      background: passwordStrength.color, 
                       height: "100%", 
                       transition: "width 0.3s ease" 
                     }} />
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px" }}>
-                    <span style={{ fontSize: "12px", color: getPasswordStrength(password).color, fontWeight: "600" }}>
-                      Strength: {getPasswordStrength(password).text}
+                    <span style={{ fontSize: "12px", color: passwordStrength.color, fontWeight: "600" }}>
+                      Strength: {passwordStrength.text}
                     </span>
                   </div>
                   <ul className="password-requirements" style={{ fontSize: "11px", color: "var(--color-text-secondary)", marginTop: "8px", paddingLeft: "16px", margin: "8px 0 0 0", textAlign: "left" }}>

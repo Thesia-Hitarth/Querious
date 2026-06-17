@@ -200,13 +200,11 @@ const HomeMainbar = ({ tag }) => {
               transition={{ delay: 0.45, duration: 0.4 }}
             >
               <div className="hero-stat">
-                <span className="hero-stat-number">{questionsList.data?.length || 0}+</span>
+                <span className="hero-stat-number">{questionsList.totalSiteQuestions || 0}+</span>
                 <span className="hero-stat-label">Questions</span>
               </div>
               <div className="hero-stat">
-                <span className="hero-stat-number">
-                  {questionsList.data?.reduce((acc, q) => acc + (q.answer?.length || 0), 0) || 0}+
-                </span>
+                <span className="hero-stat-number">{questionsList.totalSiteAnswers || 0}+</span>
                 <span className="hero-stat-label">Answers</span>
               </div>
               <div className="hero-stat">
@@ -240,7 +238,7 @@ const HomeMainbar = ({ tag }) => {
       {/* Tabs Row */}
       <motion.div className="questions-tabs-container" variants={itemVariants}>
         <span className="questions-count">
-          {questionsList.data ? `${questionsList.data.length} questions` : "Loading…"}
+          {questionsList.data ? `${questionsList.totalCount || 0} questions` : "Loading…"}
         </span>
 
         <div className="questions-filter-pills-row">
@@ -434,7 +432,7 @@ const HomeMainbar = ({ tag }) => {
             ) : (
               <>
                 <p className="questions-count-text" style={{ padding: "12px 20px", borderBottom: "1px solid var(--color-border-light)", margin: 0 }}>
-                  {questionsList.data.length} questions found
+                  {questionsList.totalCount || 0} questions found
                 </p>
                 <div className="questions-list-container">
                   <QuestionList questionsList={questionsList.data} />

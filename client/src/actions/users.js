@@ -38,8 +38,10 @@ export const toggleSaveQuestion = (userId, questionId) => async (dispatch) => {
     
     dispatch({ type: "UPDATE_SAVED_QUESTIONS", payload: data.savedQuestions });
     dispatch(fetchAllUsers());
+    return data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 

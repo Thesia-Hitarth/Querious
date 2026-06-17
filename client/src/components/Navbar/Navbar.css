@@ -475,9 +475,14 @@
   flex-direction: column;
   gap: 3px;
   padding: var(--space-4) var(--space-5);
+  border: none;
   border-bottom: 1px solid var(--color-border-light);
   cursor: pointer;
   transition: background-color var(--transition-fast);
+  background: transparent;
+  text-align: left;
+  width: 100%;
+  font-family: inherit;
 }
 .notification-item:last-child { border-bottom: none; }
 .notification-item:hover { background-color: var(--color-bg-elevated); }

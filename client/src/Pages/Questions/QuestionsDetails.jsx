@@ -221,14 +221,18 @@ const QuestionsDetails = () => {
     }
   };
 
-  const handleBookmarkClick = (questionId) => {
+  const handleBookmarkClick = async (questionId) => {
     if (User === null) {
       showToast("Please login or signup to bookmark a question", "warning");
       Navigate("/Auth");
     } else {
-      dispatch(toggleSaveQuestion(User.result._id, questionId));
       const alreadySaved = User?.result?.savedQuestions?.includes(questionId);
-      showToast(alreadySaved ? "Bookmark removed!" : "Question bookmarked!", "success");
+      try {
+        await dispatch(toggleSaveQuestion(User.result._id, questionId));
+        showToast(alreadySaved ? "Bookmark removed!" : "Question bookmarked!", "success");
+      } catch (err) {
+        showToast(err.response?.data?.message || "Failed to update bookmark", "error");
+      }
     }
   };
 
@@ -417,9 +421,9 @@ const QuestionsDetails = () => {
               </div>
             </section>
           )}
-          {question.noOfAnswers !== 0 && (
+          {question.answer && question.answer.length !== 0 && (
             <section>
-              <h3 className="answers-section-title">{question.noOfAnswers} Answers</h3>
+              <h3 className="answers-section-title">{question.answer.length} Answers</h3>
               <DisplayAnswer
                 key={question._id}
                 question={question}

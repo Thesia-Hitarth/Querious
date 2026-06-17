@@ -124,28 +124,28 @@ const LeftSidebar = ({ slideIn, handleSlideIn }) => {
             <span className="side-nav-label">Discover</span>
 
             <motion.div variants={itemVariants}>
-              <NavLink to="/" className="side-nav-links" end>
+              <NavLink to="/" className="side-nav-links" onClick={handleLinkClick} end>
                 <HomeIcon />
                 <span>Home</span>
               </NavLink>
             </motion.div>
 
             <motion.div variants={itemVariants}>
-              <NavLink to="/Questions" className="side-nav-links">
+              <NavLink to="/Questions" className="side-nav-links" onClick={handleLinkClick}>
                 <QuestionsIcon />
                 <span>Questions</span>
               </NavLink>
             </motion.div>
 
             <motion.div variants={itemVariants}>
-              <NavLink to="/Tags" className="side-nav-links">
+              <NavLink to="/Tags" className="side-nav-links" onClick={handleLinkClick}>
                 <TagsIcon />
                 <span>Tags</span>
               </NavLink>
             </motion.div>
 
             <motion.div variants={itemVariants}>
-              <NavLink to="/Blogs" className="side-nav-links">
+              <NavLink to="/Blogs" className="side-nav-links" onClick={handleLinkClick}>
                 <BlogIcon />
                 <span>Blogs</span>
               </NavLink>
@@ -157,7 +157,7 @@ const LeftSidebar = ({ slideIn, handleSlideIn }) => {
             <span className="side-nav-label">Community</span>
 
             <motion.div variants={itemVariants}>
-              <NavLink to="/Users" className="side-nav-links" end>
+              <NavLink to="/Users" className="side-nav-links" onClick={handleLinkClick} end>
                 <UsersIcon />
                 <span>Users</span>
               </NavLink>
@@ -172,6 +172,7 @@ const LeftSidebar = ({ slideIn, handleSlideIn }) => {
               <motion.div variants={itemVariants}>
                 <NavLink
                   to={`/Users/${User?.result?._id}?tab=saves`}
+                  onClick={handleLinkClick}
                   className={({ isActive }) =>
                     `side-nav-links ${
                       isSavesTab && location.pathname.startsWith(`/Users/${User?.result?._id}`)
@@ -188,6 +189,7 @@ const LeftSidebar = ({ slideIn, handleSlideIn }) => {
               <motion.div variants={itemVariants}>
                 <NavLink
                   to={`/Users/${User?.result?._id}`}
+                  onClick={handleLinkClick}
                   className={({ isActive }) =>
                     `side-nav-links ${!isSavesTab && isSelfProfile ? "active" : ""}`
                   }

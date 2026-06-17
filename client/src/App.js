@@ -13,8 +13,6 @@ import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 import { ToastProvider } from "./components/Toast/ToastContext";
 import ScrollToTop from "./components/ScrollToTop/ScrollToTop";
 
-const ENABLE_SOCKET = process.env.REACT_APP_ENABLE_SOCKET === "true" || window.location.hostname === "localhost";
-
 function App() {
   const dispatch = useDispatch();
   const User = useSelector((state) => state.currentUserReducer);
@@ -31,7 +29,9 @@ function App() {
 
     dispatch(fetchNotifications());
 
-    if (ENABLE_SOCKET) {
+    const isSocketEnabled = process.env.REACT_APP_ENABLE_SOCKET === "true" || window.location.hostname === "localhost";
+
+    if (isSocketEnabled) {
       const apiUrl = window.location.hostname === "localhost"
         ? "http://localhost:5000"
         : window.location.origin;

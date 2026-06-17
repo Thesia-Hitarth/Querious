@@ -111,10 +111,31 @@ export const getAllQuestions = async (req, res) => {
     }
 
     const total = await Questions.countDocuments(query);
-    const questions = await Questions.find(query)
-      .sort(sortOption)
-      .skip((page - 1) * limit)
-      .limit(limit);
+    
+    let questions;
+    if (filterSort === "score") {
+      questions = await Questions.aggregate([
+        { $match: query },
+        {
+          $addFields: {
+            voteScore: {
+              $subtract: [
+                { $size: { $ifNull: ["$upVote", []] } },
+                { $size: { $ifNull: ["$downVote", []] } }
+              ]
+            }
+          }
+        },
+        { $sort: { voteScore: -1, askedOn: -1 } },
+        { $skip: (page - 1) * limit },
+        { $limit: limit }
+      ]);
+    } else {
+      questions = await Questions.find(query)
+        .sort(sortOption)
+        .skip((page - 1) * limit)
+        .limit(limit);
+    }
 
     // Fetch answers for each question to maintain frontend compatibility
     const questionsWithAnswers = await Promise.all(
@@ -123,14 +144,21 @@ export const getAllQuestions = async (req, res) => {
           isAccepted: -1,
           upVote: -1,
         });
-        return { ...question.toObject(), answer: answers };
+        const questionObj = typeof question.toObject === "function" ? question.toObject() : question;
+        return { ...questionObj, answer: answers };
       })
     );
+
+    const totalSiteQuestions = await Questions.countDocuments({});
+    const totalSiteAnswers = await Answers.countDocuments({});
 
     res.status(200).json({
       data: questionsWithAnswers,
       totalPages: Math.ceil(total / limit),
       currentPage: page,
+      totalCount: total,
+      totalSiteQuestions,
+      totalSiteAnswers,
     });
   } catch (error) {
     console.error(error);

@@ -1,5 +1,14 @@
 const questionsReducer = (
-  state = { data: null, totalPages: 1, currentPage: 1, searchQuery: "", tagsAggregation: [] },
+  state = {
+    data: null,
+    totalPages: 1,
+    currentPage: 1,
+    searchQuery: "",
+    tagsAggregation: [],
+    totalCount: 0,
+    totalSiteQuestions: 0,
+    totalSiteAnswers: 0,
+  },
   action
 ) => {
   switch (action.type) {
@@ -17,6 +26,9 @@ const questionsReducer = (
         data: action.payload.data,
         totalPages: action.payload.totalPages,
         currentPage: action.payload.currentPage,
+        totalCount: action.payload.totalCount || 0,
+        totalSiteQuestions: action.payload.totalSiteQuestions || 0,
+        totalSiteAnswers: action.payload.totalSiteAnswers || 0,
       };
     case "FETCH_QUESTION_DETAILS":
       const currentData = state.data || [];

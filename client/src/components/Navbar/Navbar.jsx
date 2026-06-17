@@ -95,6 +95,7 @@ const Navbar = ({ handleSlideIn }) => {
 
   const handleClearSearch = () => {
     setSearchQuery("");
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
     if (cancelTokenSourceRef.current) {
       cancelTokenSourceRef.current.cancel("Search cleared.");
     }
@@ -200,6 +201,116 @@ const Navbar = ({ handleSlideIn }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!isBellOpen) return;
+
+    const bellEl = bellRef.current;
+    if (!bellEl) return;
+
+    const focusableEls = bellEl.querySelectorAll('button, [tabindex="0"]');
+    if (focusableEls.length > 0) {
+      setTimeout(() => {
+        focusableEls[0].focus();
+      }, 50);
+    }
+
+    const handleKeyDown = (e) => {
+      const focusable = Array.from(bellEl.querySelectorAll('button, [tabindex="0"]'));
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const index = focusable.indexOf(document.activeElement);
+
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      } else if (e.key === "Escape") {
+        setIsBellOpen(false);
+        const bellBtn = bellEl.querySelector(".navbar-bell-btn");
+        bellBtn?.focus();
+      } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        let nextIndex = index;
+        if (e.key === "ArrowDown") {
+          nextIndex = index + 1 >= focusable.length ? 0 : index + 1;
+        } else {
+          nextIndex = index - 1 < 0 ? focusable.length - 1 : index - 1;
+        }
+        focusable[nextIndex].focus();
+      }
+    };
+
+    bellEl.addEventListener("keydown", handleKeyDown);
+    return () => {
+      bellEl.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isBellOpen]);
+
+  useEffect(() => {
+    if (!isAvatarOpen) return;
+
+    const avatarEl = avatarRef.current;
+    if (!avatarEl) return;
+
+    const focusableEls = avatarEl.querySelectorAll('button, a, [tabindex="0"]');
+    if (focusableEls.length > 0) {
+      setTimeout(() => {
+        focusableEls[0].focus();
+      }, 50);
+    }
+
+    const handleKeyDown = (e) => {
+      const focusable = Array.from(avatarEl.querySelectorAll('button, a, [tabindex="0"]'));
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const index = focusable.indexOf(document.activeElement);
+
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      } else if (e.key === "Escape") {
+        setIsAvatarOpen(false);
+        const avatarBtn = avatarEl.querySelector(".navbar-avatar-btn");
+        avatarBtn?.focus();
+      } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        let nextIndex = index;
+        if (e.key === "ArrowDown") {
+          nextIndex = index + 1 >= focusable.length ? 0 : index + 1;
+        } else {
+          nextIndex = index - 1 < 0 ? focusable.length - 1 : index - 1;
+        }
+        focusable[nextIndex].focus();
+      }
+    };
+
+    avatarEl.addEventListener("keydown", handleKeyDown);
+    return () => {
+      avatarEl.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isAvatarOpen]);
 
   return (
     <nav className="main-nav">
@@ -307,7 +418,8 @@ const Navbar = ({ handleSlideIn }) => {
                     ) : (
                       <div className="notifications-list">
                         {notifications.map((notif) => (
-                          <div
+                          <button
+                            type="button"
                             key={notif._id}
                             className={`notification-item ${notif.read ? "read" : "unread"}`}
                             onClick={() => handleNotificationClick(notif)}
@@ -316,7 +428,7 @@ const Navbar = ({ handleSlideIn }) => {
                             <span className="notif-time">
                               {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
                             </span>
-                          </div>
+                          </button>
                         ))}
                       </div>
                     )}
@@ -362,10 +474,6 @@ const Navbar = ({ handleSlideIn }) => {
                   </div>
                 )}
               </div>
-
-              <button className="btn logout-btn" onClick={handleLogout}>
-                Log out
-              </button>
             </>
           )}
         </div>

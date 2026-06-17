@@ -6,18 +6,19 @@ import { useToast } from "../../components/Toast/ToastContext";
 const EditProfileForm = ({ currentUser, setSwitch }) => {
   const [name, setName] = useState(currentUser?.result?.name);
   const [about, setAbout] = useState(currentUser?.result?.about);
-  const [tags, setTags] = useState([]);
+  const [tagsInput, setTagsInput] = useState(currentUser?.result?.tags?.join(" ") || "");
   const dispatch = useDispatch();
   const { showToast } = useToast();
-  console.log(tags);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (tags[0] === "" || tags.length === 0) {
+    const tagsArray = tagsInput.split(" ").filter((t) => t.trim() !== "");
+    if (tagsArray.length === 0) {
       showToast("Please update your tags field", "warning");
     } else {
-      dispatch(updateProfile(currentUser?.result?._id, { name, about, tags }));
+      dispatch(updateProfile(currentUser?.result?._id, { name, about, tags: tagsArray }));
+      setSwitch(false);
     }
-    setSwitch(false);
   };
 
   return (
@@ -49,7 +50,8 @@ const EditProfileForm = ({ currentUser, setSwitch }) => {
           <input
             type="text"
             id="tags"
-            onChange={(e) => setTags(e.target.value.split(" "))}
+            value={tagsInput}
+            onChange={(e) => setTagsInput(e.target.value)}
           />
         </label>
         <br />
