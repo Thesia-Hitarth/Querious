@@ -1,6 +1,7 @@
-import React from "react";
-import { useParams, Link } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import LeftSidebar from "../../components/LeftSidebar/LeftSidebar";
+import { useToast } from "../../components/Toast/ToastContext";
 import "./Blogs.css";
 
 export const blogsData = [
@@ -50,10 +51,23 @@ Referencing is preferred when the child documents are unbounded in size or share
 
 const Blogs = ({ slideIn, handleSlideIn }) => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { showToast } = useToast();
   const hasId = Boolean(id);
 
   // If a specific ID is requested, show that post, otherwise show the list
   const blogPost = hasId ? blogsData.find((b) => b.id === parseInt(id)) : null;
+
+  useEffect(() => {
+    if (hasId && !blogPost) {
+      showToast("Blog post not found", "error");
+      navigate("/Blogs");
+    }
+  }, [hasId, blogPost, navigate, showToast]);
+
+  if (hasId && !blogPost) {
+    return null;
+  }
 
   return (
     <div className="home-container-1">

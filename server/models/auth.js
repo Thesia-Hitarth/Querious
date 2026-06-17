@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 
 const userSchema = mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true },
-  password: { type: String, required: true },
-  about: { type: String },
-  tags: { type: [String] },
+  name: { type: String, required: true, maxlength: 100 },
+  email: { type: String, required: true, maxlength: 256 },
+  password: { type: String, required: true, maxlength: 100 },
+  about: { type: String, maxlength: 500 },
+  tags: { type: [{ type: String, maxlength: 50 }] },
   reputation: { type: Number, default: 1 },
   badges: {
     gold: { type: Number, default: 0 },
@@ -13,8 +13,8 @@ const userSchema = mongoose.Schema({
     bronze: { type: Number, default: 0 },
   },
   avatar: { type: String, default: "" },
-  location: { type: String, default: "" },
-  website: { type: String, default: "" },
+  location: { type: String, default: "" , maxlength: 100 },
+  website: { type: String, default: "" , maxlength: 200 },
   savedQuestions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
   collectives: { type: [String], default: [] },
   resetPasswordToken: { type: String },

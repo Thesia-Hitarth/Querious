@@ -1,6 +1,7 @@
 import Questions from "../models/Questions.js";
 import Answers from "../models/Answers.js";
 import User from "../models/auth.js";
+import ViewTracker from "../models/ViewTracker.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import { sendNotification } from "../utils/notificationHelper.js";
@@ -39,41 +40,50 @@ export const getAllQuestions = async (req, res) => {
     const filterSort = req.query.filterSort || "";
 
     let query = {};
+    let andConditions = [];
 
     if (search) {
       const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const searchRegex = new RegExp(escapedSearch, "i");
-      query.$or = [
-        { questionTitle: searchRegex },
-        { questionBody: searchRegex },
-        { questionTags: searchRegex }
-      ];
+      andConditions.push({
+        $or: [
+          { questionTitle: searchRegex },
+          { questionBody: searchRegex },
+          { questionTags: searchRegex }
+        ]
+      });
     }
 
     if (tag) {
-      query.questionTags = tag;
+      andConditions.push({ questionTags: tag });
     }
 
     // Apply filters
     if (filterNoAnswers) {
-      query.noOfAnswers = 0;
+      andConditions.push({ noOfAnswers: 0 });
     }
 
     if (filterNoAccepted) {
-      query.$or = [{ acceptedAnswerId: null }, { acceptedAnswerId: "" }];
+      andConditions.push({
+        $or: [{ acceptedAnswerId: null }, { acceptedAnswerId: "" }]
+      });
     }
 
     if (filterDaysOld) {
       const cutOffDate = new Date();
       cutOffDate.setDate(cutOffDate.getDate() - filterDaysOld);
-      query.askedOn = { $gte: cutOffDate };
+      andConditions.push({ askedOn: { $gte: cutOffDate } });
     }
 
     if (filterTags) {
       const tagsArray = filterTags.split(/[\s,]+/).filter(Boolean);
       if (tagsArray.length > 0) {
-        query.questionTags = { $in: tagsArray };
+        andConditions.push({ questionTags: { $in: tagsArray } });
       }
+    }
+
+    if (andConditions.length > 0) {
+      query.$and = andConditions;
     }
 
     // Determine sorting options
@@ -128,8 +138,6 @@ export const getAllQuestions = async (req, res) => {
   }
 };
 
-const viewTracker = new Map();
-
 export const getQuestionDetails = async (req, res) => {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -157,20 +165,19 @@ export const getQuestionDetails = async (req, res) => {
     if (!isAuthor) {
       const clientIp = req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress;
       const trackerKey = currentUserId ? `${currentUserId}-${id}` : `${clientIp}-${id}`;
-      const now = Date.now();
-      const oneDay = 24 * 60 * 60 * 1000;
 
-      // Clear stale entries
-      for (const [key, value] of viewTracker.entries()) {
-        if (now - value > oneDay) {
-          viewTracker.delete(key);
+      try {
+        const existingTracker = await ViewTracker.findOne({ trackerKey });
+        if (!existingTracker) {
+          await ViewTracker.create({ trackerKey });
+          question.views = (question.views || 0) + 1;
+          await Questions.findByIdAndUpdate(id, { $inc: { views: 1 } });
         }
-      }
-
-      if (!viewTracker.has(trackerKey)) {
-        viewTracker.set(trackerKey, now);
-        question.views = (question.views || 0) + 1;
-        await Questions.findByIdAndUpdate(id, { $inc: { views: 1 } });
+      } catch (err) {
+        // Ignore duplicate key errors arising from race conditions
+        if (err.code !== 11000) {
+          console.error("ViewTracker error:", err);
+        }
       }
     }
 

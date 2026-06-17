@@ -124,28 +124,28 @@ const LeftSidebar = ({ slideIn, handleSlideIn }) => {
             <span className="side-nav-label">Discover</span>
 
             <motion.div variants={itemVariants}>
-              <NavLink to="/" className="side-nav-links" onClick={handleLinkClick} end>
+              <NavLink to="/" className="side-nav-links" end>
                 <HomeIcon />
                 <span>Home</span>
               </NavLink>
             </motion.div>
 
             <motion.div variants={itemVariants}>
-              <NavLink to="/Questions" className="side-nav-links" onClick={handleLinkClick}>
+              <NavLink to="/Questions" className="side-nav-links">
                 <QuestionsIcon />
                 <span>Questions</span>
               </NavLink>
             </motion.div>
 
             <motion.div variants={itemVariants}>
-              <NavLink to="/Tags" className="side-nav-links" onClick={handleLinkClick}>
+              <NavLink to="/Tags" className="side-nav-links">
                 <TagsIcon />
                 <span>Tags</span>
               </NavLink>
             </motion.div>
 
             <motion.div variants={itemVariants}>
-              <NavLink to="/Blogs" className="side-nav-links" onClick={handleLinkClick}>
+              <NavLink to="/Blogs" className="side-nav-links">
                 <BlogIcon />
                 <span>Blogs</span>
               </NavLink>
@@ -157,7 +157,7 @@ const LeftSidebar = ({ slideIn, handleSlideIn }) => {
             <span className="side-nav-label">Community</span>
 
             <motion.div variants={itemVariants}>
-              <NavLink to="/Users" className="side-nav-links" onClick={handleLinkClick} end>
+              <NavLink to="/Users" className="side-nav-links" end>
                 <UsersIcon />
                 <span>Users</span>
               </NavLink>
@@ -179,7 +179,6 @@ const LeftSidebar = ({ slideIn, handleSlideIn }) => {
                         : ""
                     }`
                   }
-                  onClick={handleLinkClick}
                 >
                   <SavedIcon />
                   <span>Saved</span>
@@ -192,7 +191,6 @@ const LeftSidebar = ({ slideIn, handleSlideIn }) => {
                   className={({ isActive }) =>
                     `side-nav-links ${!isSavesTab && isSelfProfile ? "active" : ""}`
                   }
-                  onClick={handleLinkClick}
                 >
                   <ProfileIcon />
                   <span>Profile</span>

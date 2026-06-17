@@ -153,37 +153,7 @@ const DisplayAnswer = ({ question, handleShare }) => {
     }
   };
 
-  // Add Copy Button to code pre blocks dynamically (Section 10 of micro-interactions)
-  useEffect(() => {
-    if (question.answer) {
-      const preBlocks = document.querySelectorAll(".prose pre");
-      preBlocks.forEach((pre) => {
-        if (pre.querySelector(".code-copy-btn")) return;
 
-        const button = document.createElement("button");
-        button.className = "code-copy-btn";
-        button.type = "button";
-        button.innerText = "Copy";
-
-        button.addEventListener("click", async () => {
-          const codeText = pre.querySelector("code")?.innerText || pre.innerText.replace(/Copy$/, "");
-          try {
-            await navigator.clipboard.writeText(codeText);
-            button.innerText = "Copied ✓";
-            showToast("Code copied to clipboard!", "success");
-            setTimeout(() => {
-              button.innerText = "Copy";
-            }, 2000);
-          } catch (err) {
-            console.error("Failed to copy code block:", err);
-            showToast("Failed to copy code block", "error");
-          }
-        });
-
-        pre.appendChild(button);
-      });
-    }
-  }, [question.answer, editingAnswerId, showToast]);
 
   const scoreClass = (score) => {
     if (score > 0) return "positive";
@@ -191,11 +161,14 @@ const DisplayAnswer = ({ question, handleShare }) => {
     return "";
   };
 
-  // Sort answers to push accepted answer to top
+  // Sort answers to push accepted answer to top, secondary sort by net votes score descending
   const sortedAnswers = [...(question.answer || [])].sort((a, b) => {
-    if (a.isAccepted && !b.isAccepted) return -1;
-    if (!a.isAccepted && b.isAccepted) return 1;
-    return 0;
+    if (a.isAccepted !== b.isAccepted) {
+      return b.isAccepted - a.isAccepted;
+    }
+    const scoreA = (a.upVote?.length || 0) - (a.downVote?.length || 0);
+    const scoreB = (b.upVote?.length || 0) - (b.downVote?.length || 0);
+    return scoreB - scoreA;
   });
 
   return (

@@ -77,7 +77,7 @@ const Tags = ({ slideIn, handleSlideIn }) => {
               ))
             ) : (
               <div className="tags-empty-state">
-                <p className="tags-empty-text">No tags match "<strong>{searchTerm}</strong>".</p>
+                <p className="tags-empty-text">No tags matching "<strong>{searchTerm}</strong>" — you can use it when asking a question.</p>
                 <div className="tags-empty-suggestions">
                   <p>Suggestions:</p>
                   <ul>

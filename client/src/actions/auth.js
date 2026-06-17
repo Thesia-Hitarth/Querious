@@ -2,13 +2,13 @@ import * as api from "../api";
 import { setCurrentUser } from "./currentUser";
 import { fetchAllUsers } from "./users";
 
-export const signup = (authData, navigate, redirectPath = "/") => async (dispatch) => {
+export const signup = (authData, navigate, from = "/") => async (dispatch) => {
   try {
     const { data } = await api.signUp(authData);
     dispatch({ type: "AUTH", data });
     dispatch(setCurrentUser(JSON.parse(localStorage.getItem("Profile"))));
     dispatch(fetchAllUsers());
-    navigate(redirectPath);
+    navigate(from, { replace: true });
     return data;
   } catch (error) {
     console.error(error);
@@ -16,12 +16,12 @@ export const signup = (authData, navigate, redirectPath = "/") => async (dispatc
   }
 };
 
-export const login = (authData, navigate, redirectPath = "/") => async (dispatch) => {
+export const login = (authData, navigate, from = "/") => async (dispatch) => {
   try {
     const { data } = await api.logIn(authData);
     dispatch({ type: "AUTH", data });
     dispatch(setCurrentUser(JSON.parse(localStorage.getItem("Profile"))));
-    navigate(redirectPath);
+    navigate(from, { replace: true });
     return data;
   } catch (error) {
     console.error(error);

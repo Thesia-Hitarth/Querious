@@ -46,12 +46,12 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const tab = searchParams.get("tab");
-    if (tab === "saves") {
+    if (tab === "saves" && currentUser?.result?._id === id) {
       setActiveTab("saves");
     } else {
       setActiveTab("bio");
     }
-  }, [location.search]);
+  }, [location.search, currentUser?.result?._id, id]);
 
   useEffect(() => {
     dispatch(fetchUserDetails(id));
@@ -199,13 +199,15 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
                 >
                   Bio
                 </button>
-                <button
-                  type="button"
-                  onClick={() => navigate(`/Users/${id}?tab=saves`)}
-                  className={`profile-tab-btn ${activeTab === "saves" ? "active" : ""}`}
-                >
-                  Saved Questions ({savedQuestionsList.length})
-                </button>
+                {currentUser?.result?._id === id && (
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/Users/${id}?tab=saves`)}
+                    className={`profile-tab-btn ${activeTab === "saves" ? "active" : ""}`}
+                  >
+                    Saved Questions ({savedQuestionsList.length})
+                  </button>
+                )}
               </div>
 
               <div className="profile-tab-content">

@@ -4,6 +4,7 @@ import app from "../index.js";
 import User from "../models/auth.js";
 import Questions from "../models/Questions.js";
 import Answers from "../models/Answers.js";
+import ViewTracker from "../models/ViewTracker.js";
 
 process.env.NODE_ENV = "test";
 
@@ -20,6 +21,7 @@ describe("Stack Overflow Clone Server Integration Tests", () => {
     await User.deleteMany({ email: { $in: ["testuser@example.com", "otheruser@example.com"] } });
     await Questions.deleteMany({ questionTitle: /Test Question/ });
     await Answers.deleteMany({ userAnswered: /Test User/ });
+    await ViewTracker.deleteMany({});
   });
 
   afterAll(async () => {
@@ -27,6 +29,7 @@ describe("Stack Overflow Clone Server Integration Tests", () => {
     await User.deleteMany({ email: { $in: ["testuser@example.com", "otheruser@example.com"] } });
     await Questions.deleteMany({ questionTitle: /Test Question/ });
     await Answers.deleteMany({ userAnswered: /Test User/ });
+    await ViewTracker.deleteMany({});
     await mongoose.connection.close();
   });
 
@@ -155,6 +158,26 @@ describe("Stack Overflow Clone Server Integration Tests", () => {
 
       expect(res.statusCode).toBe(200);
       expect(res.body.data.isAccepted).toBe(true);
+    });
+  });
+
+  describe("GET /questions/get/:id", () => {
+    it("should retrieve the question details and track view count", async () => {
+      // Fetch details as other user (author should not increment view, but other users should)
+      const res1 = await request(app)
+        .get(`/questions/get/${questionId}`)
+        .set("Authorization", `Bearer ${otherUserToken}`);
+
+      expect(res1.statusCode).toBe(200);
+      expect(res1.body.views).toBe(1);
+
+      // Repeat request as same user - should not increment view count (deduplication)
+      const res2 = await request(app)
+        .get(`/questions/get/${questionId}`)
+        .set("Authorization", `Bearer ${otherUserToken}`);
+
+      expect(res2.statusCode).toBe(200);
+      expect(res2.body.views).toBe(1);
     });
   });
 });

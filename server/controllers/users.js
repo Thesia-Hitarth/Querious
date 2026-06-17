@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import users from "../models/auth.js";
+import jwt from "jsonwebtoken";
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -33,11 +34,29 @@ export const getUserDetails = async (req, res) => {
     return res.status(404).send("User unavailable...");
   }
   try {
-    // Populate savedQuestions with Question model details
-    const user = await users.findById(id).populate("savedQuestions");
+    let currentUserId = null;
+    try {
+      const token = req.headers.authorization?.split(" ")[1];
+      if (token) {
+        let decodeData = jwt.verify(token, process.env.JWT_SECRET);
+        currentUserId = decodeData?.id;
+      }
+    } catch (err) {
+      // Ignore token decoding errors, treat as guest
+    }
+
+    const isSelf = String(currentUserId) === String(id);
+    let user;
+    if (isSelf) {
+      user = await users.findById(id).populate("savedQuestions");
+    } else {
+      user = await users.findById(id);
+    }
+
     if (!user) {
       return res.status(404).send("User not found...");
     }
+
     res.status(200).json({
       _id: user._id,
       name: user.name,
@@ -49,7 +68,7 @@ export const getUserDetails = async (req, res) => {
       location: user.location,
       website: user.website,
       avatar: user.avatar,
-      savedQuestions: user.savedQuestions,
+      savedQuestions: isSelf ? user.savedQuestions : [],
       collectives: user.collectives,
       joinedOn: user.joinedOn,
     });
@@ -64,6 +83,10 @@ export const updateProfile = async (req, res) => {
 
   if (!mongoose.Types.ObjectId.isValid(_id)) {
     return res.status(404).send("User unavailable...");
+  }
+
+  if (String(req.userId) !== String(_id)) {
+    return res.status(403).json({ message: "Action forbidden: Unauthorized to update this profile." });
   }
 
   try {

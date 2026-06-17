@@ -51,7 +51,19 @@ if (mongoUrl) {
 const app = express();
 app.set('trust proxy', 1);
 
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        connectSrc: ["'self'", "http://localhost:5000", "ws://localhost:5000", "wss://*", "https://*"],
+        imgSrc: ["'self'", "data:", "https://*"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+      },
+    },
+  })
+);
 app.use(mongoSanitize());
 
 app.use(express.json({ limit: "100kb", extended: true }));
@@ -112,8 +124,9 @@ if (!process.env.VERCEL && process.env.NODE_ENV !== "test") {
 
   const io = new Server(server, {
     cors: {
-      origin: "*",
+      origin: clientUrl.split(",").map((url) => url.trim()),
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+      credentials: true,
     },
   });
 

@@ -130,6 +130,9 @@ const Navbar = ({ handleSlideIn }) => {
         !document.activeElement.isContentEditable
       ) {
         e.preventDefault();
+        if (document.documentElement.classList.contains("navbar-hidden")) {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
         document.documentElement.classList.remove("navbar-hidden");
         searchInputRef.current?.focus();
       }
@@ -146,6 +149,11 @@ const Navbar = ({ handleSlideIn }) => {
     let prevScrollPos = window.pageYOffset || document.documentElement.scrollTop;
 
     const handleScroll = () => {
+      if (document.activeElement === searchInputRef.current) {
+        document.documentElement.classList.remove("navbar-hidden");
+        return;
+      }
+      
       const currentScrollPos = window.pageYOffset || document.documentElement.scrollTop;
       // Show navbar if scrolling up or if close to the top (within 80px)
       const isVisible = prevScrollPos > currentScrollPos || currentScrollPos < 80;

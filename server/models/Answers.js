@@ -6,7 +6,7 @@ const AnswerSchema = mongoose.Schema({
     ref: "Question",
     required: true,
   },
-  answerBody: { type: String, required: true },
+  answerBody: { type: String, required: true, minlength: 5, maxlength: 30000 },
   userId: { type: String },
   userAnswered: { type: String },
   upVote: { type: [String], default: [] },
@@ -16,7 +16,7 @@ const AnswerSchema = mongoose.Schema({
   editedOn: { type: Date, default: null },
   comments: [
     {
-      commentBody: { type: String, required: true },
+      commentBody: { type: String, required: true, minlength: 2, maxlength: 600 },
       userId: String,
       userCommented: String,
       commentedOn: { type: Date, default: Date.now },

@@ -13,6 +13,8 @@ import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 import { ToastProvider } from "./components/Toast/ToastContext";
 import ScrollToTop from "./components/ScrollToTop/ScrollToTop";
 
+const ENABLE_SOCKET = process.env.REACT_APP_ENABLE_SOCKET === "true" || window.location.hostname === "localhost";
+
 function App() {
   const dispatch = useDispatch();
   const User = useSelector((state) => state.currentUserReducer);
@@ -23,36 +25,36 @@ function App() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (User?.result?._id) {
-      dispatch(fetchNotifications());
+    if (!User?.result?._id) {
+      return;
+    }
 
-      const enableSocket = process.env.REACT_APP_ENABLE_SOCKET === "true" || window.location.hostname === "localhost";
+    dispatch(fetchNotifications());
 
-      if (enableSocket) {
-        const apiUrl = window.location.hostname === "localhost"
-          ? "http://localhost:5000"
-          : window.location.origin;
+    if (ENABLE_SOCKET) {
+      const apiUrl = window.location.hostname === "localhost"
+        ? "http://localhost:5000"
+        : window.location.origin;
 
-        const socket = io(apiUrl);
-        socket.emit("join", User.result._id);
+      const socket = io(apiUrl);
+      socket.emit("join", User.result._id);
 
-        socket.on("notification", (notif) => {
-          dispatch({ type: "ADD_NOTIFICATION", payload: notif });
-        });
+      socket.on("notification", (notif) => {
+        dispatch({ type: "ADD_NOTIFICATION", payload: notif });
+      });
 
-        return () => {
-          socket.disconnect();
-        };
-      } else {
-        // Fallback polling for serverless deployment
-        const interval = setInterval(() => {
-          dispatch(fetchNotifications());
-        }, 30000);
+      return () => {
+        socket.disconnect();
+      };
+    } else {
+      // Fallback polling for serverless deployment
+      const interval = setInterval(() => {
+        dispatch(fetchNotifications());
+      }, 30000);
 
-        return () => {
-          clearInterval(interval);
-        };
-      }
+      return () => {
+        clearInterval(interval);
+      };
     }
   }, [User?.result?._id, dispatch]);
 

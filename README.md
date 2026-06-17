@@ -101,11 +101,15 @@ npm install
 ```
 
 ### 3. Setup environment variables
-Create a `.env` file inside the `server/` directory:
-```env
-CONNECTION_URL = "your-mongodb-atlas-url"
-JWT_SECRET = "your-custom-jwt-secret-string"
-```
+Create the environment configuration files by copying the provided templates:
+- For the backend, copy `server/.env.example` to `server/.env` and populate your variables:
+  ```bash
+  cp server/.env.example server/.env
+  ```
+- For the frontend, copy `client/.env.example` to `client/.env` and update configurations:
+  ```bash
+  cp client/.env.example client/.env
+  ```
 
 ### 4. Run the application
 Run the development command at the root directory to start both the Express backend and React frontend concurrently:

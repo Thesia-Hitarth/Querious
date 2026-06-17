@@ -3,6 +3,12 @@ import { render } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import SafeHtml from "./SafeHtml";
 
+jest.mock("../Toast/ToastContext", () => ({
+  useToast: () => ({
+    showToast: jest.fn()
+  })
+}));
+
 describe("<SafeHtml /> Component Tests", () => {
   it("should render clean HTML correctly", () => {
     const { container } = render(<SafeHtml content="<p>Hello World</p>" />);

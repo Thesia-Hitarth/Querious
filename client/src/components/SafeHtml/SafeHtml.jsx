@@ -1,16 +1,20 @@
 import React, { useState } from "react";
 import DOMPurify from "dompurify";
+import { useToast } from "../Toast/ToastContext";
 
 const CodeBlock = ({ codeText }) => {
   const [copied, setCopied] = useState(false);
+  const { showToast } = useToast();
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(codeText);
       setCopied(true);
+      showToast("Code copied to clipboard!", "success");
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy code text:", err);
+      showToast("Failed to copy code block", "error");
     }
   };
 

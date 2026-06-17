@@ -44,6 +44,14 @@ const AskQuestion = () => {
 
   const [similarQuestions, setSimilarQuestions] = useState([]);
 
+  const handleTitleChange = (e) => {
+    const val = e.target.value;
+    setQuestionTitle(val);
+    if (val.trim().length < 3) {
+      setSimilarQuestions([]);
+    }
+  };
+
   useEffect(() => {
     if (questionTitle.trim().length < 3) {
       setSimilarQuestions([]);
@@ -79,7 +87,7 @@ const AskQuestion = () => {
     return () => clearTimeout(timer);
   }, [questionTitle, questionsList]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (User) {
       if (questionTitle && questionBody && questionTags.length > 0) {
@@ -91,18 +99,22 @@ const AskQuestion = () => {
           showToast("Body cannot exceed 30,000 characters", "error");
           return;
         }
-        dispatch(
-          askQuestion(
-            {
-              questionTitle,
-              questionBody,
-              questionTags,
-              userPosted: User.result.name,
-            },
-            navigate
-          )
-        );
-        showToast("Question posted successfully!", "success");
+        try {
+          await dispatch(
+            askQuestion(
+              {
+                questionTitle,
+                questionBody,
+                questionTags,
+                userPosted: User.result.name,
+              },
+              navigate
+            )
+          );
+          showToast("Question posted successfully!", "success");
+        } catch (error) {
+          showToast(error.response?.data?.message || "Failed to post question. Please try again.", "error");
+        }
       } else {
         if (!questionTitle) showToast("Please specify a question title", "error");
         else if (!questionBody) showToast("Please write a question body", "error");
@@ -127,7 +139,7 @@ const AskQuestion = () => {
                   <input
                     type="text"
                     id="ask-ques-title"
-                    onChange={(e) => setQuestionTitle(e.target.value)}
+                    onChange={handleTitleChange}
                     placeholder="e.g. Is there an R function for finding the index of an element in a vector?"
                     required
                   />
