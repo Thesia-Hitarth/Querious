@@ -65,7 +65,8 @@ export const userUpdateValidationRules = [
   validateRequest
 ];
 
-export const authValidationRules = [
+// Signup requires full password strength enforcement
+export const signupValidationRules = [
   body("email")
     .trim()
     .isEmail()
@@ -77,5 +78,22 @@ export const authValidationRules = [
     .withMessage("Password must contain at least one uppercase letter")
     .matches(/[0-9]/)
     .withMessage("Password must contain at least one number"),
-  validateRequest
+  validateRequest,
 ];
+
+// Login only validates format — strength rules must NOT block users
+// who registered before stricter rules were introduced.
+export const loginValidationRules = [
+  body("email")
+    .trim()
+    .isEmail()
+    .withMessage("Must be a valid email address"),
+  body("password")
+    .notEmpty()
+    .withMessage("Password is required"),
+  validateRequest,
+];
+
+// Keep old export name as an alias for signup to avoid breaking any direct imports
+export const authValidationRules = signupValidationRules;
+

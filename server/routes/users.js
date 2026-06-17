@@ -3,12 +3,12 @@ import express from "express";
 import { login, signup, forgotPassword, resetPassword } from "../controllers/auth.js";
 import { getAllUsers, updateProfile, getUserDetails, toggleSaveQuestion } from "../controllers/users.js";
 import auth from "../middleware/auth.js";
-import { authValidationRules, userUpdateValidationRules } from "../middleware/validation.js";
+import { signupValidationRules, loginValidationRules, userUpdateValidationRules } from "../middleware/validation.js";
 
 const router = express.Router();
 
-router.post("/signup", authValidationRules, signup);
-router.post("/login", authValidationRules, login);
+router.post("/signup", signupValidationRules, signup);
+router.post("/login", loginValidationRules, login);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 
