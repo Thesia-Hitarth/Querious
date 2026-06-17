@@ -7,6 +7,7 @@ const EditProfileForm = ({ currentUser, setSwitch }) => {
   const [name, setName] = useState(currentUser?.result?.name);
   const [about, setAbout] = useState(currentUser?.result?.about);
   const [tagsInput, setTagsInput] = useState(currentUser?.result?.tags?.join(" ") || "");
+  const [website, setWebsite] = useState(currentUser?.result?.website || "");
   const dispatch = useDispatch();
   const { showToast } = useToast();
 
@@ -15,10 +16,14 @@ const EditProfileForm = ({ currentUser, setSwitch }) => {
     const tagsArray = tagsInput.split(" ").filter((t) => t.trim() !== "");
     if (tagsArray.length === 0) {
       showToast("Please update your tags field", "warning");
-    } else {
-      dispatch(updateProfile(currentUser?.result?._id, { name, about, tags: tagsArray }));
-      setSwitch(false);
+      return;
     }
+    if (website.trim() !== "" && !/^https?:\/\/.+/.test(website.trim())) {
+      showToast("Website must start with http:// or https://", "error");
+      return;
+    }
+    dispatch(updateProfile(currentUser?.result?._id, { name, about, tags: tagsArray, website }));
+    setSwitch(false);
   };
 
   return (
@@ -44,6 +49,17 @@ const EditProfileForm = ({ currentUser, setSwitch }) => {
             value={about}
             onChange={(e) => setAbout(e.target.value)}
           ></textarea>
+        </label>
+        <label htmlFor="website">
+          <h3>Website</h3>
+          <p>Must start with http:// or https://</p>
+          <input
+            type="url"
+            id="website"
+            value={website}
+            placeholder="https://yoursite.com"
+            onChange={(e) => setWebsite(e.target.value)}
+          />
         </label>
         <label htmlFor="tags">
           <h3>Watched tags</h3>

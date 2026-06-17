@@ -3,8 +3,28 @@
   "buildCommand": "npm run build",
   "outputDirectory": "client/build",
   "env": {
-    "CI": "false"
+    "CI": "false",
+    "INLINE_RUNTIME_CHUNK": "false"
   },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://* wss://*; img-src 'self' data: https://*; font-src 'self' data:;"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/user/:path*",

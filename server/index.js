@@ -57,7 +57,7 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
         connectSrc: ["'self'", "http://localhost:5000", "ws://localhost:5000", "wss://*", "https://*"],
         imgSrc: ["'self'", "data:", "https://*"],
         styleSrc: ["'self'", "'unsafe-inline'"],

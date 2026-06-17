@@ -112,7 +112,7 @@ const Auth = () => {
   return (
     <section className="auth-section">
       {isSignup && !isForgotPassword && <AboutAuth />}
-      
+
       <motion.div
         className="auth-card-container"
         initial={{ opacity: 0, y: 20 }}
@@ -165,7 +165,7 @@ const Auth = () => {
                 Enter your email address and we'll send a password recovery link to your inbox.
               </p>
             )}
-            
+
             {!resetSent && (
               <form onSubmit={handleSubmit} className="auth-form">
                 <div className="form-group">
@@ -184,7 +184,7 @@ const Auth = () => {
                 </button>
               </form>
             )}
-            
+
             <button
               type="button"
               className="back-login-btn"
@@ -201,13 +201,13 @@ const Auth = () => {
             <h2 className="auth-heading">
               {isSignup ? "Join Querious" : "Welcome back"}
             </h2>
-            
+
             {isSignup && (
               <div className="form-group">
-                <label htmlFor="name">Display Name</label>
+                <label htmlFor="signup-name">Display Name</label>
                 <input
                   type="text"
-                  id="name"
+                  id="signup-name"
                   name="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -248,11 +248,11 @@ const Auth = () => {
               {isSignup && password && (
                 <div className="password-strength-meter" style={{ marginTop: "10px" }}>
                   <div className="strength-bar-bg" style={{ background: "rgba(255, 255, 255, 0.1)", height: "6px", borderRadius: "3px", overflow: "hidden", display: "flex" }}>
-                    <div className="strength-bar-fill" style={{ 
-                      width: `${(passwordStrength.score / 4) * 100}%`, 
-                      background: passwordStrength.color, 
-                      height: "100%", 
-                      transition: "width 0.3s ease" 
+                    <div className="strength-bar-fill" style={{
+                      width: `${(passwordStrength.score / 4) * 100}%`,
+                      background: passwordStrength.color,
+                      height: "100%",
+                      transition: "width 0.3s ease"
                     }} />
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px" }}>
@@ -274,7 +274,7 @@ const Auth = () => {
             </button>
           </form>
         )}
-        
+
         {!isForgotPassword && (
           <p className="auth-footer-toggle">
             {isSignup ? "Already have an account? " : "Don't have an account? "}

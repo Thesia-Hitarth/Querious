@@ -5,7 +5,7 @@ export const fetchAllUsers = () => async (dispatch) => {
     const { data } = await api.getAllUsers();
     dispatch({ type: "FETCH_USERS", payload: data });
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 export const updateProfile = (id, updateData) => async (dispatch) => {
@@ -21,21 +21,21 @@ export const updateProfile = (id, updateData) => async (dispatch) => {
       dispatch({ type: "FETCH_CURRENT_USER", payload: localProfile });
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 
 export const toggleSaveQuestion = (userId, questionId) => async (dispatch) => {
   try {
     const { data } = await api.toggleSaveQuestion(userId, questionId);
-    
+
     // Sync localStorage
     const localProfile = JSON.parse(localStorage.getItem("Profile"));
     if (localProfile && localProfile.result) {
       localProfile.result.savedQuestions = data.savedQuestions;
       localStorage.setItem("Profile", JSON.stringify(localProfile));
     }
-    
+
     dispatch({ type: "UPDATE_SAVED_QUESTIONS", payload: data.savedQuestions });
     dispatch(fetchAllUsers());
     return data;

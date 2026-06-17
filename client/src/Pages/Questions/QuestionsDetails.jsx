@@ -75,7 +75,7 @@ const QuestionsDetails = () => {
   const [editTitle, setEditTitle] = useState("");
   const [editBody, setEditBody] = useState("");
   const [editTags, setEditTags] = useState([]);
-  
+
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
@@ -103,7 +103,7 @@ const QuestionsDetails = () => {
     } else {
       if (Answer.trim() === "" || Answer === "<p><br></p>") {
         showToast("Enter an answer before submitting", "error");
-      } else if (Answer.length > 30000) {
+      } else if (Answer.replace(/<[^>]+>/g, "").length > 30000) {
         showToast("Answer body cannot exceed 30,000 characters", "error");
       } else {
         setIsSubmittingAnswer(true);
@@ -119,6 +119,9 @@ const QuestionsDetails = () => {
           showToast("Answer posted successfully!", "success");
           setAnswer("");
           setQuillKey((prev) => prev + 1); // Reset ReactQuill editor completely
+          setTimeout(() => {
+            document.querySelector(".answers-section-title")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 150);
         } catch (error) {
           showToast("Failed to post answer. Please try again.", "error");
         } finally {
@@ -164,7 +167,7 @@ const QuestionsDetails = () => {
       showToast("Title cannot exceed 300 characters", "error");
       return;
     }
-    if (editBody.length > 30000) {
+    if (editBody.replace(/<[^>]+>/g, "").length > 30000) {
       showToast("Body cannot exceed 30,000 characters", "error");
       return;
     }
@@ -317,7 +320,7 @@ const QuestionsDetails = () => {
                   <span>Viewed <strong>{question.views || 0} times</strong></span>
                 </div>
               </div>
-              
+
               <div className="question-details-container-2">
                 {/* Voting column */}
                 <div className="question-votes">

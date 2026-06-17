@@ -89,6 +89,13 @@ export const updateProfile = async (req, res) => {
     return res.status(403).json({ message: "Action forbidden: Unauthorized to update this profile." });
   }
 
+  if (website && website.trim() !== "") {
+    const isValidUrl = /^https?:\/\/.+/.test(website.trim());
+    if (!isValidUrl) {
+      return res.status(400).json({ message: "Website must start with http:// or https://" });
+    }
+  }
+
   try {
     const updatedProfile = await users.findByIdAndUpdate(
       _id,

@@ -19,7 +19,7 @@ const EmptyStateSVG = () => (
 
 const SparkleIcon = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
   </svg>
 );
 
@@ -107,8 +107,8 @@ const HomeMainbar = ({ tag }) => {
   const handleApplyFilter = (e) => {
     e.preventDefault();
     const filters = {
-      filterNoAnswers: filterNoAnswers ? "true" : "false",
-      filterNoAccepted: filterNoAccepted ? "true" : "false",
+      filterNoAnswers: filterNoAnswers,
+      filterNoAccepted: filterNoAccepted,
       filterDaysOld: filterDaysOld ? parseInt(filterDaysOld) : "",
       filterTags: filterTagsOption === "custom" ? filterTags.trim() : "",
       filterSort,
@@ -118,8 +118,8 @@ const HomeMainbar = ({ tag }) => {
   };
 
   const handleCancel = () => {
-    setFilterNoAnswers(appliedFilters.filterNoAnswers === "true");
-    setFilterNoAccepted(appliedFilters.filterNoAccepted === "true");
+    setFilterNoAnswers(appliedFilters.filterNoAnswers ?? false);
+    setFilterNoAccepted(appliedFilters.filterNoAccepted ?? false);
     setFilterDaysOld(appliedFilters.filterDaysOld || "");
     setFilterSort(appliedFilters.filterSort || "newest");
     setFilterTags(appliedFilters.filterTags || "");

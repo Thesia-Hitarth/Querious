@@ -76,10 +76,10 @@ const AskQuestion = () => {
         });
         return { question: q, score: overlapCount };
       })
-      .filter(m => m.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 4)
-      .map(m => m.question);
+        .filter(m => m.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 4)
+        .map(m => m.question);
 
       setSimilarQuestions(matches);
     }, 300);
@@ -95,7 +95,8 @@ const AskQuestion = () => {
           showToast("Title cannot exceed 300 characters", "error");
           return;
         }
-        if (questionBody.length > 30000) {
+        const visibleBodyLength = questionBody.replace(/<[^>]+>/g, "").length;
+        if (visibleBodyLength > 30000) {
           showToast("Body cannot exceed 30,000 characters", "error");
           return;
         }
@@ -127,7 +128,7 @@ const AskQuestion = () => {
     <div className="ask-question">
       <div className="ask-ques-container">
         <h1 className="ask-ques-heading">Ask a public question</h1>
-        
+
         <div className="ask-layout-grid">
           {/* Left Column: The Form */}
           <div className="ask-form-column">
@@ -159,7 +160,7 @@ const AskQuestion = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="form-group">
                   <label htmlFor="ask-ques-body">Body</label>
                   <span className="field-hint">Include all the information someone would need to answer your question</span>
@@ -173,7 +174,7 @@ const AskQuestion = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="form-group">
                   <label htmlFor="ask-ques-tags">Tags</label>
                   <span className="field-hint">Add up to 5 tags to describe what your question is about</span>
@@ -184,7 +185,7 @@ const AskQuestion = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="ask-form-actions">
                 <input
                   type="submit"
