@@ -137,7 +137,14 @@ export const voteAnswer = async (req, res) => {
       }
     }
 
-    await Answers.findByIdAndUpdate(answerId, answer);
+    // BUG-04 fix: write only the two modified arrays, not the whole document.
+    // Passing a full document object to findByIdAndUpdate() under concurrent
+    // load allows one request to overwrite another's vote changes.
+    const updated = await Answers.findByIdAndUpdate(
+      answerId,
+      { $set: { upVote: answer.upVote, downVote: answer.downVote } },
+      { new: true }
+    );
 
     if (answer.userId && repDelta !== 0) {
       await updateReputationAndBadges(answer.userId, repDelta);

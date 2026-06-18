@@ -95,7 +95,7 @@ const QuestionsDetails = () => {
 
   const question = questionsList.data?.find((q) => q._id === id);
 
-  const handlePostAns = async (e, answerLength) => {
+  const handlePostAns = async (e) => {
     e.preventDefault();
     if (User === null) {
       showToast("Please login or signup to answer a question", "warning");
@@ -438,7 +438,7 @@ const QuestionsDetails = () => {
             <h3>Your Answer</h3>
             <form
               onSubmit={(e) => {
-                handlePostAns(e, question.answer?.length || 0);
+                handlePostAns(e);
               }}
             >
               <div className="editor-wrapper">

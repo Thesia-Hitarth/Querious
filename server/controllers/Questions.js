@@ -198,7 +198,9 @@ export const getQuestionDetails = async (req, res) => {
         const existingTracker = await ViewTracker.findOne({ trackerKey });
         if (!existingTracker) {
           await ViewTracker.create({ trackerKey });
-          question.views = (question.views || 0) + 1;
+          // BUG-09 fix: only the atomic $inc updates the DB; the in-memory
+          // mutation (question.views += 1) was redundant and caused the API
+          // response to return a stale view count (the pre-increment value).
           await Questions.findByIdAndUpdate(id, { $inc: { views: 1 } });
         }
       } catch (err) {
@@ -243,8 +245,9 @@ export const deleteQuestion = async (req, res) => {
     // Delete all answers associated with this question
     await Answers.deleteMany({ questionId: _id });
 
-    // Reverse the reputation gain the author earned for posting the question
-    await updateReputationAndBadges(question.userId, -5);
+    // BUG-06 fix: no -5 reputation reversal here. Posting a question never
+    // awarded +5 reputation — reputation is earned only through votes.
+    // Subtracting -5 on delete was an incorrect net penalty for the author.
 
     res.status(200).json({ message: "successfully deleted..." });
   } catch (error) {

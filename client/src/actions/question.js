@@ -5,7 +5,8 @@ export const askQuestion = (questionData, navigate) => async (dispatch) => {
   try {
     const { data } = await api.postQuestion(questionData);
     dispatch({ type: "POST_QUESTION", payload: data });
-    dispatch(fetchAllQuestions());
+    // BUG-03: await so the list is refreshed before navigating home
+    await dispatch(fetchAllQuestions());
     navigate("/");
     return data;
   } catch (error) {
@@ -86,7 +87,8 @@ export const postAnswer = (answerData) => async (dispatch) => {
       userAnswered
     );
     dispatch({ type: "POST_ANSWER", payload: data });
-    dispatch(fetchAllQuestions());
+    // BUG-02: fetchAllQuestions() removed — it reset pagination on every answer post.
+    // fetchQuestionDetails keeps the current question page in sync.
     dispatch(fetchQuestionDetails(id));
     return data;
   } catch (error) {
@@ -98,7 +100,7 @@ export const postAnswer = (answerData) => async (dispatch) => {
 export const deleteAnswer = (id, answerId) => async (dispatch) => {
   try {
     const { data } = await api.deleteAnswer(id, answerId);
-    dispatch(fetchAllQuestions());
+    // BUG-02: fetchAllQuestions() removed — it reset pagination on every answer delete.
     dispatch(fetchQuestionDetails(id));
     return data;
   } catch (error) {

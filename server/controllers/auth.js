@@ -23,7 +23,7 @@ export const signup = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
-    res.status(200).json({ result: newUser, token });
+    res.status(201).json({ result: newUser, token });
   } catch (error) {
     res.status(500).json({ message: "Something went wrong..." });
   }
@@ -107,15 +107,13 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({ message: "Password reset token is invalid." });
     }
 
-    // Invalidate the token FIRST before updating the password.
-    // This closes the race-condition window where a concurrent request
-    // could also pass the bcrypt comparison before the token is cleared.
+    // Invalidate the token AND update the password in a single atomic save.
+    // Two sequential saves created a window where a server crash after the
+    // first save would clear the token but leave the old password, locking
+    // the user out with no way to reset again.
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
-    await user.save();
-
-    const hashedPassword = await bcrypt.hash(newPassword, 12);
-    user.password = hashedPassword;
+    user.password = await bcrypt.hash(newPassword, 12);
     await user.save();
 
     res.status(200).json({ message: "Password has been reset successfully." });
