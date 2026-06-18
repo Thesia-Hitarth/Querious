@@ -97,3 +97,15 @@ export const loginValidationRules = [
 // Keep old export name as an alias for signup to avoid breaking any direct imports
 export const authValidationRules = signupValidationRules;
 
+// Reset-password requires the same strength as signup — a user must not be able
+// to reset to a weak password that signup would have rejected.
+export const resetPasswordValidationRules = [
+  body("newPassword")
+    .isLength({ min: 8 })
+    .withMessage("Password must be at least 8 characters long")
+    .matches(/[A-Z]/)
+    .withMessage("Password must contain at least one uppercase letter")
+    .matches(/[0-9]/)
+    .withMessage("Password must contain at least one number"),
+  validateRequest,
+];

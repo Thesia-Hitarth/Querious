@@ -10,6 +10,7 @@ import {
   deleteCommentAnswer,
 } from "../../actions/question";
 import { useToast } from "../Toast/ToastContext";
+import ConfirmationModal from "../ConfirmationModal/ConfirmationModal";
 
 const Comments = ({ questionId, parentId, comments = [], type, postOwnerId }) => {
   const dispatch = useDispatch();
@@ -19,6 +20,8 @@ const Comments = ({ questionId, parentId, comments = [], type, postOwnerId }) =>
   const [isExpanded, setIsExpanded] = useState(false);
   const [showInput, setShowInput] = useState(false);
   const [commentText, setCommentText] = useState("");
+  // Track which comment is pending deletion so we can show the confirmation modal
+  const [pendingDeleteCommentId, setPendingDeleteCommentId] = useState(null);
 
   const displayedComments = isExpanded ? comments : comments.slice(0, 5);
 
@@ -50,12 +53,20 @@ const Comments = ({ questionId, parentId, comments = [], type, postOwnerId }) =>
     }
   };
 
+  // Opens the confirmation modal instead of deleting immediately.
   const handleDeleteComment = (commentId) => {
+    setPendingDeleteCommentId(commentId);
+  };
+
+  // Called when the user confirms deletion in the modal.
+  const confirmDeleteComment = () => {
+    if (!pendingDeleteCommentId) return;
     if (type === "question") {
-      dispatch(deleteCommentQuestion(parentId, commentId));
+      dispatch(deleteCommentQuestion(parentId, pendingDeleteCommentId));
     } else {
-      dispatch(deleteCommentAnswer(questionId, parentId, commentId));
+      dispatch(deleteCommentAnswer(questionId, parentId, pendingDeleteCommentId));
     }
+    setPendingDeleteCommentId(null);
   };
 
   return (
@@ -133,6 +144,17 @@ const Comments = ({ questionId, parentId, comments = [], type, postOwnerId }) =>
           Add a comment
         </button>
       )}
+
+      {/* Confirmation modal for comment deletion — prevents accidental irreversible deletes */}
+      <ConfirmationModal
+        isOpen={pendingDeleteCommentId !== null}
+        onClose={() => setPendingDeleteCommentId(null)}
+        onConfirm={confirmDeleteComment}
+        title="Delete Comment"
+        message="Are you sure you want to delete this comment? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

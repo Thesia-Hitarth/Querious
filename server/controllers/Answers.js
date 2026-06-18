@@ -71,10 +71,14 @@ export const deleteAnswer = async (req, res) => {
 
     await Answers.findByIdAndDelete(answerId);
 
-    // Decrement answer count on Question
-    await Questions.findByIdAndUpdate(questionId, {
-      $inc: { noOfAnswers: -1 },
-    });
+    // Decrement answer count on Question — floor at 0 to prevent negative drift
+    await Questions.findByIdAndUpdate(questionId, [
+      {
+        $set: {
+          noOfAnswers: { $max: [0, { $subtract: ["$noOfAnswers", 1] }] },
+        },
+      },
+    ]);
 
     res.status(200).json({ message: "Successfully deleted..." });
   } catch (error) {

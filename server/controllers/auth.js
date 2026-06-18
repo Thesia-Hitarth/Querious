@@ -9,7 +9,7 @@ export const signup = async (req, res) => {
   try {
     const existinguser = await users.findOne({ email });
     if (existinguser) {
-      return res.status(404).json({ message: "User already Exist." });
+      return res.status(409).json({ message: "User already exists." });
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -34,7 +34,7 @@ export const login = async (req, res) => {
   try {
     const existinguser = await users.findOne({ email });
     if (!existinguser) {
-      return res.status(404).json({ message: "User don't Exist." });
+      return res.status(404).json({ message: "User doesn't exist." });
     }
     const isPasswordCrt = await bcrypt.compare(password, existinguser.password);
     if (!isPasswordCrt) {
@@ -107,10 +107,15 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({ message: "Password reset token is invalid." });
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 12);
-    user.password = hashedPassword;
+    // Invalidate the token FIRST before updating the password.
+    // This closes the race-condition window where a concurrent request
+    // could also pass the bcrypt comparison before the token is cleared.
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
+    await user.save();
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    user.password = hashedPassword;
     await user.save();
 
     res.status(200).json({ message: "Password has been reset successfully." });

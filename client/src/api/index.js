@@ -38,7 +38,7 @@ export const signUp = (authData) => API.post("/user/signup", authData);
 
 export const postQuestion = (questionData) =>
   API.post("/questions/Ask", questionData);
-export const getAllQuestions = (params, cancelToken) => API.get("/questions/get", { params, cancelToken });
+export const getAllQuestions = (params, axiosConfig = {}) => API.get("/questions/get", { params, ...axiosConfig });
 export const getQuestionDetails = (id) => API.get(`/questions/get/${id}`);
 export const deleteQuestion = (id) => API.delete(`/questions/delete/${id}`);
 export const updateQuestion = (id, questionData) => API.put(`/questions/${id}`, questionData);
@@ -46,7 +46,7 @@ export const voteQuestion = (id, value) =>
   API.patch(`/questions/vote/${id}`, { value });
 
 export const postAnswer = (id, noOfAnswers, answerBody, userAnswered) =>
-  API.patch(`/answer/post/${id}`, { answerBody, userAnswered });
+  API.post(`/answer/post/${id}`, { answerBody, userAnswered });
 export const deleteAnswer = (id, answerId) =>
   API.patch(`/answer/delete/${id}`, { answerId });
 export const updateAnswer = (id, answerData) => API.put(`/answer/${id}`, answerData);

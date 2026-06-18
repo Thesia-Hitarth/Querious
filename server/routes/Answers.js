@@ -14,7 +14,7 @@ import { answerValidationRules } from "../middleware/validation.js";
 
 const router = express.Router();
 
-router.patch("/post/:id", auth, answerValidationRules, postAnswer);
+router.post("/post/:id", auth, answerValidationRules, postAnswer);
 router.patch("/delete/:id", auth, deleteAnswer);
 router.post("/:id/vote", auth, voteAnswer);
 router.patch("/:id/accept", auth, acceptAnswer);

@@ -8,4 +8,8 @@ const NotificationSchema = mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+// Index on userId + createdAt so the per-user poll query (runs every ~30s) never
+// degrades into a full collection scan as the notifications collection grows.
+NotificationSchema.index({ userId: 1, createdAt: -1 });
+
 export default mongoose.model("Notification", NotificationSchema);

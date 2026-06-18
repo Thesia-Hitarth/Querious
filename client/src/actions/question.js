@@ -14,9 +14,9 @@ export const askQuestion = (questionData, navigate) => async (dispatch) => {
   }
 };
 
-export const fetchAllQuestions = (params = {}, cancelToken) => async (dispatch) => {
+export const fetchAllQuestions = (params = {}, axiosConfig = {}) => async (dispatch) => {
   try {
-    const { data } = await api.getAllQuestions(params, cancelToken);
+    const { data } = await api.getAllQuestions(params, axiosConfig);
     dispatch({ type: "FETCH_ALL_QUESTIONS", payload: data });
     return data;
   } catch (error) {
@@ -66,7 +66,8 @@ export const updateQuestion = (id, questionData) => async (dispatch) => {
 export const voteQuestion = (id, value) => async (dispatch) => {
   try {
     const { data } = await api.voteQuestion(id, value);
-    dispatch(fetchAllQuestions());
+    // fetchQuestionDetails updates the single question in the store —
+    // no need to re-fetch the entire paginated question list.
     dispatch(fetchQuestionDetails(id));
     return data;
   } catch (error) {

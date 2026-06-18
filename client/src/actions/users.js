@@ -22,6 +22,8 @@ export const updateProfile = (id, updateData) => async (dispatch) => {
     }
   } catch (error) {
     console.error(error);
+    // Re-throw so the calling component can show error feedback (toast, etc.)
+    throw error;
   }
 };
 
@@ -37,7 +39,8 @@ export const toggleSaveQuestion = (userId, questionId) => async (dispatch) => {
     }
 
     dispatch({ type: "UPDATE_SAVED_QUESTIONS", payload: data.savedQuestions });
-    dispatch(fetchAllUsers());
+    // fetchAllUsers() was removed: UPDATE_SAVED_QUESTIONS already keeps the
+    // logged-in user's savedQuestions in sync — no full user-list refetch needed.
     return data;
   } catch (error) {
     console.error(error);
