@@ -82,7 +82,12 @@ const Navbar = ({ handleSlideIn }) => {
       
       dispatch({ type: "SET_SEARCH_QUERY", payload: value });
       try {
-        await dispatch(fetchAllQuestions({ search: searchVal, tag: parsedTag }, source.token));
+        await dispatch(
+          fetchAllQuestions(
+            { search: searchVal, tag: parsedTag },
+            { cancelToken: source.token }
+          )
+        );
       } catch (err) {
         if (!axios.isCancel(err)) {
           console.error("Search API error:", err);

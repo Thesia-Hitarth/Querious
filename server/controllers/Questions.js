@@ -311,9 +311,11 @@ export const voteQuestion = async (req, res) => {
         repDelta += 2;
       }
     }
-    const updated = await Questions.findByIdAndUpdate(_id, question, {
-      new: true,
-    });
+    const updated = await Questions.findByIdAndUpdate(
+      _id,
+      { $set: { upVote: question.upVote, downVote: question.downVote } },
+      { new: true }
+    );
 
     if (question.userId && repDelta !== 0) {
       await updateReputationAndBadges(question.userId, repDelta);

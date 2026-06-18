@@ -189,7 +189,7 @@ const QuestionsDetails = () => {
     if (User === null) {
       showToast("Please login or signup to up vote a question", "warning");
       Navigate("/Auth");
-    } else if (User?.result?._id === question.userId) {
+    } else if (!question || User?.result?._id === question.userId) {
       showToast("You cannot vote on your own question", "warning");
     } else if (!isVoting) {
       try {
@@ -208,7 +208,7 @@ const QuestionsDetails = () => {
     if (User === null) {
       showToast("Please login or signup to down vote a question", "warning");
       Navigate("/Auth");
-    } else if (User?.result?._id === question.userId) {
+    } else if (!question || User?.result?._id === question.userId) {
       showToast("You cannot vote on your own question", "warning");
     } else if (!isVoting) {
       try {

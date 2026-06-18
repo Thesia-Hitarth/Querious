@@ -70,8 +70,11 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
     await user.save();
 
-    const origin = req.headers.origin || (req.headers.referer ? new URL(req.headers.referer).origin : null);
-    const clientUrl = process.env.CLIENT_URL || process.env.REACT_APP_CLIENT_URL || origin || "http://localhost:3000";
+    const clientUrl = process.env.CLIENT_URL || process.env.REACT_APP_CLIENT_URL;
+    if (!clientUrl) {
+      console.error("CLIENT_URL is not configured for password resets.");
+      return res.status(500).json({ message: "Password reset is temporarily unavailable." });
+    }
     const resetLink = `${clientUrl}/reset-password/${resetToken}`;
 
     await sendResetEmail(email, resetLink);

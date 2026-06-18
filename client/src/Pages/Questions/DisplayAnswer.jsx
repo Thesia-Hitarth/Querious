@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Link, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";

@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 
 const NotificationSchema = mongoose.Schema({
-  userId: { type: String, required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   message: { type: String, required: true },
-  questionId: { type: String, required: true },
+  questionId: { type: mongoose.Schema.Types.ObjectId, ref: "Question", required: true },
   read: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
 });

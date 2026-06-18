@@ -1,10 +1,15 @@
 import mongoose from "mongoose";
 import users from "../models/auth.js";
+import Questions from "../models/Questions.js";
+import Answers from "../models/Answers.js";
 import jwt from "jsonwebtoken";
 
 export const getAllUsers = async (req, res) => {
   try {
-    const allUsers = await users.find();
+    const allUsers = await users.find(
+      {},
+      { password: 0, resetPasswordToken: 0, resetPasswordExpires: 0 }
+    );
     const allUserDetails = [];
     allUsers.forEach((user) => {
       allUserDetails.push({
@@ -57,6 +62,9 @@ export const getUserDetails = async (req, res) => {
       return res.status(404).send("User not found...");
     }
 
+    const questionsAsked = await Questions.countDocuments({ userId: id });
+    const answersGiven = await Answers.countDocuments({ userId: id });
+
     res.status(200).json({
       _id: user._id,
       name: user.name,
@@ -71,6 +79,8 @@ export const getUserDetails = async (req, res) => {
       savedQuestions: isSelf ? user.savedQuestions : [],
       collectives: user.collectives,
       joinedOn: user.joinedOn,
+      questionsAsked,
+      answersGiven,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

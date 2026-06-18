@@ -5,7 +5,6 @@ import { io } from "socket.io-client";
 import "./App.css";
 import Navbar from "./components/Navbar/Navbar";
 import AllRoutes from "./AllRoutes";
-import { fetchAllQuestions } from "./actions/question";
 import { fetchAllUsers } from "./actions/users";
 import { fetchNotifications } from "./actions/notifications";
 
@@ -18,7 +17,6 @@ function App() {
   const User = useSelector((state) => state.currentUserReducer);
 
   useEffect(() => {
-    dispatch(fetchAllQuestions());
     dispatch(fetchAllUsers());
   }, [dispatch]);
 

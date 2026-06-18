@@ -175,68 +175,86 @@ export const acceptAnswer = async (req, res) => {
     return res.status(404).send("Answer unavailable...");
   }
 
+  const adjustReputation = async (targetUserId, delta, session) => {
+    if (!targetUserId || delta === 0) return null;
+    const user = await User.findById(targetUserId).session(session);
+    if (!user) return null;
+    user.reputation = Math.max(1, (user.reputation || 1) + delta);
+    user.badges = {
+      gold: Math.floor(user.reputation / 500),
+      silver: Math.floor((user.reputation % 500) / 100),
+      bronze: Math.floor((user.reputation % 100) / 20),
+    };
+    await user.save({ session });
+    return user;
+  };
+
+  const session = await mongoose.startSession();
   try {
-    const answer = await Answers.findById(answerId);
-    if (!answer) {
-      return res.status(404).send("Answer not found...");
-    }
+    await session.withTransaction(async () => {
+      const answer = await Answers.findById(answerId).session(session);
+      if (!answer) {
+        return res.status(404).send("Answer not found...");
+      }
 
-    const question = await Questions.findById(answer.questionId);
-    if (!question) {
-      return res.status(404).send("Question not found...");
-    }
+      const question = await Questions.findById(answer.questionId).session(session);
+      if (!question) {
+        return res.status(404).send("Question not found...");
+      }
 
-    if (String(question.userId) !== String(userId)) {
-      return res.status(403).json({
-        message: "Only the question author can accept an answer.",
-      });
-    }
+      if (String(question.userId) !== String(userId)) {
+        return res.status(403).json({
+          message: "Only the question author can accept an answer.",
+        });
+      }
 
-    const isCurrentlyAccepted = answer.isAccepted;
+      const isCurrentlyAccepted = answer.isAccepted;
 
-    if (isCurrentlyAccepted) {
-      answer.isAccepted = false;
-      await answer.save();
+      if (isCurrentlyAccepted) {
+        answer.isAccepted = false;
+        await answer.save({ session });
 
-      question.acceptedAnswerId = null;
-      await question.save();
+        question.acceptedAnswerId = null;
+        await question.save({ session });
 
-      await updateReputationAndBadges(answer.userId, -15);
-      await updateReputationAndBadges(question.userId, -2);
+        await adjustReputation(answer.userId, -15, session);
+        await adjustReputation(question.userId, -2, session);
 
-      return res
-        .status(200)
-        .json({ message: "Answer un-accepted successfully", data: answer });
-    } else {
+        res.status(200).json({ message: "Answer un-accepted successfully", data: answer });
+        return;
+      }
+
       const prevAcceptedAnswer = await Answers.findOne({
         questionId: question._id,
         isAccepted: true,
-      });
+      }).session(session);
+
       if (prevAcceptedAnswer) {
         prevAcceptedAnswer.isAccepted = false;
-        await prevAcceptedAnswer.save();
-        await updateReputationAndBadges(prevAcceptedAnswer.userId, -15);
+        await prevAcceptedAnswer.save({ session });
+        await adjustReputation(prevAcceptedAnswer.userId, -15, session);
       }
 
       answer.isAccepted = true;
-      await answer.save();
+      await answer.save({ session });
 
       question.acceptedAnswerId = answerId;
-      await question.save();
+      await question.save({ session });
 
-      await updateReputationAndBadges(answer.userId, 15);
-
+      await adjustReputation(answer.userId, 15, session);
       if (!prevAcceptedAnswer) {
-        await updateReputationAndBadges(question.userId, 2);
+        await adjustReputation(question.userId, 2, session);
       }
 
-      return res
-        .status(200)
-        .json({ message: "Answer accepted successfully", data: answer });
-    }
+      res.status(200).json({ message: "Answer accepted successfully", data: answer });
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error in accepting answer" });
+    if (!res.headersSent) {
+      res.status(500).json({ message: "Error in accepting answer" });
+    }
+  } finally {
+    session.endSession();
   }
 };
 

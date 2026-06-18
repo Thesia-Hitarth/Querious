@@ -17,11 +17,14 @@ export const markNotificationRead = async (req, res) => {
     return res.status(404).send("Notification unavailable...");
   }
   try {
-    const updated = await Notifications.findByIdAndUpdate(
-      id,
+    const updated = await Notifications.findOneAndUpdate(
+      { _id: id, userId: req.userId },
       { $set: { read: true } },
       { new: true }
     );
+    if (!updated) {
+      return res.status(404).json({ message: "Notification not found or unauthorized." });
+    }
     res.status(200).json(updated);
   } catch (error) {
     res.status(500).json({ message: error.message });

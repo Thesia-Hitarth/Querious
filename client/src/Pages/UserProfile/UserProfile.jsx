@@ -61,10 +61,15 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
   const profileData = userDetails && userDetails._id === id ? userDetails : currentProfile;
   const savedQuestionsList = profileData?.savedQuestions || [];
 
-  // Compute user statistics
-  const questionsAsked = questionsList.filter((q) => q.userId === id).length;
-  const answersGiven = questionsList.reduce((acc, q) => {
-    const userAnswers = q.answer?.filter((ans) => ans.userId === id) || [];
+  const normalizedSavedQuestionsList = savedQuestionsList.map((quest) =>
+    typeof quest === "string" || typeof quest === "number"
+      ? { _id: quest, questionTitle: "Deleted question", userPosted: "Unknown" }
+      : quest
+  );
+
+  const questionsAsked = profileData?.questionsAsked ?? questionsList.filter((q) => String(q.userId) === String(id)).length;
+  const answersGiven = profileData?.answersGiven ?? questionsList.reduce((acc, q) => {
+    const userAnswers = q.answer?.filter((ans) => String(ans.userId) === String(id)) || [];
     return acc + userAnswers.length;
   }, 0);
 
@@ -228,17 +233,17 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
                     ) : (
                       <div className="saved-questions-container">
                         <h3 className="saved-questions-title">Bookmarked Questions</h3>
-                        {savedQuestionsList.length === 0 ? (
+                        {normalizedSavedQuestionsList.length === 0 ? (
                           <p className="saved-questions-empty">No bookmarked questions yet.</p>
                         ) : (
                           <div className="saved-questions-list">
-                            {savedQuestionsList.map((quest) => (
+                            {normalizedSavedQuestionsList.map((quest) => (
                               <div key={quest._id} className="saved-question-item">
                                 <Link to={`/Questions/${quest._id}`} className="saved-question-link">
                                   {quest.questionTitle}
                                 </Link>
                                 <p className="saved-question-meta">
-                                  Asked by <span className="saved-author">{quest.userPosted || "Anonymous"}</span> • {quest.askedOn && formatDistanceToNow(new Date(quest.askedOn), { addSuffix: true })}
+                                  Asked by <span className="saved-author">{quest.userPosted || "Anonymous"}</span> • {quest.askedOn ? formatDistanceToNow(new Date(quest.askedOn), { addSuffix: true }) : "Unknown date"}
                                 </p>
                               </div>
                             ))}
