@@ -7,6 +7,7 @@ import ReactQuill from "react-quill";
 
 import "./Questions.css";
 import DisplayAnswer from "./DisplayAnswer";
+import UserPopover from "../../components/UserPopover/UserPopover";
 import VoteRail from "../../components/VoteRail/VoteRail";
 import LoadingSkeleton from "../../components/LoadingSkeleton/LoadingSkeleton";
 import SafeHtml from "../../components/SafeHtml/SafeHtml";
@@ -99,6 +100,12 @@ const QuestionsDetails = () => {
   }, []);
 
   const question = questionsList.data?.find((q) => q._id === id);
+  const usersList = useSelector((state) => state.usersReducer) || [];
+  const questionUser = usersList.find((u) => u._id === question?.userId) || {
+    _id: question?.userId,
+    name: question?.userPosted,
+    reputation: 1,
+  };
 
   let statusText = "Unanswered";
   let statusClass = "status-chip-unanswered";
@@ -406,9 +413,11 @@ const QuestionsDetails = () => {
                       <div className="author-info-text">
                         <span className="author-date">asked {formatDistanceToNow(new Date(question.askedOn), { addSuffix: true })}</span>
                         <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "4px" }}>
-                          <Link to={`/Users/${question.userId}`} className="author-link">
-                            {question.userPosted}
-                          </Link>
+                          <UserPopover user={questionUser}>
+                            <Link to={`/Users/${question.userId}`} className="author-link">
+                              {question.userPosted}
+                            </Link>
+                          </UserPopover>
                           <UserBadge userId={question.userId} />
                         </div>
                       </div>

@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { io } from "socket.io-client";
 import "./App.css";
 import Navbar from "./components/Navbar/Navbar";
+import ContextBar from "./components/ContextBar/ContextBar";
 import AllRoutes from "./AllRoutes";
 import { fetchAllUsers } from "./actions/users";
 import { fetchNotifications } from "./actions/notifications";
@@ -121,6 +122,7 @@ function App() {
               Skip to main content
             </a>
             <Navbar handleSlideIn={handleSlideIn} />
+            <ContextBar />
             <main id="main-content">
               <ErrorBoundary>
                 <AllRoutes slideIn={slideIn} handleSlideIn={handleSlideIn} />

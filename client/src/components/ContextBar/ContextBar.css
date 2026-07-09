@@ -1,0 +1,63 @@
+.context-bar {
+  position: fixed;
+  top: var(--navbar-height);
+  left: var(--sidebar-width);
+  right: 0;
+  z-index: 99;
+  height: var(--context-bar-height);
+  display: flex;
+  align-items: center;
+  background-color: var(--context-bar-bg);
+  border-bottom: 1px solid var(--color-border-light);
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+  transition: top 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), left var(--transition-base), background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.navbar-hidden .context-bar {
+  top: 0;
+}
+
+@media screen and (max-width: 760px) {
+  .context-bar {
+    left: 0;
+  }
+}
+
+.context-bar-inner {
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.context-bar-segment a {
+  color: var(--color-text-muted);
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.context-bar-segment a:hover {
+  color: var(--color-brand-primary);
+}
+
+.context-bar-segment:last-child span {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.context-bar-sep {
+  margin: 0 var(--space-2);
+  color: var(--color-text-faint);
+  user-select: none;
+}
+
+/* Tighten padding on mobile */
+@media screen and (max-width: 640px) {
+  .context-bar-inner {
+    padding: 0 var(--space-4);
+  }
+}

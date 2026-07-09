@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { BLOG_POSTS } from "../../constants/blogPosts";
 import "./RightSidebar.css";
 
 // SVG Icons
@@ -23,65 +24,64 @@ const LogoIcon = () => (
 );
 
 const Widget = () => {
+  const blogPosts = BLOG_POSTS.filter((post) => post.category === "blog");
+  const insightsPosts = BLOG_POSTS.filter((post) => post.category === "insights");
+  const trendingPosts = BLOG_POSTS.filter((post) => post.category === "trending");
+
+  const renderIcon = (iconName) => {
+    switch (iconName) {
+      case "pen":
+        return <PenIcon />;
+      case "message":
+        return <MessageIcon />;
+      case "logo":
+        return <LogoIcon />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="widget-card yellow-widget">
       <div className="widget-section">
         <h4 className="widget-title">The Querious Blog</h4>
         <ul className="widget-list">
-          <li className="widget-item">
-            <PenIcon />
-            <Link to="/Blogs/1">
-              Mastering State Management in React 18: Redux Toolkit vs. Context API
-            </Link>
-          </li>
-          <li className="widget-item">
-            <PenIcon />
-            <Link to="/Blogs/2">
-              Building Secure REST APIs in Node.js & Express: JWT best practices
-            </Link>
-          </li>
+          {blogPosts.map((post, idx) => (
+            <li key={idx} className="widget-item">
+              {renderIcon(post.icon)}
+              <Link to={`/Blogs/${post.blogId}`}>
+                {post.title}
+              </Link>
+            </li>
+          ))}
         </ul>
       </div>
 
       <div className="widget-section">
         <h4 className="widget-title">System Engineering Insights</h4>
         <ul className="widget-list">
-          <li className="widget-item">
-            <MessageIcon />
-            <Link to="/Blogs/2">
-              Securing Express servers with custom rate-limiting middleware
-            </Link>
-          </li>
-          <li className="widget-item">
-            <MessageIcon />
-            <Link to="/Blogs/3">
-              Advanced MongoDB Schema Design: Embedding vs. Referencing documents
-            </Link>
-          </li>
-          <li className="widget-item">
-            <LogoIcon />
-            <Link to="/Blogs/3">
-              Migrating Querious databases to MongoDB Atlas clusters
-            </Link>
-          </li>
+          {insightsPosts.map((post, idx) => (
+            <li key={idx} className="widget-item">
+              {renderIcon(post.icon)}
+              <Link to={`/Blogs/${post.blogId}`}>
+                {post.title}
+              </Link>
+            </li>
+          ))}
         </ul>
       </div>
 
       <div className="widget-section">
         <h4 className="widget-title">Trending Tech Discussions</h4>
         <ul className="widget-list">
-          <li className="widget-item">
-            <span className="meta-post-count">38</span>
-            <Link to="/Blogs/1">
-              Why React Server Components are changing the MERN stack paradigm
-            </Link>
-          </li>
-          <li className="widget-item">
-            <span className="meta-post-count">14</span>
-            <Link to="/Blogs/3">
-              Pros and cons of migrating from mongoose schema models to Prisma
-            </Link>
-          </li>
+          {trendingPosts.map((post, idx) => (
+            <li key={idx} className="widget-item">
+              <span className="meta-post-count">{post.count}</span>
+              <Link to={`/Blogs/${post.blogId}`}>
+                {post.title}
+              </Link>
+            </li>
+          ))}
         </ul>
       </div>
     </div>

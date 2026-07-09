@@ -197,6 +197,7 @@ const DisplayAnswer = ({ question, handleShare }) => {
                     userUpVoted={hasUpvoted}
                     userDownVoted={hasDownvoted}
                     isVoting={votingAnswerId === ans._id}
+                    accepted={ans.isAccepted}
                   />
 
                   {String(User?.result?._id) === String(question.userId) ? (

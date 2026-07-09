@@ -145,6 +145,30 @@
   --color-yellow-widget-header-bg: #fbf3d5;
   --color-yellow-widget-text: #3b4045;
   --color-logo-text-gradient: linear-gradient(135deg, #111827 0%, #374151 100%);
+  --color-skeleton-bg: #f3f4f6;
+  --color-skeleton-shimmer: #e9eaf0;
+
+  /* ── NEW: Discourse-style activity heat ── */
+  --color-heat-hot:    #059669;   /* <1h since last reply */
+  --color-heat-warm:   #d97706;   /* <24h */
+  --color-heat-cold:    var(--color-text-faint); /* older */
+
+  /* ── NEW: Mighty Networks-style activity ring ── */
+  --ring-active:   conic-gradient(from 180deg, #f97316, #8b5cf6, #f97316);
+  --ring-inactive: #e5e7eb;
+  --ring-width: 2.5px;
+
+  /* ── NEW: Discourse density grid columns (question list) ── */
+  --col-avatar: 40px;
+  --col-stat: 64px;
+  --col-gap: var(--space-4);
+
+  /* ── NEW: Context bar (Circle.so-style breadcrumb) ── */
+  --context-bar-height: 40px;
+  --context-bar-bg: var(--color-bg-elevated);
+
+  /* ── NEW: Collective banner header (GroupOS-style) ── */
+  --collective-banner-height: 160px;
 }
 
 *, *::before, *::after {
@@ -488,21 +512,36 @@ input::placeholder { color: var(--color-text-faint); }
   --color-yellow-widget-header-bg: #22201a;
   --color-yellow-widget-text: #d1d5db;
   --color-logo-text-gradient: linear-gradient(135deg, #f9fafb 0%, #d1d5db 100%);
+  --color-skeleton-bg: #20242e;
+  --color-skeleton-shimmer: #2c313f;
+
+  /* ── NEW: Dark mode inactive ring override ── */
+  --ring-inactive: #2a2e38;
 }
 
 /* -- ReactQuill Theme Overrides -- */
-.ql-toolbar.ql-snow {
+.quill {
   border: 1.5px solid var(--color-border) !important;
-  border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
-  background: var(--color-bg-elevated) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--color-bg-surface) !important;
+  overflow: hidden;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.quill:focus-within {
+  border-color: var(--color-brand-primary) !important;
+  box-shadow: var(--shadow-glow);
+}
+.ql-toolbar.ql-snow {
+  border: none !important;
+  border-bottom: 1px solid var(--color-border-light) !important;
+  background: transparent !important;
+  padding: var(--space-2) var(--space-1) !important;
 }
 .ql-container.ql-snow {
-  border: 1.5px solid var(--color-border) !important;
-  border-top: none !important;
-  border-radius: 0 0 var(--radius-md) var(--radius-md) !important;
+  border: none !important;
   font-family: var(--font-sans) !important;
   font-size: 14px !important;
-  background: var(--color-bg-surface) !important;
+  background: transparent !important;
   color: var(--color-text-primary) !important;
 }
 .ql-editor { min-height: 160px; }
@@ -552,6 +591,30 @@ input::placeholder { color: var(--color-text-faint); }
   color: var(--color-badge-bronze);
   border: 1px solid var(--color-badge-bronze);
 }
+
+/* ── NEW: Mighty Networks-style activity ring global classes ── */
+.avatar-ring {
+  display: inline-flex;
+  padding: var(--ring-width);
+  border-radius: 50%;
+  transition: all var(--transition-fast);
+}
+
+.avatar-ring.ring-active {
+  background: var(--ring-active);
+}
+
+.avatar-ring.ring-inactive {
+  background: var(--ring-inactive);
+}
+
+.avatar-ring-inner {
+  display: inline-flex;
+  padding: 2px;
+  background-color: var(--color-bg-surface);
+  border-radius: 50%;
+}
+
 
 
 

@@ -8,10 +8,18 @@ const MemberCard = ({ user }) => {
   const bronze = user?.badges?.bronze || 0;
   const hasBadges = gold > 0 || silver > 0 || bronze > 0;
 
+  const isRecentlyActive = user?.updatedAt || user?.joinedOn
+    ? (Date.now() - new Date(user.updatedAt || user.joinedOn)) < 7 * 24 * 3600 * 1000
+    : false;
+
   return (
     <div className="card member-card">
-      <div className="member-card-avatar">
-        {user?.name ? user.name.charAt(0).toUpperCase() : "?"}
+      <div className={`avatar-ring ${isRecentlyActive ? "ring-active" : "ring-inactive"}`} style={{ marginBottom: "var(--space-3)" }}>
+        <div className="avatar-ring-inner">
+          <div className="member-card-avatar" style={{ marginBottom: 0 }}>
+            {user?.name ? user.name.charAt(0).toUpperCase() : "?"}
+          </div>
+        </div>
       </div>
       
       <div className="member-card-info">

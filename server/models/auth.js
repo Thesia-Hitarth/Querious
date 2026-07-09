@@ -25,7 +25,7 @@ const userSchema = mongoose.Schema({
   forgotPasswordCount: { type: Number, default: 0 },
   forgotPasswordWindowStart: { type: Date },
   joinedOn: { type: Date, default: Date.now },
-});
+}, { timestamps: true });
 
 const stripSensitiveFields = (_doc, ret) => {
   delete ret.password;

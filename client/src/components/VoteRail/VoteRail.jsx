@@ -21,6 +21,7 @@ const VoteRail = ({
   userDownVoted = false,
   isVoting = false,
   orientation = "vertical",
+  accepted = false,
 }) => {
   const isReadOnly = !onUpVote || !onDownVote;
 
@@ -30,6 +31,13 @@ const VoteRail = ({
       role="group"
       aria-label="Vote buttons"
     >
+      {accepted && (
+        <div className="vote-rail-accepted-badge" title="Accepted Answer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
+      )}
       <button
         type="button"
         className={`vote-btn upvote ${userUpVoted ? "active" : ""} ${isReadOnly ? "readonly" : ""}`}

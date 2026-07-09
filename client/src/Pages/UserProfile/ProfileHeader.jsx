@@ -30,15 +30,21 @@ const ProfileHeader = ({
   const bronze = profileData?.badges?.bronze || 0;
   const hasBadges = gold > 0 || silver > 0 || bronze > 0;
 
+  const isRecentlyActive = profileData?.updatedAt || profileData?.joinedOn
+    ? (Date.now() - new Date(profileData.updatedAt || profileData.joinedOn)) < 7 * 24 * 3600 * 1000
+    : false;
+
   return (
     <div className="profile-header-container card">
       {/* Cover band using redesigned cover gradient token */}
       <div className="profile-cover-band"></div>
 
       <div className="profile-header-meta-section">
-        {/* Avatar overlapping cover band */}
-        <div className="profile-avatar-large">
-          {profileData?.name ? profileData.name.charAt(0).toUpperCase() : "?"}
+        {/* Avatar overlapping cover band wrapped in activity ring */}
+        <div className={`avatar-ring ${isRecentlyActive ? "ring-active" : "ring-inactive"}`} style={{ zIndex: 5, marginBottom: "var(--space-4)", width: "fit-content" }}>
+          <div className="profile-avatar-large" style={{ border: "4px solid var(--color-bg-surface)", marginBottom: 0 }}>
+            {profileData?.name ? profileData.name.charAt(0).toUpperCase() : "?"}
+          </div>
         </div>
 
         {/* Info panel */}

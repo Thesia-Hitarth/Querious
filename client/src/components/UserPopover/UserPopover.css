@@ -1,0 +1,50 @@
+.user-popover-anchor {
+  position: relative;
+  display: inline-block;
+}
+
+.user-popover-card {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  width: 220px;
+  padding: var(--space-4);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  margin-top: var(--space-2);
+}
+
+.user-popover-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin: 0 auto var(--space-2);
+  background: var(--color-brand-gradient);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.user-popover-name {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.user-popover-rep {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
+}
+
+.user-popover-link {
+  width: 100%;
+  display: block;
+}

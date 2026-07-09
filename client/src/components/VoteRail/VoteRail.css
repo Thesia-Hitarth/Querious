@@ -73,3 +73,16 @@
 [data-theme="dark"] .vote-btn.downvote.active {
   background-color: rgba(37, 99, 235, 0.15);
 }
+
+.vote-rail-accepted-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-accepted-bg);
+  color: var(--color-accepted);
+  border: 2px solid var(--color-accepted-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-2);
+}

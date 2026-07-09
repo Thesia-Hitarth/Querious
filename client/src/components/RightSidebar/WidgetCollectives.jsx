@@ -1,42 +1,14 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { Link } from "react-router-dom";
 import { updateProfile } from "../../actions/users";
+import { COLLECTIVES } from "../../constants/collectives";
+import CollectiveIcon from "../CollectiveIcon/CollectiveIcon";
 import "./RightSidebar.css";
 
 const WidgetCollectives = () => {
   const User = useSelector((state) => state.currentUserReducer);
   const dispatch = useDispatch();
-
-  const collectivesList = [
-    {
-      id: "mern",
-      name: "MERN Stack",
-      members: "24k Members",
-      desc: "A collective for full-stack developers specializing in MongoDB, Express, React, and Node.js...",
-      iconClass: "mern"
-    },
-    {
-      id: "php",
-      name: "PHP",
-      members: "18k Members",
-      desc: "A collective where developers working with PHP can learn and connect about the open...",
-      iconClass: "php"
-    },
-    {
-      id: "r-lang",
-      name: "R Language",
-      members: "17k Members",
-      desc: "A collective where data scientists and AI researchers gather to find, share, and learn...",
-      iconClass: "r-lang"
-    },
-    {
-      id: "nlp",
-      name: "NLP",
-      members: "13k Members",
-      desc: "A collective focused on NLP (natural language processing), the transformation or extraction...",
-      iconClass: "nlp"
-    }
-  ];
 
   const [joinedCollectives, setJoinedCollectives] = useState(() => {
     try {
@@ -79,7 +51,7 @@ const WidgetCollectives = () => {
         <a href="/Tags" className="see-all-link">see all</a>
       </div>
       <div className="collectives-list">
-        {collectivesList.map((c) => {
+        {COLLECTIVES.map((c) => {
           const isJoined = User?.result?._id
             ? userCollectives.includes(c.id)
             : joinedCollectives.includes(c.id);
@@ -87,15 +59,13 @@ const WidgetCollectives = () => {
           return (
             <div key={c.id} className="collective-item">
               <div className="collective-header">
-                <div className="collective-brand">
-                  <div className={`collective-icon ${c.iconClass}`}>
-                    {c.name.substring(0, 3).toUpperCase()}
-                  </div>
+                <Link to={`/Collectives/${c.id}`} className="collective-brand">
+                  <CollectiveIcon name={c.name} iconClass={c.iconClass} size={32} />
                   <div className="collective-info">
                     <span className="collective-name">{c.name}</span>
                     <span className="collective-members">{c.members}</span>
                   </div>
-                </div>
+                </Link>
                 <button
                   type="button"
                   className={`collective-btn ${isJoined ? "joined" : ""}`}

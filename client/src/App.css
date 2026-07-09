@@ -8,6 +8,11 @@
   background-color: var(--color-bg-base);
 }
 
+body.has-context-bar .home-container-1 {
+  margin-top: calc(var(--navbar-height) + var(--context-bar-height));
+  min-height: calc(100vh - var(--navbar-height) - var(--context-bar-height));
+}
+
 .home-container-2 {
   max-width: 1280px;
   width: 100%;

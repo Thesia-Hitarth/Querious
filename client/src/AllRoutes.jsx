@@ -13,6 +13,7 @@ const Users = lazy(() => import("./Pages/Users/Users"));
 const UserProfile = lazy(() => import("./Pages/UserProfile/UserProfile"));
 const ResetPassword = lazy(() => import("./Pages/Auth/ResetPassword"));
 const Blogs = lazy(() => import("./Pages/Blogs/Blogs"));
+const CollectiveDetail = lazy(() => import("./Pages/Collectives/CollectiveDetail"));
 const ProtectedRoute = lazy(() => import("./components/ProtectedRoute/ProtectedRoute"));
 const NotFound = lazy(() => import("./Pages/NotFound/NotFound"));
 
@@ -72,6 +73,10 @@ const AllRoutes = ({ slideIn, handleSlideIn }) => {
         <Route
           path="/Blogs/:id"
           element={<Blogs slideIn={slideIn} handleSlideIn={handleSlideIn} />}
+        />
+        <Route
+          path="/Collectives/:collectiveId"
+          element={<CollectiveDetail slideIn={slideIn} handleSlideIn={handleSlideIn} />}
         />
         {/* Catch-all unknown route */}
         <Route path="*" element={<NotFound />} />

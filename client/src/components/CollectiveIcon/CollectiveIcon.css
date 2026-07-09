@@ -1,0 +1,12 @@
+.collective-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: white;
+  user-select: none;
+}
+.collective-icon.php { background-color: #777bb4; }
+.collective-icon.r-lang { background-color: #276cbe; }
+.collective-icon.nlp { background-color: #0074cc; }
+.collective-icon.mern { background-color: #f48225; }

@@ -8,6 +8,8 @@ import LoadingSkeleton from "../../components/LoadingSkeleton/LoadingSkeleton";
 import Pagination from "../Pagination/Pagination";
 import { fetchAllQuestions } from "../../actions/question";
 import { useToast } from "../Toast/ToastContext";
+import useQuestionFilters from "../../hooks/useQuestionFilters";
+import FilterFields from "./FilterFields";
 
 import EmptyState from "../../components/EmptyState/EmptyState";
 
@@ -16,6 +18,28 @@ const SparkleIcon = () => (
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
   </svg>
 );
+
+const CountUp = ({ end, duration = 800 }) => {
+  const [count, setCount] = React.useState(0);
+
+  React.useEffect(() => {
+    let startTimestamp = null;
+    let frameId;
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(ease * end));
+      if (progress < 1) {
+        frameId = window.requestAnimationFrame(step);
+      }
+    };
+    frameId = window.requestAnimationFrame(step);
+    return () => window.cancelAnimationFrame(frameId);
+  }, [end, duration]);
+
+  return <>{count}</>;
+};
 
 const containerVariants = {
   hidden: {},
@@ -40,15 +64,16 @@ const HomeMainbar = ({ tag }) => {
   const [activeTab, setActiveTab] = useState("newest");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Filter Drawer State Variables
+  // Filter Drawer Open State
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filterNoAnswers, setFilterNoAnswers] = useState(false);
-  const [filterNoAccepted, setFilterNoAccepted] = useState(false);
-  const [filterDaysOld, setFilterDaysOld] = useState("");
-  const [filterSort, setFilterSort] = useState("newest");
-  const [filterTagsOption, setFilterTagsOption] = useState("any");
-  const [filterTags, setFilterTags] = useState("");
-  const [appliedFilters, setAppliedFilters] = useState({});
+
+  const filterProps = useQuestionFilters();
+  const {
+    appliedFilters,
+    handleApplyFilter,
+    handleResetFilter,
+    handleCancel
+  } = filterProps;
 
   useEffect(() => {
     const queryParams = {
@@ -98,40 +123,19 @@ const HomeMainbar = ({ tag }) => {
     }
   };
 
-  const handleApplyFilter = (e) => {
-    e.preventDefault();
-    const filters = {};
-    // Only include non-default values so Object.keys(appliedFilters).length
-    // correctly reflects whether any filters are actually active.
-    if (filterNoAnswers) filters.filterNoAnswers = true;
-    if (filterNoAccepted) filters.filterNoAccepted = true;
-    if (filterDaysOld) filters.filterDaysOld = parseInt(filterDaysOld);
-    if (filterTagsOption === "custom" && filterTags.trim()) {
-      filters.filterTags = filterTags.trim();
-    }
-    if (filterSort && filterSort !== "newest") filters.filterSort = filterSort;
-    setAppliedFilters(filters);
+  // Wrapped forms handlers to close drawer on action
+  const onDrawerApply = (e) => {
+    handleApplyFilter(e);
     setIsFilterOpen(false);
   };
 
-  const handleCancel = () => {
-    setFilterNoAnswers(appliedFilters.filterNoAnswers ?? false);
-    setFilterNoAccepted(appliedFilters.filterNoAccepted ?? false);
-    setFilterDaysOld(appliedFilters.filterDaysOld || "");
-    setFilterSort(appliedFilters.filterSort || "newest");
-    setFilterTags(appliedFilters.filterTags || "");
-    setFilterTagsOption(appliedFilters.filterTags ? "custom" : "any");
+  const onDrawerReset = () => {
+    handleResetFilter();
     setIsFilterOpen(false);
   };
 
-  const handleResetFilter = () => {
-    setFilterNoAnswers(false);
-    setFilterNoAccepted(false);
-    setFilterDaysOld("");
-    setFilterSort("newest");
-    setFilterTagsOption("any");
-    setFilterTags("");
-    setAppliedFilters({});
+  const onDrawerCancel = () => {
+    handleCancel();
     setIsFilterOpen(false);
   };
 
@@ -207,15 +211,15 @@ const HomeMainbar = ({ tag }) => {
               transition={{ delay: 0.45, duration: 0.4 }}
             >
               <div className="hero-stat">
-                <span className="hero-stat-number">{questionsList.totalSiteQuestions || 0}+</span>
+                <span className="hero-stat-number"><CountUp end={questionsList.totalSiteQuestions || 0} />+</span>
                 <span className="hero-stat-label">Questions</span>
               </div>
               <div className="hero-stat">
-                <span className="hero-stat-number">{questionsList.totalSiteAnswers || 0}+</span>
+                <span className="hero-stat-number"><CountUp end={questionsList.totalSiteAnswers || 0} />+</span>
                 <span className="hero-stat-label">Answers</span>
               </div>
               <div className="hero-stat">
-                <span className="hero-stat-number">{usersList.length || 0}+</span>
+                <span className="hero-stat-number"><CountUp end={usersList.length || 0} />+</span>
                 <span className="hero-stat-label">Users</span>
               </div>
             </motion.div>
@@ -285,135 +289,20 @@ const HomeMainbar = ({ tag }) => {
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
           >
-            <form onSubmit={handleApplyFilter} className="filter-form">
-              <div className="filter-grid">
-                {/* Column 1: Filter By */}
-                <div className="filter-col">
-                  <h4>Filter by</h4>
-                  <div className="filter-group">
-                    <label className="filter-checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={filterNoAnswers}
-                        onChange={(e) => setFilterNoAnswers(e.target.checked)}
-                      />
-                      <span>No answers</span>
-                    </label>
-                    <label className="filter-checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={filterNoAccepted}
-                        onChange={(e) => setFilterNoAccepted(e.target.checked)}
-                      />
-                      <span>No accepted answers</span>
-                    </label>
-                    <div className="filter-input-row">
-                      <input
-                        type="number"
-                        placeholder="e.g. 30"
-                        value={filterDaysOld}
-                        onChange={(e) => setFilterDaysOld(e.target.value)}
-                        min="1"
-                        className="filter-number-input"
-                      />
-                      <span>Days old</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Column 2: Sorted By */}
-                <div className="filter-col">
-                  <h4>Sorted by</h4>
-                  <div className="filter-group">
-                    <label className="filter-radio-label">
-                      <input
-                        type="radio"
-                        name="filterSort"
-                        value="newest"
-                        checked={filterSort === "newest"}
-                        onChange={() => setFilterSort("newest")}
-                      />
-                      <span>Newest</span>
-                    </label>
-                    <label className="filter-radio-label">
-                      <input
-                        type="radio"
-                        name="filterSort"
-                        value="activity"
-                        checked={filterSort === "activity"}
-                        onChange={() => setFilterSort("activity")}
-                      />
-                      <span>Recent activity</span>
-                    </label>
-                    <label className="filter-radio-label">
-                      <input
-                        type="radio"
-                        name="filterSort"
-                        value="score"
-                        checked={filterSort === "score"}
-                        onChange={() => setFilterSort("score")}
-                      />
-                      <span>Highest score</span>
-                    </label>
-                    <label className="filter-radio-label">
-                      <input
-                        type="radio"
-                        name="filterSort"
-                        value="views"
-                        checked={filterSort === "views"}
-                        onChange={() => setFilterSort("views")}
-                      />
-                      <span>Most frequent</span>
-                    </label>
-                  </div>
-                </div>
-
-                {/* Column 3: Tagged With */}
-                <div className="filter-col">
-                  <h4>Tagged with</h4>
-                  <div className="filter-group">
-                    <label className="filter-radio-label">
-                      <input
-                        type="radio"
-                        name="filterTagsOption"
-                        value="any"
-                        checked={filterTagsOption === "any"}
-                        onChange={() => setFilterTagsOption("any")}
-                      />
-                      <span>Any tags</span>
-                    </label>
-                    <label className="filter-radio-label">
-                      <input
-                        type="radio"
-                        name="filterTagsOption"
-                        value="custom"
-                        checked={filterTagsOption === "custom"}
-                        onChange={() => setFilterTagsOption("custom")}
-                      />
-                      <span>The following tags:</span>
-                    </label>
-                    {filterTagsOption === "custom" && (
-                      <input
-                        type="text"
-                        placeholder="e.g. reactjs nodejs"
-                        value={filterTags}
-                        className="filter-tags-input"
-                        onChange={(e) => setFilterTags(e.target.value)}
-                        autoFocus
-                      />
-                    )}
-                  </div>
-                </div>
-              </div>
+            <form onSubmit={onDrawerApply} className="filter-form">
+              <FilterFields
+                {...filterProps}
+                onImmediate={false}
+              />
 
               <div className="filter-footer">
                 <button type="submit" className="btn filter-apply-btn">
                   Apply filter
                 </button>
-                <button type="button" onClick={handleResetFilter} className="filter-reset-btn" style={{ marginLeft: "auto" }}>
+                <button type="button" onClick={onDrawerReset} className="filter-reset-btn" style={{ marginLeft: "auto" }}>
                   Reset Filters
                 </button>
-                <button type="button" onClick={handleCancel} className="filter-cancel-btn">
+                <button type="button" onClick={onDrawerCancel} className="filter-cancel-btn">
                   Cancel
                 </button>
               </div>

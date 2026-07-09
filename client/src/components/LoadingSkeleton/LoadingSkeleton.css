@@ -3,15 +3,14 @@
   box-sizing: border-box;
 }
 
-/* Shimmer animation */
 .shimmer * {
-  background: #f3f4f6;
+  background: var(--color-skeleton-bg);
   background-image: linear-gradient(
     to right,
-    #f3f4f6 0%,
-    #e9eaf0 20%,
-    #f3f4f6 40%,
-    #f3f4f6 100%
+    var(--color-skeleton-bg) 0%,
+    var(--color-skeleton-shimmer) 20%,
+    var(--color-skeleton-bg) 40%,
+    var(--color-skeleton-bg) 100%
   );
   background-repeat: no-repeat;
   background-size: 800px 104px;
@@ -33,7 +32,7 @@
 
 .skeleton-question-card {
   display: flex;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--color-border-light);
   padding: var(--space-5) var(--space-6);
   gap: var(--space-5);
   align-items: flex-start;
@@ -100,7 +99,7 @@
 .skeleton-meta-row {
   display: flex;
   gap: 15px;
-  border-bottom: 1px solid #e3e6e8;
+  border-bottom: 1px solid var(--color-border-light);
   padding-bottom: 15px;
 }
 
@@ -167,9 +166,9 @@
   display: flex;
   gap: 10px;
   padding: 10px;
-  border: 1px solid #e3e6e8;
+  border: 1px solid var(--color-border);
   border-radius: 4px;
-  background-color: white;
+  background-color: var(--color-bg-surface);
 }
 
 .skeleton-avatar {
