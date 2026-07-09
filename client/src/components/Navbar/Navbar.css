@@ -70,7 +70,7 @@
   transition: all var(--transition-fast);
 }
 .nav-logo:hover {
-  background-color: #fff7ed;
+  background-color: var(--color-active-link-bg);
 }
 
 .nav-logo-img {
@@ -92,7 +92,7 @@
   color: var(--color-text-primary);
   letter-spacing: -0.04em;
   line-height: 1;
-  background: linear-gradient(135deg, #111827 0%, #374151 100%);
+  background: var(--color-logo-text-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

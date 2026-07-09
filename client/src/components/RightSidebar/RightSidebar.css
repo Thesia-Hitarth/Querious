@@ -31,8 +31,8 @@
 
 /* Yellow Blog Widget */
 .yellow-widget {
-  background-color: #fdf7e2;
-  border: 1px solid #f1e5bc;
+  background-color: var(--color-yellow-widget-bg);
+  border: 1px solid var(--color-yellow-widget-border);
   border-radius: var(--radius-xl);
   padding: 0;
   overflow: hidden;
@@ -42,11 +42,11 @@
 
 .yellow-widget:hover {
   box-shadow: var(--shadow-sm);
-  border-color: #e6dbb0;
+  border-color: var(--color-border-strong);
 }
 
 .yellow-widget .widget-section {
-  border-bottom: 1px solid #f1e5bc;
+  border-bottom: 1px solid var(--color-yellow-widget-border);
 }
 
 .yellow-widget .widget-section:last-child {
@@ -57,11 +57,11 @@
   font-family: var(--font-display);
   font-size: 13.5px;
   font-weight: 700;
-  color: #3b4045;
-  background-color: #fbf3d5;
+  color: var(--color-yellow-widget-text);
+  background-color: var(--color-yellow-widget-header-bg);
   padding: 12px var(--space-5);
   margin: 0;
-  border-bottom: 1px solid #f1e5bc;
+  border-bottom: 1px solid var(--color-yellow-widget-border);
   letter-spacing: -0.01em;
 }
 
@@ -72,7 +72,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background-color: #fdf7e2;
+  background-color: var(--color-yellow-widget-bg);
 }
 
 .yellow-widget .widget-item {
@@ -81,11 +81,11 @@
   gap: 8px;
   font-size: 13px;
   line-height: 1.45;
-  color: #3b4045;
+  color: var(--color-yellow-widget-text);
 }
 
 .yellow-widget .widget-item a {
-  color: #3b4045;
+  color: var(--color-yellow-widget-text);
   text-decoration: none;
   transition: color var(--transition-fast);
 }

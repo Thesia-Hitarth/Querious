@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import ReactQuill from "react-quill";
 
 import { deleteAnswer, voteAnswer, acceptAnswer, updateAnswer } from "../../actions/question";
+import VoteRail from "../../components/VoteRail/VoteRail";
 import SafeHtml from "../../components/SafeHtml/SafeHtml";
 import Comments from "../../components/Comments/Comments";
 import UserBadge from "../../components/UserBadge/UserBadge";
@@ -12,17 +13,7 @@ import ConfirmationModal from "../../components/ConfirmationModal/ConfirmationMo
 import { useToast } from "../../components/Toast/ToastContext";
 
 // Custom SVGs (18px/20px)
-const UpVoteIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="18 15 12 9 6 15"></polyline>
-  </svg>
-);
 
-const DownVoteIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="6 9 12 15 18 9"></polyline>
-  </svg>
-);
 
 const CheckIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
@@ -159,11 +150,7 @@ const DisplayAnswer = ({ question, handleShare }) => {
 
 
 
-  const scoreClass = (score) => {
-    if (score > 0) return "positive";
-    if (score < 0) return "negative";
-    return "";
-  };
+
 
   // Sort answers to push accepted answer to top, secondary sort by net votes score descending
   const sortedAnswers = [...(question.answer || [])].sort((a, b) => {
@@ -181,7 +168,6 @@ const DisplayAnswer = ({ question, handleShare }) => {
         const currentScore = (ans.upVote?.length || 0) - (ans.downVote?.length || 0);
         const hasUpvoted = ans.upVote?.includes(User?.result?._id);
         const hasDownvoted = ans.downVote?.includes(User?.result?._id);
-        const isAuthor = User?.result?._id === ans.userId;
 
         return (
           <React.Fragment key={ans._id}>
@@ -203,28 +189,15 @@ const DisplayAnswer = ({ question, handleShare }) => {
               
               <div className="display-ans-container-2">
                 {/* Left voting column */}
-                <div className="question-votes">
-                  <button
-                    type="button"
-                    className={`votes-icon-btn upvote-btn ${hasUpvoted ? "active" : ""} ${isAuthor || votingAnswerId === ans._id ? "disabled" : ""}`}
-                    onClick={() => handleUpVote(ans._id, ans.userId)}
-                    disabled={isAuthor || votingAnswerId === ans._id}
-                    title={isAuthor ? "You cannot vote on your own answer" : "Upvote"}
-                  >
-                    <UpVoteIcon />
-                  </button>
-                  <p className={`vote-score ${scoreClass(currentScore)} ${votingAnswerId === ans._id ? "animating" : ""}`}>
-                    {votingAnswerId === ans._id ? "..." : currentScore}
-                  </p>
-                  <button
-                    type="button"
-                    className={`votes-icon-btn downvote-btn ${hasDownvoted ? "active" : ""} ${isAuthor || votingAnswerId === ans._id ? "disabled" : ""}`}
-                    onClick={() => handleDownVote(ans._id, ans.userId)}
-                    disabled={isAuthor || votingAnswerId === ans._id}
-                    title={isAuthor ? "You cannot vote on your own answer" : "Downvote"}
-                  >
-                    <DownVoteIcon />
-                  </button>
+                <div className="question-votes-col-wrapper" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--space-3)" }}>
+                  <VoteRail
+                    score={currentScore}
+                    onUpVote={() => handleUpVote(ans._id, ans.userId)}
+                    onDownVote={() => handleDownVote(ans._id, ans.userId)}
+                    userUpVoted={hasUpvoted}
+                    userDownVoted={hasDownvoted}
+                    isVoting={votingAnswerId === ans._id}
+                  />
 
                   {String(User?.result?._id) === String(question.userId) ? (
                     <button
@@ -234,12 +207,13 @@ const DisplayAnswer = ({ question, handleShare }) => {
                       title={
                         ans.isAccepted ? "Accepted answer (Click to undo)" : "Accept this answer"
                       }
+                      style={{ marginTop: "var(--space-2)" }}
                     >
                       <CheckIcon />
                     </button>
                   ) : (
                     ans.isAccepted && (
-                      <div className="accept-checkmark-static-icon accepted" title="Accepted answer">
+                      <div className="accept-checkmark-static-icon accepted" title="Accepted answer" style={{ marginTop: "var(--space-2)" }}>
                         <CheckIcon />
                       </div>
                     )

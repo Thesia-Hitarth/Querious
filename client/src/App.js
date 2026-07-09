@@ -11,6 +11,7 @@ import { fetchNotifications } from "./actions/notifications";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 import { ToastProvider } from "./components/Toast/ToastContext";
 import ScrollToTop from "./components/ScrollToTop/ScrollToTop";
+import { ThemeProvider } from "./components/Theme/ThemeContext";
 
 function App() {
   const dispatch = useDispatch();
@@ -93,41 +94,43 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <ToastProvider>
-        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <a
-            href="#main-content"
-            className="skip-link"
-            style={{
-              position: "fixed",
-              top: "-100px",
-              left: "20px",
-              background: "var(--color-brand-primary)",
-              color: "white",
-              padding: "10px 20px",
-              borderRadius: "4px",
-              zIndex: "99999",
-              transition: "top 0.2s ease-in-out",
-              textDecoration: "none",
-              fontWeight: "bold",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
-            }}
-            onFocus={(e) => (e.target.style.top = "20px")}
-            onBlur={(e) => (e.target.style.top = "-100px")}
-          >
-            Skip to main content
-          </a>
-          <Navbar handleSlideIn={handleSlideIn} />
-          <main id="main-content">
-            <ErrorBoundary>
-              <AllRoutes slideIn={slideIn} handleSlideIn={handleSlideIn} />
-            </ErrorBoundary>
-          </main>
-          <ScrollToTop />
-        </Router>
-      </ToastProvider>
-    </div>
+    <ThemeProvider>
+      <div className="App">
+        <ToastProvider>
+          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <a
+              href="#main-content"
+              className="skip-link"
+              style={{
+                position: "fixed",
+                top: "-100px",
+                left: "20px",
+                background: "var(--color-brand-primary)",
+                color: "white",
+                padding: "10px 20px",
+                borderRadius: "4px",
+                zIndex: "99999",
+                transition: "top 0.2s ease-in-out",
+                textDecoration: "none",
+                fontWeight: "bold",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
+              }}
+              onFocus={(e) => (e.target.style.top = "20px")}
+              onBlur={(e) => (e.target.style.top = "-100px")}
+            >
+              Skip to main content
+            </a>
+            <Navbar handleSlideIn={handleSlideIn} />
+            <main id="main-content">
+              <ErrorBoundary>
+                <AllRoutes slideIn={slideIn} handleSlideIn={handleSlideIn} />
+              </ErrorBoundary>
+            </main>
+            <ScrollToTop />
+          </Router>
+        </ToastProvider>
+      </div>
+    </ThemeProvider>
   );
 }
 

@@ -85,7 +85,7 @@ const EditProfileForm = ({ currentUser, setSwitch }) => {
       <h2 className="edit-profile-title-2">Public information</h2>
       <form className="edit-profile-form" onSubmit={handleSubmit}>
         <label htmlFor="name">
-          <h3>Display name</h3>
+          <h3>Display name <span style={{ color: "var(--color-danger)" }}>*</span></h3>
           <input
             type="text"
             id="name"
@@ -118,7 +118,7 @@ const EditProfileForm = ({ currentUser, setSwitch }) => {
           />
         </label>
         <label htmlFor="tags">
-          <h3>Watched tags</h3>
+          <h3>Watched tags <span style={{ color: "var(--color-danger)" }}>*</span></h3>
           <p>Add tags separated by 1 space</p>
           <input
             type="text"
@@ -149,7 +149,7 @@ const EditProfileForm = ({ currentUser, setSwitch }) => {
       <h2 className="edit-profile-title-2">Change Password</h2>
       <form className="edit-profile-form" onSubmit={handlePasswordSubmit}>
         <label htmlFor="old-password">
-          <h3>Current Password</h3>
+          <h3>Current Password <span style={{ color: "var(--color-danger)" }}>*</span></h3>
           <input
             type="password"
             id="old-password"
@@ -160,7 +160,7 @@ const EditProfileForm = ({ currentUser, setSwitch }) => {
           />
         </label>
         <label htmlFor="new-password">
-          <h3>New Password</h3>
+          <h3>New Password <span style={{ color: "var(--color-danger)" }}>*</span></h3>
           <input
             type="password"
             id="new-password"
@@ -171,7 +171,7 @@ const EditProfileForm = ({ currentUser, setSwitch }) => {
           />
         </label>
         <label htmlFor="confirm-new-password">
-          <h3>Confirm New Password</h3>
+          <h3>Confirm New Password <span style={{ color: "var(--color-danger)" }}>*</span></h3>
           <input
             type="password"
             id="confirm-new-password"

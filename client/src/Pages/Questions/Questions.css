@@ -677,3 +677,192 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+
+/* -- Redesigned Question List Card overrides -- */
+.display-question-container {
+  display: grid !important;
+  grid-template-columns: 56px 1fr 90px !important;
+  gap: var(--space-4) !important;
+  padding: var(--row-padding-y) var(--row-padding-x) !important;
+  background-color: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border-light);
+  transition: all var(--transition-fast) !important;
+  cursor: pointer;
+  flex-direction: row !important;
+}
+
+.display-question-container:hover {
+  background-color: var(--color-bg-hover) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.display-question-container.accepted-question {
+  border-left: 3px solid var(--color-accepted-border) !important;
+}
+
+.display-question-container.old-unanswered {
+  border-left: 3px solid var(--color-brand-primary) !important;
+}
+
+.question-left-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: start;
+}
+
+.question-meta-top {
+  margin-bottom: var(--space-2);
+}
+
+.display-author-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.author-avatar-initial {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: var(--color-brand-primary);
+  color: white;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.question-right-stats-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-2);
+  border-left: 1px solid var(--color-border-light);
+  padding-left: var(--space-4);
+  align-self: center;
+  min-width: 90px;
+}
+
+.question-side-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.side-stat-number {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.side-stat-label {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Responsive adjustments for new grid layout */
+@media screen and (max-width: 760px) {
+  .display-question-container {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-3) !important;
+    padding: var(--space-4) !important;
+  }
+  .question-left-col {
+    order: 2;
+    justify-content: flex-start;
+  }
+  .question-left-col .vote-rail {
+    flex-direction: row !important;
+    gap: var(--space-4);
+  }
+  .question-right-stats-col {
+    order: 3;
+    flex-direction: row;
+    border-left: none;
+    border-top: 1px solid var(--color-border-light);
+    padding-left: 0;
+    padding-top: var(--space-2);
+    justify-content: space-around;
+    min-width: 100%;
+  }
+  .question-side-stat {
+    flex-direction: row;
+    gap: var(--space-1);
+  }
+}
+
+/* Sticky Action Bar for Long Questions */
+.sticky-question-action-bar {
+  position: fixed;
+  top: var(--navbar-height);
+  left: 0;
+  right: 0;
+  height: 56px;
+  background-color: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  z-index: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn var(--transition-fast) ease-in-out;
+}
+
+.sticky-action-bar-content {
+  width: 100%;
+  max-width: 1280px;
+  padding: 0 var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.sticky-bar-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.sticky-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* Accepted Answer styling overrides */
+.display-ans.accepted-answer {
+  border-left: 4px solid var(--color-accepted-border) !important;
+  background-color: var(--color-accepted-bg) !important;
+}
+
+.display-ans.accepted-answer .accepted-badge {
+  color: var(--color-accepted) !important;
+  background-color: var(--color-accepted-bg) !important;
+  border: 1px solid var(--color-accepted-border) !important;
+}
+
+/* Flex layout adjust for DisplayAnswer.jsx container */
+.display-ans-container-2 {
+  display: flex;
+  gap: var(--space-5);
+}
+
+.question-votes-col-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 44px;
+}
+

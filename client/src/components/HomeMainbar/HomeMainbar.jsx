@@ -9,13 +9,7 @@ import Pagination from "../Pagination/Pagination";
 import { fetchAllQuestions } from "../../actions/question";
 import { useToast } from "../Toast/ToastContext";
 
-const EmptyStateSVG = () => (
-  <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--color-brand-primary)", marginBottom: "var(--space-4)", opacity: 0.6 }}>
-    <circle cx="12" cy="12" r="10"></circle>
-    <path d="M8 12h8"></path>
-    <path d="M12 8v8"></path>
-  </svg>
-);
+import EmptyState from "../../components/EmptyState/EmptyState";
 
 const SparkleIcon = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
@@ -435,16 +429,19 @@ const HomeMainbar = ({ tag }) => {
         ) : (
           <>
             {questionsList.data.length === 0 ? (
-              <div className="empty-state-container">
-                <EmptyStateSVG />
-                <h2>No questions found</h2>
-                <p>
-                  Be the first to ask something!
-                  <button type="button" className="empty-state-ask-link" onClick={checkAuth}>
-                    Ask a question
-                  </button>
-                </p>
-              </div>
+              <EmptyState
+                icon={
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                  </svg>
+                }
+                title={searchQuery ? "No search results found" : "No questions found"}
+                description={searchQuery ? `We couldn't find any questions matching "${searchQuery}". Try adjusting your keywords or filters.` : "Be the first to ask a question and start a conversation in our community!"}
+                actionLabel="Ask a Question"
+                onAction={checkAuth}
+              />
             ) : (
               <>
                 <p className="questions-count-text" style={{ padding: "12px 20px", borderBottom: "1px solid var(--color-border-light)", margin: 0 }}>

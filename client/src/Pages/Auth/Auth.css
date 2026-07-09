@@ -15,11 +15,15 @@
 
 /* Left marketing panel */
 .auth-container-1 {
-  max-width: 400px;
-  color: var(--color-text-primary);
+  max-width: 420px;
+  background: var(--color-cover-gradient);
+  color: white;
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
+  padding: var(--space-8);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
   animation: fadeInUp 0.4s ease both;
 }
 
@@ -28,21 +32,21 @@
   font-size: 36px;
   font-weight: 800;
   line-height: 1.1;
-  color: var(--color-text-primary);
+  color: white;
   letter-spacing: -0.04em;
   margin-bottom: var(--space-2);
 }
 
 .auth-brand-word {
-  background: var(--color-brand-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: white;
+  background: none;
+  -webkit-background-clip: initial;
+  -webkit-text-fill-color: initial;
 }
 
 .auth-container-1 p {
   font-size: 15px;
-  color: var(--color-text-secondary);
+  color: rgba(255, 255, 255, 0.9);
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
@@ -53,13 +57,15 @@
   flex-shrink: 0;
   width: 20px;
   height: 20px;
-  background: var(--color-brand-gradient);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: 2px;
+  color: white;
 }
+
 
 /* Card wrapper */
 .auth-card-container {

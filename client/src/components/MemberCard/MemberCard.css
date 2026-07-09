@@ -1,0 +1,121 @@
+.member-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-5);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--card-member-radius);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.member-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-strong);
+}
+
+.member-card-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--card-member-avatar-size);
+  height: var(--card-member-avatar-size);
+  border-radius: var(--radius-full);
+  background: var(--color-cover-gradient);
+  color: white;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: var(--space-3);
+  box-shadow: var(--shadow-sm);
+}
+
+.member-card-info {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.member-card-name {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-1);
+  word-break: break-word;
+}
+
+.member-card-name:hover {
+  color: var(--color-brand-primary);
+  text-decoration: none;
+}
+
+.member-card-location {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.member-card-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+  width: 100%;
+}
+
+.member-card-rep {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-brand-primary);
+  background-color: #fff7ed;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+[data-theme="dark"] .member-card-rep {
+  background-color: rgba(249, 115, 22, 0.15);
+}
+
+.member-card-badge-shelf {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.mini-badge-dot {
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+}
+
+.mini-badge-dot.gold { color: var(--color-badge-gold); }
+.mini-badge-dot.silver { color: var(--color-badge-silver); }
+.mini-badge-dot.bronze { color: var(--color-badge-bronze); }
+
+.member-card-bio {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.member-card-bio.empty {
+  color: var(--color-text-faint);
+  font-style: italic;
+}

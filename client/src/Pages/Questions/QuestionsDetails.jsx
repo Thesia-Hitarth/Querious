@@ -7,6 +7,7 @@ import ReactQuill from "react-quill";
 
 import "./Questions.css";
 import DisplayAnswer from "./DisplayAnswer";
+import VoteRail from "../../components/VoteRail/VoteRail";
 import LoadingSkeleton from "../../components/LoadingSkeleton/LoadingSkeleton";
 import SafeHtml from "../../components/SafeHtml/SafeHtml";
 import Comments from "../../components/Comments/Comments";
@@ -24,17 +25,7 @@ import {
 import { useToast } from "../../components/Toast/ToastContext";
 
 // Custom SVGs
-const UpVoteIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="18 15 12 9 6 15"></polyline>
-  </svg>
-);
 
-const DownVoteIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="6 9 12 15 18 9"></polyline>
-  </svg>
-);
 
 const BookmarkIconSVG = ({ filled }) => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill={filled ? "var(--color-warning)" : "none"} stroke={filled ? "var(--color-warning)" : "currentColor"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -87,13 +78,40 @@ const QuestionsDetails = () => {
   const url = window.location.origin;
   const { showToast } = useToast();
 
+  const [showStickyBar, setShowStickyBar] = useState(false);
+
   useEffect(() => {
     dispatch(fetchQuestionDetails(id)).catch((err) => {
       console.error("Error fetching question details:", err);
     });
   }, [id, dispatch]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowStickyBar(true);
+      } else {
+        setShowStickyBar(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const question = questionsList.data?.find((q) => q._id === id);
+
+  let statusText = "Unanswered";
+  let statusClass = "status-chip-unanswered";
+  if (question?.status === "closed") {
+    statusText = "Closed";
+    statusClass = "status-chip-closed";
+  } else if (question?.acceptedAnswerId) {
+    statusText = "Accepted";
+    statusClass = "status-chip-answered";
+  } else if (question?.noOfAnswers > 0) {
+    statusText = "Answered";
+    statusClass = "status-chip-answered";
+  }
 
   const handlePostAns = async (e) => {
     e.preventDefault();
@@ -238,11 +256,7 @@ const QuestionsDetails = () => {
     }
   };
 
-  const scoreClass = (score) => {
-    if (score > 0) return "positive";
-    if (score < 0) return "negative";
-    return "";
-  };
+
 
   return (
     <div className="question-details-page">
@@ -307,6 +321,9 @@ const QuestionsDetails = () => {
           ) : (
             <section className="question-details-container">
               <div className="question-details-header">
+                <div className="question-meta-top" style={{ marginBottom: "var(--space-2)" }}>
+                  <span className={`status-chip ${statusClass}`}>{statusText}</span>
+                </div>
                 <h1>{question.questionTitle}</h1>
                 <div className="question-details-meta">
                   <span>Asked <strong>{formatDistanceToNow(new Date(question.askedOn), { addSuffix: true })}</strong></span>
@@ -323,37 +340,21 @@ const QuestionsDetails = () => {
 
               <div className="question-details-container-2">
                 {/* Voting column */}
-                <div className="question-votes">
+                <div className="question-votes-col-wrapper" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--space-3)" }}>
                   {(() => {
                     const hasUpvoted = question.upVote?.includes(User?.result?._id);
                     const hasDownvoted = question.downVote?.includes(User?.result?._id);
-                    const isAuthor = User?.result?._id === question.userId;
                     const currentScore = (question.upVote?.length || 0) - (question.downVote?.length || 0);
 
                     return (
-                      <>
-                        <button
-                          type="button"
-                          className={`votes-icon-btn upvote-btn ${hasUpvoted ? "active" : ""} ${isAuthor ? "disabled" : ""}`}
-                          onClick={handleUpVote}
-                          title={isAuthor ? "You cannot vote on your own question" : "Upvote"}
-                          disabled={isAuthor || isVoting}
-                        >
-                          <UpVoteIcon />
-                        </button>
-                        <p className={`vote-score ${scoreClass(currentScore)}`}>
-                          {isVoting ? "..." : currentScore}
-                        </p>
-                        <button
-                          type="button"
-                          className={`votes-icon-btn downvote-btn ${hasDownvoted ? "active" : ""} ${isAuthor ? "disabled" : ""}`}
-                          onClick={handleDownVote}
-                          title={isAuthor ? "You cannot vote on your own question" : "Downvote"}
-                          disabled={isAuthor || isVoting}
-                        >
-                          <DownVoteIcon />
-                        </button>
-                      </>
+                      <VoteRail
+                        score={currentScore}
+                        onUpVote={handleUpVote}
+                        onDownVote={handleDownVote}
+                        userUpVoted={hasUpvoted}
+                        userDownVoted={hasDownvoted}
+                        isVoting={isVoting}
+                      />
                     );
                   })()}
                   <button
@@ -483,6 +484,42 @@ const QuestionsDetails = () => {
             title="Delete Question"
             message="Are you sure you want to delete this question? This action cannot be undone."
           />
+
+          {showStickyBar && question && (
+            <div className="sticky-question-action-bar">
+              <div className="sticky-action-bar-content">
+                <span className="sticky-bar-title">{question.questionTitle}</span>
+                <div className="sticky-bar-actions">
+                  <VoteRail
+                    score={(question.upVote?.length || 0) - (question.downVote?.length || 0)}
+                    onUpVote={handleUpVote}
+                    onDownVote={handleDownVote}
+                    userUpVoted={question.upVote?.includes(User?.result?._id)}
+                    userDownVoted={question.downVote?.includes(User?.result?._id)}
+                    isVoting={isVoting}
+                    orientation="horizontal"
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    style={{ padding: "6px 12px", fontSize: "12px" }}
+                    onClick={handleShare}
+                  >
+                    Share
+                  </button>
+                  <button
+                    type="button"
+                    className="bookmark-btn"
+                    style={{ padding: "6px" }}
+                    onClick={() => handleBookmarkClick(question._id)}
+                    title={User?.result?.savedQuestions?.includes(question._id) ? "Remove bookmark" : "Bookmark this question"}
+                  >
+                    <BookmarkIconSVG filled={User?.result?.savedQuestions?.includes(question._id)} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

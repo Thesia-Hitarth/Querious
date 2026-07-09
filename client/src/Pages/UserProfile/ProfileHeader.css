@@ -1,0 +1,219 @@
+.profile-header-container {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-bg-surface);
+  margin-bottom: var(--space-6);
+}
+
+.profile-cover-band {
+  height: 140px;
+  background: var(--color-cover-gradient);
+  width: 100%;
+}
+
+.profile-header-meta-section {
+  padding: 0 var(--space-8) var(--space-8);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin-top: -48px; /* Pull profile content up to overlap cover */
+}
+
+.profile-avatar-large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border-radius: var(--radius-full);
+  background: var(--color-brand-primary);
+  color: white;
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 700;
+  border: 4px solid var(--color-bg-surface);
+  box-shadow: var(--shadow-md);
+  z-index: 5;
+  margin-bottom: var(--space-4);
+}
+
+.profile-header-details {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.profile-header-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.profile-display-name {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.edit-profile-action-btn {
+  padding: 6px 14px;
+  font-size: 13px;
+  border-radius: var(--radius-md);
+}
+
+.profile-meta-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+}
+
+.profile-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.profile-meta-chip a {
+  color: var(--color-text-link);
+}
+
+.profile-header-about {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--space-6);
+  max-width: 720px;
+}
+
+/* 4-column Stat Grid Dashboard */
+.profile-stats-dashboard {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  background-color: var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  margin-bottom: var(--space-6);
+}
+
+.profile-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+}
+
+.profile-stat-val {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.profile-stat-lbl {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  margin-top: var(--space-1);
+}
+
+.badge-totals {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.badge-count-sum {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-brand-primary);
+}
+
+/* Badges Shelf and Interests row */
+.profile-footer-widgets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  border-top: 1px dashed var(--color-border);
+  padding-top: var(--space-5);
+}
+
+.profile-badge-shelf,
+.profile-interests-widget {
+  flex: 1;
+  min-width: 250px;
+}
+
+.badge-shelf-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.badge-shelf-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badge-shelf-pill.gold {
+  background-color: var(--color-badge-gold-bg);
+  color: var(--color-badge-gold);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.badge-shelf-pill.silver {
+  background-color: var(--color-badge-silver-bg);
+  color: var(--color-badge-silver);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.badge-shelf-pill.bronze {
+  background-color: var(--color-badge-bronze-bg);
+  color: var(--color-badge-bronze);
+  border: 1px solid rgba(180, 83, 9, 0.3);
+}
+
+.badge-bullet {
+  font-size: 12px;
+}
+
+.profile-interests-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+@media screen and (max-width: 760px) {
+  .profile-header-meta-section {
+    padding: 0 var(--space-4) var(--space-4);
+  }
+  .profile-stats-dashboard {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .profile-footer-widgets {
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+}

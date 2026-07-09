@@ -92,7 +92,7 @@ export const forgotPassword = async (req, res) => {
     const now = new Date();
     const oneHour = 60 * 60 * 1000;
     if (user.forgotPasswordWindowStart && (now - user.forgotPasswordWindowStart) < oneHour) {
-      if (user.forgotPasswordCount >= 3) {
+      if (user.forgotPasswordCount >= 15) {
         return res.status(429).json({ message: "Too many password reset requests. Please try again after an hour." });
       }
       user.forgotPasswordCount += 1;

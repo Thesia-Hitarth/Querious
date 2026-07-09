@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
 import "./LeftSidebar.css";
@@ -76,7 +76,9 @@ const itemVariants = {
 
 const LeftSidebar = ({ slideIn, handleSlideIn }) => {
   const User = useSelector((state) => state.currentUserReducer);
+  const usersList = useSelector((state) => state.usersReducer) || [];
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (window.innerWidth <= 760 && slideIn && handleSlideIn) {
@@ -95,6 +97,9 @@ const LeftSidebar = ({ slideIn, handleSlideIn }) => {
   const isSavesTab = searchParams.get("tab") === "saves";
   const isSelfProfile =
     User?.result?._id && location.pathname === `/Users/${User?.result?._id}`;
+
+  const loggedInUserDetails = usersList.find((u) => u._id === User?.result?._id);
+  const rep = loggedInUserDetails?.reputation || 1;
 
   return (
     <>
@@ -201,7 +206,55 @@ const LeftSidebar = ({ slideIn, handleSlideIn }) => {
             </div>
           )}
         </motion.nav>
+
+        {/* Sticky Profile reputation strip */}
+        {User && (
+          <div className="sidebar-reputation-strip">
+            <div className="sidebar-rep-avatar">
+              {User.result.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="sidebar-rep-info">
+              <span className="sidebar-rep-name">{User.result.name}</span>
+              <span className="sidebar-rep-score">{rep} reputation</span>
+            </div>
+            <Link to={`/Users/${User.result._id}`} className="sidebar-rep-link">→</Link>
+          </div>
+        )}
       </div>
+
+      {/* Mobile bottom tab bar */}
+      <nav className="mobile-bottom-tabbar">
+        <NavLink to="/" className="mobile-tab-item" end>
+          <HomeIcon />
+          <span>Home</span>
+        </NavLink>
+        <NavLink to="/Questions" className="mobile-tab-item">
+          <QuestionsIcon />
+          <span>Questions</span>
+        </NavLink>
+        <button
+          type="button"
+          className="mobile-tab-item raised-ask-btn"
+          onClick={() => {
+            if (User === null) {
+              navigate("/Auth");
+            } else {
+              navigate("/AskQuestion");
+            }
+          }}
+          aria-label="Ask Question"
+        >
+          <span className="plus-icon">+</span>
+        </button>
+        <NavLink to={User ? `/Users/${User.result._id}?tab=saves` : "/Auth"} className="mobile-tab-item">
+          <SavedIcon />
+          <span>Saved</span>
+        </NavLink>
+        <NavLink to={User ? `/Users/${User.result._id}` : "/Auth"} className="mobile-tab-item">
+          <ProfileIcon />
+          <span>Profile</span>
+        </NavLink>
+      </nav>
     </>
   );
 };

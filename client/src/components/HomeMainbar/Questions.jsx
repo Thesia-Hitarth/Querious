@@ -4,6 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleSaveQuestion } from "../../actions/users";
 import UserBadge from "../UserBadge/UserBadge";
+import VoteRail from "../VoteRail/VoteRail";
 import "../../Pages/Questions/Questions.css";
 import { useToast } from "../Toast/ToastContext";
 
@@ -45,33 +46,37 @@ const Questions = ({ question }) => {
   const score = (question.upVote?.length || 0) - (question.downVote?.length || 0);
   const isBookmarked = User?.result?.savedQuestions?.includes(question._id);
 
+  // Compute status chip details
+  let statusText = "Unanswered";
+  let statusClass = "status-chip-unanswered";
+  if (question.status === "closed") {
+    statusText = "Closed";
+    statusClass = "status-chip-closed";
+  } else if (question.acceptedAnswerId) {
+    statusText = "Accepted";
+    statusClass = "status-chip-answered";
+  } else if (question.noOfAnswers > 0) {
+    statusText = "Answered";
+    statusClass = "status-chip-answered";
+  }
+
+  // Highlight unanswered posts older than 48 hours
+  const isOldUnanswered = !question.acceptedAnswerId && (question.noOfAnswers || 0) === 0 &&
+    (new Date() - new Date(question.askedOn)) > 48 * 60 * 60 * 1000;
+
   return (
-    <div className="question-card display-question-container">
-      {/* Left stats column (90px wide stacked layout) */}
-      <div className="question-stats-col">
-        <div className="question-stat-pill" title={`${score} votes`}>
-          <span className="stat-number">{score}</span>
-          <span className="stat-label">votes</span>
-        </div>
-        
-        <div 
-          className={`question-stat-pill ${
-            question.acceptedAnswerId ? "accepted" : question.noOfAnswers > 0 ? "has-answers" : ""
-          }`}
-          title={`${question.noOfAnswers || 0} answers`}
-        >
-          <span className="stat-number">{question.noOfAnswers || 0}</span>
-          <span className="stat-label">answers</span>
-        </div>
-        
-        <div className="question-stat-pill" title={`${question.views || 0} views`}>
-          <span className="stat-number">{question.views || 0}</span>
-          <span className="stat-label">views</span>
-        </div>
+    <div className={`question-card display-question-container ${question.acceptedAnswerId ? "accepted-question" : ""} ${isOldUnanswered ? "old-unanswered" : ""}`}>
+      {/* Left Column: Vote Rail */}
+      <div className="question-left-col">
+        <VoteRail score={score} />
       </div>
 
-      {/* Right details content column */}
+      {/* Main Content Column */}
       <div className="display-question-details">
+        <div className="question-meta-top">
+          <span className={`status-chip ${statusClass}`}>{statusText}</span>
+        </div>
+
         <div className="question-title-row">
           <button
             type="button"
@@ -96,13 +101,30 @@ const Questions = ({ question }) => {
               </Link>
             ))}
           </div>
-          <p className="display-time">
-            asked {formatDistanceToNow(new Date(question.askedOn), { addSuffix: true })} by{" "}
-            <Link to={`/Users/${question.userId}`} className="author-link">
-              {question.userPosted}
-            </Link>
-            <UserBadge userId={question.userId} />
-          </p>
+          <div className="display-author-info">
+            <span className="author-avatar-initial">
+              {question.userPosted?.charAt(0).toUpperCase()}
+            </span>
+            <p className="display-time">
+              asked {formatDistanceToNow(new Date(question.askedOn), { addSuffix: true })} by{" "}
+              <Link to={`/Users/${question.userId}`} className="author-link">
+                {question.userPosted}
+              </Link>
+              <UserBadge userId={question.userId} />
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Column: Mini Stats */}
+      <div className="question-right-stats-col">
+        <div className="question-side-stat" title={`${question.noOfAnswers || 0} answers`}>
+          <span className="side-stat-number">{question.noOfAnswers || 0}</span>
+          <span className="side-stat-label">answers</span>
+        </div>
+        <div className="question-side-stat" title={`${question.views || 0} views`}>
+          <span className="side-stat-number">{question.views || 0}</span>
+          <span className="side-stat-label">views</span>
         </div>
       </div>
     </div>

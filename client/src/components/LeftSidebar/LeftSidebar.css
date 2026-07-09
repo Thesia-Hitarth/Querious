@@ -103,7 +103,7 @@
 }
 
 /* ── Mobile Responsive ── */
-@media screen and (max-width: 640px) {
+@media screen and (max-width: 760px) {
   .left-sidebar-overlay {
     display: block;
     position: fixed;
@@ -130,3 +130,145 @@
     box-shadow: var(--shadow-xl);
   }
 }
+
+/* -- Active rounded pill link overrides -- */
+.side-nav-links.active {
+  font-weight: 600;
+  color: var(--color-brand-primary) !important;
+  background-color: var(--color-active-link-bg) !important;
+}
+
+.side-nav-links.active svg {
+  stroke-width: 3px !important;
+}
+
+/* -- Sticky Profile reputation strip -- */
+.sidebar-reputation-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border-light);
+  background-color: var(--color-bg-surface);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.sidebar-rep-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--color-cover-gradient);
+  color: white;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.sidebar-rep-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar-rep-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-rep-score {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.sidebar-rep-link {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-brand-primary);
+  text-decoration: none;
+}
+
+/* -- Mobile bottom tab bar -- */
+.mobile-bottom-tabbar {
+  display: none;
+}
+
+@media screen and (max-width: 760px) {
+  .mobile-bottom-tabbar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background-color: var(--color-bg-surface);
+    border-top: 1px solid var(--color-border-light);
+    justify-content: space-around;
+    align-items: center;
+    z-index: 900;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    padding: 0 var(--space-2);
+  }
+
+  .mobile-tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 500;
+    gap: 2px;
+    flex: 1;
+    transition: color var(--transition-fast);
+  }
+
+  .mobile-tab-item svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .mobile-tab-item.active {
+    color: var(--color-brand-primary);
+  }
+
+  .mobile-tab-item.raised-ask-btn {
+    background: var(--color-brand-gradient);
+    color: white;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-full);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-brand);
+    position: relative;
+    top: -12px;
+    flex: none;
+    cursor: pointer;
+  }
+
+  .mobile-tab-item.raised-ask-btn .plus-icon {
+    font-size: 24px;
+    font-weight: 300;
+    line-height: 1;
+  }
+
+  body {
+    padding-bottom: 64px !important;
+  }
+}
+

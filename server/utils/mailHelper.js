@@ -1,24 +1,33 @@
 import nodemailer from "nodemailer";
 
-const mailUser = process.env.GMAIL_USER || process.env.SMTP_USER || "";
-const mailPass = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || "";
+let transporter;
 
-// Default to Gmail SMTP settings if GMAIL_USER is specified, otherwise use Mailtrap as fallback
-const defaultHost = (process.env.GMAIL_USER || process.env.SMTP_USER?.includes("gmail")) ? "smtp.gmail.com" : "smtp.mailtrap.io";
-const defaultPort = (process.env.GMAIL_USER || process.env.SMTP_USER?.includes("gmail")) ? 587 : 2525;
+const getTransporter = () => {
+  if (transporter) return transporter;
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || defaultHost,
-  port: parseInt(process.env.SMTP_PORT) || defaultPort,
-  secure: false,
-  auth: {
-    user: mailUser,
-    pass: mailPass,
-  },
-});
+  const mailUser = process.env.GMAIL_USER || process.env.SMTP_USER || "";
+  const mailPass = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || "";
+
+  // Default to Gmail SMTP settings if GMAIL_USER is specified, otherwise use Mailtrap as fallback
+  const defaultHost = (process.env.GMAIL_USER || process.env.SMTP_USER?.includes("gmail")) ? "smtp.gmail.com" : "smtp.mailtrap.io";
+  const defaultPort = (process.env.GMAIL_USER || process.env.SMTP_USER?.includes("gmail")) ? 587 : 2525;
+
+  transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || defaultHost,
+    port: parseInt(process.env.SMTP_PORT) || defaultPort,
+    secure: false,
+    auth: {
+      user: mailUser,
+      pass: mailPass,
+    },
+  });
+
+  return transporter;
+};
 
 export const sendResetEmail = async (email, resetLink) => {
-  let activeTransporter = transporter;
+  const mailUser = process.env.GMAIL_USER || process.env.SMTP_USER || "";
+  let activeTransporter = getTransporter();
 
   if (!mailUser && process.env.NODE_ENV !== "production") {
     try {
@@ -37,8 +46,9 @@ export const sendResetEmail = async (email, resetLink) => {
     }
   }
 
+  const senderEmail = mailUser || "support@querious.com";
   const mailOptions = {
-    from: `"Querious Support" <support@querious.com>`,
+    from: `"Querious Support" <${senderEmail}>`,
     to: email,
     subject: "Password Reset Request - Querious",
     html: `

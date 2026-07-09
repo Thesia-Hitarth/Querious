@@ -1,37 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 
 import LeftSidebar from "../../components/LeftSidebar/LeftSidebar";
-import Avatar from "../../components/Avatar/Avatar";
 import EditProfileForm from "./EditProfileForm";
 import ProfileBio from "./ProfileBio";
+import ProfileHeader from "./ProfileHeader";
+import EmptyState from "../../components/EmptyState/EmptyState";
 import LoadingSkeleton from "../../components/LoadingSkeleton/LoadingSkeleton";
 import "./UsersProfile.css";
 import { fetchUserDetails } from "../../actions/users";
-
-// Inline SVGs replacing FontAwesome
-const BirthdayCakeIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "4px", display: "inline-block", verticalAlign: "middle" }}>
-    <path d="M12 2v4M6 8v3M18 8v3" />
-    <path d="M3 12h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8z" />
-    <path d="M3 16h18" />
-  </svg>
-);
-
-const PenIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "4px", display: "inline-block", verticalAlign: "middle" }}>
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z" />
-  </svg>
-);
 
 const UserProfile = ({ slideIn, handleSlideIn }) => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const users = useSelector((state) => state.usersReducer);
   const currentProfile = users.filter((user) => user._id === id)[0];
@@ -40,17 +25,19 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
   const questionsList = useSelector((state) => state.questionsReducer.data) || [];
 
   const [Switch, setSwitch] = useState(false);
-  const [activeTab, setActiveTab] = useState("bio");
-
-  const location = useLocation();
+  const [activeTab, setActiveTab] = useState("activity");
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const tab = searchParams.get("tab");
     if (tab === "saves" && currentUser?.result?._id === id) {
       setActiveTab("saves");
+    } else if (tab === "questions") {
+      setActiveTab("questions");
+    } else if (tab === "answers") {
+      setActiveTab("answers");
     } else {
-      setActiveTab("bio");
+      setActiveTab("activity");
     }
   }, [location.search, currentUser?.result?._id, id]);
 
@@ -73,6 +60,9 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
     return acc + userAnswers.length;
   }, 0);
 
+  const userQuestions = questionsList.filter((q) => String(q.userId) === String(id));
+  const userAnswers = questionsList.filter((q) => q.answer?.some((ans) => String(ans.userId) === String(id)));
+
   return (
     <div className="home-container-1">
       <LeftSidebar slideIn={slideIn} handleSlideIn={handleSlideIn} />
@@ -82,176 +72,141 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
             <LoadingSkeleton type="user-profile" />
           ) : (
             <>
-              {/* Profile Header Card */}
-              <div className="profile-header-card">
-                <div className="profile-avatar-wrapper">
-                  <Avatar
-                    backgroundColor="var(--color-brand-primary)"
-                    color="white"
-                    fontSize="40px"
-                    px="32px"
-                    py="24px"
-                  >
-                    {profileData?.name ? profileData.name.charAt(0).toUpperCase() : "?"}
-                  </Avatar>
-                </div>
+              {/* Profile Header component */}
+              <ProfileHeader
+                profileData={profileData}
+                currentUser={currentUser}
+                onEditClick={() => setSwitch(true)}
+                questionsAsked={questionsAsked}
+                answersGiven={answersGiven}
+              />
 
-                <div className="profile-header-info">
-                  <h1 className="profile-name">{profileData?.name}</h1>
-                  <div className="profile-meta-row">
-                    {profileData?.joinedOn && (
-                      <span className="profile-meta-item">
-                        <BirthdayCakeIcon /> Joined {formatDistanceToNow(new Date(profileData.joinedOn), { addSuffix: true })}
-                      </span>
-                    )}
-                    {profileData?.location && (
-                      <span className="profile-meta-item">
-                        📍 {profileData.location}
-                      </span>
-                    )}
-                    {profileData?.website && (
-                      <span className="profile-meta-item">
-                        🔗 <a href={profileData.website} target="_blank" rel="noreferrer">{profileData.website}</a>
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {currentUser?.result._id === id && (
+              {/* Profile right tab content wrapper */}
+              <div className="profile-tabs-wrapper" style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+                <div className="profile-tabs-header">
                   <button
                     type="button"
-                    onClick={() => setSwitch(true)}
-                    className="edit-profile-btn"
+                    onClick={() => navigate(`/Users/${id}?tab=activity`)}
+                    className={`profile-tab-btn ${activeTab === "activity" ? "active" : ""}`}
                   >
-                    <PenIcon /> Edit Profile
+                    Activity
                   </button>
-                )}
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/Users/${id}?tab=questions`)}
+                    className={`profile-tab-btn ${activeTab === "questions" ? "active" : ""}`}
+                  >
+                    Questions ({userQuestions.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/Users/${id}?tab=answers`)}
+                    className={`profile-tab-btn ${activeTab === "answers" ? "active" : ""}`}
+                  >
+                    Answers ({userAnswers.length})
+                  </button>
+                  {currentUser?.result?._id === id && (
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/Users/${id}?tab=saves`)}
+                      className={`profile-tab-btn ${activeTab === "saves" ? "active" : ""}`}
+                    >
+                      Saved ({savedQuestionsList.length})
+                    </button>
+                  )}
+                </div>
 
-              {/* Two columns layout */}
-              <div className="profile-content-grid">
-                {/* Left Column: Stats & Tags */}
-                <div className="profile-left-column">
-                  <h3 className="profile-sec-title">Stats</h3>
-                  <div className="profile-stats-grid">
-                    <div className="stat-tile">
-                      <span className="stat-num">{questionsAsked}</span>
-                      <span className="stat-lbl">Questions</span>
-                    </div>
-                    <div className="stat-tile">
-                      <span className="stat-num">{answersGiven}</span>
-                      <span className="stat-lbl">Answers</span>
-                    </div>
-                    <div className="stat-tile">
-                      <span className="stat-num">{profileData?.reputation || 1}</span>
-                      <span className="stat-lbl">Reputation</span>
-                    </div>
-                  </div>
+                <div className="profile-tab-content">
+                  {activeTab === "activity" && (
+                    Switch ? (
+                      <EditProfileForm
+                        currentUser={currentUser}
+                        setSwitch={setSwitch}
+                      />
+                    ) : (
+                      <ProfileBio currentProfile={profileData} />
+                    )
+                  )}
 
-                  {profileData?.tags && profileData.tags.length > 0 && (
-                    <div className="profile-tags-widget">
-                      <h3 className="profile-sec-title">Interests</h3>
-                      <div className="profile-tags-list">
-                        {profileData.tags.map((tag) => (
-                          <Link to={`/Tags/${tag}`} key={tag} className="tag-chip">
-                            {tag}
-                          </Link>
-                        ))}
-                      </div>
+                  {activeTab === "questions" && (
+                    <div className="profile-questions-tab">
+                      <h3 className="saved-questions-title">Questions Asked</h3>
+                      {userQuestions.length === 0 ? (
+                        <p className="tab-empty-text">No questions asked yet.</p>
+                      ) : (
+                        <div className="tab-questions-list">
+                          {userQuestions.map((q) => (
+                            <div key={q._id} className="profile-list-item card">
+                              <Link to={`/Questions/${q._id}`} className="profile-item-title-link">
+                                {q.questionTitle}
+                              </Link>
+                              <span className="profile-item-date">
+                                asked {formatDistanceToNow(new Date(q.askedOn), { addSuffix: true })}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  {(() => {
-                    const gold = profileData?.badges?.gold || 0;
-                    const silver = profileData?.badges?.silver || 0;
-                    const bronze = profileData?.badges?.bronze || 0;
-
-                    if (gold === 0 && silver === 0 && bronze === 0) return null;
-
-                    return (
-                      <div className="profile-badges-widget" style={{ marginTop: "20px" }}>
-                        <h3 className="profile-sec-title">Badges</h3>
-                        <div className="profile-badges-list">
-                          {gold > 0 && (
-                            <div className="badge-tile gold-tile">
-                              <span className="badge-dot gold-dot">●</span>
-                              <span className="badge-count">{gold}</span>
-                              <span className="badge-label">Gold</span>
-                            </div>
-                          )}
-                          {silver > 0 && (
-                            <div className="badge-tile silver-tile">
-                              <span className="badge-dot silver-dot">●</span>
-                              <span className="badge-count">{silver}</span>
-                              <span className="badge-label">Silver</span>
-                            </div>
-                          )}
-                          {bronze > 0 && (
-                            <div className="badge-tile bronze-tile">
-                              <span className="badge-dot bronze-dot">●</span>
-                              <span className="badge-count">{bronze}</span>
-                              <span className="badge-label">Bronze</span>
-                            </div>
-                          )}
+                  {activeTab === "answers" && (
+                    <div className="profile-answers-tab">
+                      <h3 className="saved-questions-title">Answers Contributed</h3>
+                      {userAnswers.length === 0 ? (
+                        <p className="tab-empty-text">No answers given yet.</p>
+                      ) : (
+                        <div className="tab-answers-list">
+                          {userAnswers.map((q) => {
+                            const ansObj = q.answer?.find((a) => String(a.userId) === String(id));
+                            return (
+                              <div key={q._id} className="profile-list-item card">
+                                <span className="profile-item-label">Answered:</span>
+                                <Link to={`/Questions/${q._id}`} className="profile-item-title-link">
+                                  {q.questionTitle}
+                                </Link>
+                                <span className="profile-item-date">
+                                  replied {ansObj?.answeredOn ? formatDistanceToNow(new Date(ansObj.answeredOn), { addSuffix: true }) : "recently"}
+                                </span>
+                              </div>
+                            );
+                          })}
                         </div>
-                      </div>
-                    );
-                  })()}
-                </div>
+                      )}
+                    </div>
+                  )}
 
-                {/* Right Column: Bio or Saves */}
-                <div className="profile-right-column">
-                  <div className="profile-tabs-header">
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/Users/${id}`)}
-                      className={`profile-tab-btn ${activeTab === "bio" ? "active" : ""}`}
-                    >
-                      Bio
-                    </button>
-                    {currentUser?.result?._id === id && (
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/Users/${id}?tab=saves`)}
-                        className={`profile-tab-btn ${activeTab === "saves" ? "active" : ""}`}
-                      >
-                        Saved Questions ({savedQuestionsList.length})
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="profile-tab-content">
-                    {activeTab === "bio" ? (
-                      Switch ? (
-                        <EditProfileForm
-                          currentUser={currentUser}
-                          setSwitch={setSwitch}
+                  {activeTab === "saves" && (
+                    <div className="saved-questions-container">
+                      <h3 className="saved-questions-title">Bookmarked Questions</h3>
+                      {normalizedSavedQuestionsList.length === 0 ? (
+                        <EmptyState
+                          icon={
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                          }
+                          title="No saved questions"
+                          description="Bookmark questions to save them here for quick access later."
+                          actionLabel="Browse Questions"
+                          onAction={() => navigate("/")}
                         />
                       ) : (
-                        <ProfileBio currentProfile={profileData} />
-                      )
-                    ) : (
-                      <div className="saved-questions-container">
-                        <h3 className="saved-questions-title">Bookmarked Questions</h3>
-                        {normalizedSavedQuestionsList.length === 0 ? (
-                          <p className="saved-questions-empty">No bookmarked questions yet.</p>
-                        ) : (
-                          <div className="saved-questions-list">
-                            {normalizedSavedQuestionsList.map((quest) => (
-                              <div key={quest._id} className="saved-question-item">
-                                <Link to={`/Questions/${quest._id}`} className="saved-question-link">
-                                  {quest.questionTitle}
-                                </Link>
-                                <p className="saved-question-meta">
-                                  Asked by <span className="saved-author">{quest.userPosted || "Anonymous"}</span> • {quest.askedOn ? formatDistanceToNow(new Date(quest.askedOn), { addSuffix: true }) : "Unknown date"}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                        <div className="saved-questions-list">
+                          {normalizedSavedQuestionsList.map((quest) => (
+                            <div key={quest._id} className="saved-question-item">
+                              <Link to={`/Questions/${quest._id}`} className="saved-question-link">
+                                {quest.questionTitle}
+                              </Link>
+                              <p className="saved-question-meta">
+                                Asked by <span className="saved-author">{quest.userPosted || "Anonymous"}</span> • {quest.askedOn ? formatDistanceToNow(new Date(quest.askedOn), { addSuffix: true }) : "Unknown date"}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </>

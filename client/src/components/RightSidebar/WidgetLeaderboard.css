@@ -1,0 +1,101 @@
+.widget-leaderboard {
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.widget-header {
+  border-bottom: 1px solid var(--color-border-light);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.leaderboard-loading {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: var(--space-4) 0;
+}
+
+.leaderboard-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.leaderboard-rank {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-xs);
+  color: var(--color-text-muted);
+  background-color: var(--color-bg-elevated);
+}
+
+.leaderboard-rank.rank-1 {
+  background-color: var(--color-badge-gold-bg);
+  color: var(--color-badge-gold);
+}
+
+.leaderboard-rank.rank-2 {
+  background-color: var(--color-badge-silver-bg);
+  color: var(--color-badge-silver);
+}
+
+.leaderboard-rank.rank-3 {
+  background-color: var(--color-badge-bronze-bg);
+  color: var(--color-badge-bronze);
+}
+
+.leaderboard-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--color-cover-gradient-alt);
+  color: white;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.leaderboard-user-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.leaderboard-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leaderboard-name:hover {
+  color: var(--color-brand-primary);
+  text-decoration: none;
+}
+
+.leaderboard-rep {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}

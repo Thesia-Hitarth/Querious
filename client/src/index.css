@@ -97,6 +97,54 @@
   /* ── Custom Theme Tokens ── */
   --color-navbar-bg: rgba(255, 255, 255, 0.92);
   --color-active-link-bg: #fff7ed;
+
+  /* -- Elevation on colored surfaces (profile covers, leaderboard) -- */
+  --color-cover-gradient: linear-gradient(135deg, #f97316 0%, #fb923c 45%, #8b5cf6 100%);
+  --color-cover-gradient-alt: linear-gradient(135deg, #2563eb 0%, #8b5cf6 100%);
+
+  /* -- Reputation / gamification accents (GroupOS-inspired) -- */
+  --color-badge-gold:   #eab308;
+  --color-badge-gold-bg: #fefce8;
+  --color-badge-silver: #94a3b8;
+  --color-badge-silver-bg: #f8fafc;
+  --color-badge-bronze: #b45309;
+  --color-badge-bronze-bg: #fffbeb;
+
+  /* -- Vote rail (Scoold-inspired) -- */
+  --color-vote-idle:    #9ca3af;
+  --color-vote-up-active: #f97316;
+  --color-vote-down-active: #2563eb;
+  --color-accepted:     #059669;
+  --color-accepted-bg:  #ecfdf5;
+  --color-accepted-border: #10b981;
+
+  /* -- Status chips (Higher Logic-inspired: always name the content type) -- */
+  --color-status-answered-bg: #ecfdf5;
+  --color-status-answered-text: #047857;
+  --color-status-unanswered-bg: #fef2f2;
+  --color-status-unanswered-text: #b91c1c;
+  --color-status-closed-bg: #f3f4f6;
+  --color-status-closed-text: #6b7280;
+
+  /* -- Density scale for list rows (Discourse-inspired) -- */
+  --row-padding-y: 18px;
+  --row-padding-x: 20px;
+  --row-gap: 14px;
+
+  /* -- Member card (Mighty Networks-inspired, one component, many places) -- */
+  --card-member-radius: var(--radius-lg);
+  --card-member-avatar-size: 56px;
+  --card-member-avatar-size-sm: 36px;
+
+  /* -- Redesign Hero & Yellow Widget tokens -- */
+  --color-hero-bg-1: #ffffff;
+  --color-hero-bg-2: #fafafa;
+  --color-eyebrow-bg: #fff7ed;
+  --color-yellow-widget-bg: #fdf7e2;
+  --color-yellow-widget-border: #f1e5bc;
+  --color-yellow-widget-header-bg: #fbf3d5;
+  --color-yellow-widget-text: #3b4045;
+  --color-logo-text-gradient: linear-gradient(135deg, #111827 0%, #374151 100%);
 }
 
 *, *::before, *::after {
@@ -394,6 +442,117 @@ input::placeholder { color: var(--color-text-faint); }
   text-transform: uppercase;
   color: var(--color-text-faint);
 }
+
+/* -- Dark mode: flip the same tokens, zero component changes needed -- */
+[data-theme="dark"] {
+  --color-bg-base: #0f1115;
+  --color-bg-surface: #171a21;
+  --color-bg-elevated: #1e222b;
+  --color-bg-hover: #20242e;
+  --color-bg-input: #1a1d24;
+  --color-bg-card: #171a21;
+  --color-border: #2a2e38;
+  --color-border-light: #22262f;
+  --color-border-strong: #363b47;
+  --color-text-primary: #f3f4f6;
+  --color-text-secondary: #d1d5db;
+  --color-text-muted: #9ca3af;
+  --color-text-faint: #6b7280;
+  --color-navbar-bg: rgba(15, 17, 21, 0.88);
+  --color-active-link-bg: #241a12;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.35);
+  --shadow-card: 0 0 0 1px rgba(255,255,255,0.04), 0 4px 16px rgba(0,0,0,0.35);
+
+  --color-badge-gold-bg: rgba(234, 179, 8, 0.15);
+  --color-badge-silver-bg: rgba(148, 163, 184, 0.15);
+  --color-badge-bronze-bg: rgba(180, 83, 9, 0.15);
+
+  --color-tag-bg: #1e293b;
+  --color-tag-text: #60a5fa;
+  --color-tag-border: #334155;
+  --color-tag-bg-hover: #1e3a8a;
+  
+  --color-status-answered-bg: rgba(5, 150, 105, 0.15);
+  --color-status-answered-text: #34d399;
+  --color-status-unanswered-bg: rgba(220, 38, 38, 0.15);
+  --color-status-unanswered-text: #fca5a5;
+  --color-status-closed-bg: rgba(107, 114, 128, 0.15);
+  --color-status-closed-text: #d1d5db;
+
+  --color-hero-bg-1: #171a21;
+  --color-hero-bg-2: #14161d;
+  --color-eyebrow-bg: rgba(249, 115, 22, 0.15);
+  --color-yellow-widget-bg: #1a1915;
+  --color-yellow-widget-border: #2d2a20;
+  --color-yellow-widget-header-bg: #22201a;
+  --color-yellow-widget-text: #d1d5db;
+  --color-logo-text-gradient: linear-gradient(135deg, #f9fafb 0%, #d1d5db 100%);
+}
+
+/* -- ReactQuill Theme Overrides -- */
+.ql-toolbar.ql-snow {
+  border: 1.5px solid var(--color-border) !important;
+  border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+  background: var(--color-bg-elevated) !important;
+}
+.ql-container.ql-snow {
+  border: 1.5px solid var(--color-border) !important;
+  border-top: none !important;
+  border-radius: 0 0 var(--radius-md) var(--radius-md) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 14px !important;
+  background: var(--color-bg-surface) !important;
+  color: var(--color-text-primary) !important;
+}
+.ql-editor { min-height: 160px; }
+.ql-editor.ql-blank::before { color: var(--color-text-faint) !important; font-style: normal !important; }
+.ql-snow .ql-stroke { stroke: var(--color-text-secondary) !important; }
+.ql-snow .ql-picker { color: var(--color-text-secondary) !important; }
+.ql-toolbar.ql-snow .ql-formats button:hover,
+.ql-toolbar.ql-snow .ql-formats button.ql-active { color: var(--color-brand-primary) !important; }
+.ql-snow .ql-active .ql-stroke { stroke: var(--color-brand-primary) !important; }
+
+/* -- Redesign Utility Classes -- */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.status-chip-answered {
+  background-color: var(--color-status-answered-bg);
+  color: var(--color-status-answered-text);
+}
+.status-chip-unanswered {
+  background-color: var(--color-status-unanswered-bg);
+  color: var(--color-status-unanswered-text);
+}
+.status-chip-closed {
+  background-color: var(--color-status-closed-bg);
+  color: var(--color-status-closed-text);
+}
+
+.badge-gold {
+  background-color: var(--color-badge-gold-bg);
+  color: var(--color-badge-gold);
+  border: 1px solid var(--color-badge-gold);
+}
+.badge-silver {
+  background-color: var(--color-badge-silver-bg);
+  color: var(--color-badge-silver);
+  border: 1px solid var(--color-badge-silver);
+}
+.badge-bronze {
+  background-color: var(--color-badge-bronze-bg);
+  color: var(--color-badge-bronze);
+  border: 1px solid var(--color-badge-bronze);
+}
+
 
 
 

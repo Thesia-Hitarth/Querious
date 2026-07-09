@@ -1,0 +1,75 @@
+.vote-rail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vote-rail.vertical {
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.vote-rail.horizontal {
+  flex-direction: row;
+  gap: var(--space-3);
+}
+
+.vote-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-vote-idle);
+  padding: var(--space-1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-fast);
+  width: 36px;
+  height: 36px;
+}
+
+.vote-btn:hover:not(:disabled):not(.readonly) {
+  background-color: var(--color-bg-hover);
+}
+
+.vote-btn.upvote:hover:not(:disabled):not(.readonly) {
+  color: var(--color-vote-up-active);
+}
+
+.vote-btn.downvote:hover:not(:disabled):not(.readonly) {
+  color: var(--color-vote-down-active);
+}
+
+.vote-btn.upvote.active {
+  color: var(--color-vote-up-active);
+  background-color: #fff7ed;
+  box-shadow: 0 0 0 1px var(--color-brand-primary-light);
+}
+
+.vote-btn.downvote.active {
+  color: var(--color-vote-down-active);
+  background-color: #eff6ff;
+  box-shadow: 0 0 0 1px var(--color-tag-border);
+}
+
+.vote-btn.readonly {
+  cursor: default;
+}
+
+.vote-score {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--color-text-primary);
+  text-align: center;
+  min-width: 24px;
+}
+
+[data-theme="dark"] .vote-btn.upvote.active {
+  background-color: rgba(249, 115, 22, 0.15);
+}
+
+[data-theme="dark"] .vote-btn.downvote.active {
+  background-color: rgba(37, 99, 235, 0.15);
+}

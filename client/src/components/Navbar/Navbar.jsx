@@ -9,7 +9,28 @@ import "./Navbar.css";
 import { setCurrentUser } from "../../actions/currentUser";
 import { fetchAllQuestions } from "../../actions/question";
 import { markAsRead, markAllAsRead } from "../../actions/notifications";
+import { useTheme } from "../Theme/ThemeContext";
 import axios from "axios";
+
+const SunIconSVG = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="5"></circle>
+    <line x1="12" y1="1" x2="12" y2="3"></line>
+    <line x1="12" y1="21" x2="12" y2="23"></line>
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+    <line x1="1" y1="12" x2="3" y2="12"></line>
+    <line x1="21" y1="12" x2="23" y2="12"></line>
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+  </svg>
+);
+
+const MoonIconSVG = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+  </svg>
+);
 
 // Custom Inline SVG Icons
 const MenuIconSVG = () => (
@@ -45,6 +66,7 @@ const Navbar = ({ handleSlideIn }) => {
   const dispatch = useDispatch();
   const User = useSelector((state) => state.currentUserReducer);
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -125,11 +147,21 @@ const Navbar = ({ handleSlideIn }) => {
     dispatch(markAllAsRead());
   };
 
+  const usersList = useSelector((state) => state.usersReducer) || [];
+  const loggedInUserDetails = usersList.find((u) => u._id === User?.result?._id);
+  const rep = loggedInUserDetails?.reputation || 1;
+  const gold = loggedInUserDetails?.badges?.gold || 0;
+  const silver = loggedInUserDetails?.badges?.silver || 0;
+  const bronze = loggedInUserDetails?.badges?.bronze || 0;
+
+  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  const shortcutText = isMac ? "⌘K" : "Ctrl+K";
+
   const searchInputRef = useRef(null);
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (
-        e.key === "/" &&
+        (e.key === "/" || ((e.ctrlKey || e.metaKey) && e.key === "k")) &&
         document.activeElement !== searchInputRef.current &&
         document.activeElement.tagName !== "INPUT" &&
         document.activeElement.tagName !== "TEXTAREA" &&
@@ -355,7 +387,7 @@ const Navbar = ({ handleSlideIn }) => {
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search questions… (Press '/' to focus)"
+              placeholder={`Search questions… (Press '${shortcutText}' to focus)`}
               value={searchQuery}
               onChange={handleSearchChange}
               onFocus={handleSearchFocus}
@@ -371,12 +403,24 @@ const Navbar = ({ handleSlideIn }) => {
                 &times;
               </button>
             )}
-            <span className="keyboard-shortcut-hint">/</span>
+            <span className="keyboard-shortcut-hint">{shortcutText}</span>
           </form>
         </div>
 
         {/* Right side */}
         <div className="navbar-right">
+          {/* Theme Switcher Button */}
+          <button
+            type="button"
+            className="navbar-bell-btn theme-toggle-btn"
+            onClick={toggleTheme}
+            title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            aria-label="Toggle theme"
+            style={{ marginRight: "var(--space-1)" }}
+          >
+            {theme === "dark" ? <SunIconSVG /> : <MoonIconSVG />}
+          </button>
+
           {/* Mobile search toggle */}
           <button
             type="button"
@@ -464,6 +508,15 @@ const Navbar = ({ handleSlideIn }) => {
                     <div className="avatar-dropdown-header">
                       <strong>{User.result.name}</strong>
                       <span className="avatar-dropdown-email">{User.result.email}</span>
+                      
+                      <div className="avatar-dropdown-reputation-strip" style={{ marginTop: "var(--space-2)", display: "flex", alignItems: "center", gap: "var(--space-2)", fontSize: "12px" }}>
+                        <span className="badge badge-brand" style={{ padding: "1px 6px" }}>{rep} rep</span>
+                        <div className="mini-badge-shelf" style={{ display: "flex", gap: "4px" }}>
+                          {gold > 0 && <span style={{ color: "var(--color-badge-gold)", fontWeight: "bold" }}>● {gold}</span>}
+                          {silver > 0 && <span style={{ color: "var(--color-badge-silver)", fontWeight: "bold" }}>● {silver}</span>}
+                          {bronze > 0 && <span style={{ color: "var(--color-badge-bronze)", fontWeight: "bold" }}>● {bronze}</span>}
+                        </div>
+                      </div>
                     </div>
                     <div className="avatar-dropdown-divider"></div>
                     <Link
