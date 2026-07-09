@@ -47,8 +47,8 @@ export const voteQuestion = (id, value) =>
 
 export const postAnswer = (id, noOfAnswers, answerBody, userAnswered) =>
   API.post(`/answer/post/${id}`, { answerBody, userAnswered });
-export const deleteAnswer = (id, answerId) =>
-  API.patch(`/answer/delete/${id}`, { answerId });
+export const deleteAnswer = (answerId) =>
+  API.delete(`/answer/${answerId}`);
 export const updateAnswer = (id, answerData) => API.put(`/answer/${id}`, answerData);
 export const voteAnswer = (id, value) => API.post(`/answer/${id}/vote`, { value });
 export const acceptAnswer = (id) => API.patch(`/answer/${id}/accept`);

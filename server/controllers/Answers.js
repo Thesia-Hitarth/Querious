@@ -8,7 +8,7 @@ import xss from "xss";
 
 export const postAnswer = async (req, res) => {
   const { id: questionId } = req.params;
-  const { answerBody, userAnswered } = req.body;
+  const { answerBody } = req.body;
   const userId = req.userId;
 
   if (!mongoose.Types.ObjectId.isValid(questionId)) {
@@ -16,11 +16,14 @@ export const postAnswer = async (req, res) => {
   }
 
   try {
+    const user = await User.findById(userId);
+    const authorName = user ? user.name : "Anonymous";
+
     const sanitizedBody = answerBody ? xss(answerBody) : answerBody;
     const newAnswer = new Answers({
       questionId,
       answerBody: sanitizedBody,
-      userAnswered,
+      userAnswered: authorName,
       userId,
     });
     await newAnswer.save();
@@ -35,7 +38,7 @@ export const postAnswer = async (req, res) => {
     if (question && String(question.userId) !== String(userId)) {
       await sendNotification(
         question.userId,
-        `${userAnswered} answered your question: "${question.questionTitle}"`,
+        `${authorName} answered your question: "${question.questionTitle}"`,
         questionId
       );
     }
@@ -48,13 +51,9 @@ export const postAnswer = async (req, res) => {
 };
 
 export const deleteAnswer = async (req, res) => {
-  const { id: questionId } = req.params;
-  const { answerId } = req.body;
+  const { id: answerId } = req.params;
   const userId = req.userId;
 
-  if (!mongoose.Types.ObjectId.isValid(questionId)) {
-    return res.status(404).send("Question unavailable...");
-  }
   if (!mongoose.Types.ObjectId.isValid(answerId)) {
     return res.status(404).send("Answer unavailable...");
   }
@@ -69,16 +68,19 @@ export const deleteAnswer = async (req, res) => {
       return res.status(403).json({ message: "Action forbidden: You are not the author." });
     }
 
+    const questionId = answer.questionId;
     await Answers.findByIdAndDelete(answerId);
 
     // Decrement answer count on Question — floor at 0 to prevent negative drift
-    await Questions.findByIdAndUpdate(questionId, [
-      {
-        $set: {
-          noOfAnswers: { $max: [0, { $subtract: ["$noOfAnswers", 1] }] },
+    if (questionId) {
+      await Questions.findByIdAndUpdate(questionId, [
+        {
+          $set: {
+            noOfAnswers: { $max: [0, { $subtract: ["$noOfAnswers", 1] }] },
+          },
         },
-      },
-    ]);
+      ]);
+    }
 
     res.status(200).json({ message: "Successfully deleted..." });
   } catch (error) {
@@ -109,42 +111,68 @@ export const voteAnswer = async (req, res) => {
     const upIndex = answer.upVote.findIndex((id) => String(id) === String(userId));
     const downIndex = answer.downVote.findIndex((id) => String(id) === String(userId));
 
+    let updated;
     let repDelta = 0;
 
     if (value === "upVote") {
-      if (downIndex !== -1) {
-        answer.downVote = answer.downVote.filter((id) => String(id) !== String(userId));
-        repDelta += 2;
-      }
-      if (upIndex === -1) {
-        answer.upVote.push(userId);
-        repDelta += 10;
+      updated = await Answers.findOneAndUpdate(
+        { _id: answerId, upVote: userId },
+        { $pull: { upVote: userId } },
+        { new: true }
+      );
+      if (updated) {
+        repDelta = -10;
       } else {
-        answer.upVote = answer.upVote.filter((id) => String(id) !== String(userId));
-        repDelta -= 10;
+        updated = await Answers.findOneAndUpdate(
+          { _id: answerId, downVote: userId },
+          { $pull: { downVote: userId }, $addToSet: { upVote: userId } },
+          { new: true }
+        );
+        if (updated) {
+          repDelta = 12;
+        } else {
+          updated = await Answers.findOneAndUpdate(
+            { _id: answerId, upVote: { $ne: userId }, downVote: { $ne: userId } },
+            { $addToSet: { upVote: userId } },
+            { new: true }
+          );
+          if (updated) {
+            repDelta = 10;
+          }
+        }
       }
     } else if (value === "downVote") {
-      if (upIndex !== -1) {
-        answer.upVote = answer.upVote.filter((id) => String(id) !== String(userId));
-        repDelta -= 10;
-      }
-      if (downIndex === -1) {
-        answer.downVote.push(userId);
-        repDelta -= 2;
+      updated = await Answers.findOneAndUpdate(
+        { _id: answerId, downVote: userId },
+        { $pull: { downVote: userId } },
+        { new: true }
+      );
+      if (updated) {
+        repDelta = 2;
       } else {
-        answer.downVote = answer.downVote.filter((id) => String(id) !== String(userId));
-        repDelta += 2;
+        updated = await Answers.findOneAndUpdate(
+          { _id: answerId, upVote: userId },
+          { $pull: { upVote: userId }, $addToSet: { downVote: userId } },
+          { new: true }
+        );
+        if (updated) {
+          repDelta = -12;
+        } else {
+          updated = await Answers.findOneAndUpdate(
+            { _id: answerId, upVote: { $ne: userId }, downVote: { $ne: userId } },
+            { $addToSet: { downVote: userId } },
+            { new: true }
+          );
+          if (updated) {
+            repDelta = -2;
+          }
+        }
       }
     }
 
-    // BUG-04 fix: write only the two modified arrays, not the whole document.
-    // Passing a full document object to findByIdAndUpdate() under concurrent
-    // load allows one request to overwrite another's vote changes.
-    const updated = await Answers.findByIdAndUpdate(
-      answerId,
-      { $set: { upVote: answer.upVote, downVote: answer.downVote } },
-      { new: true }
-    );
+    if (!updated) {
+      return res.status(404).send("Answer not found...");
+    }
 
     if (answer.userId && repDelta !== 0) {
       await updateReputationAndBadges(answer.userId, repDelta);
@@ -160,7 +188,7 @@ export const voteAnswer = async (req, res) => {
       );
     }
 
-    res.status(200).json({ message: "Voted successfully...", data: answer });
+    res.status(200).json({ message: "Voted successfully...", data: updated });
   } catch (error) {
     console.error(error);
     res.status(400).json({ message: "Error voting answer" });
@@ -316,7 +344,7 @@ export const addCommentAnswer = async (req, res) => {
     }
 
     answer.comments.push({
-      commentBody,
+      commentBody: xss(commentBody),
       userId,
       userCommented: userName,
       commentedOn: Date.now(),

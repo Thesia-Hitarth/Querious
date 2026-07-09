@@ -1,22 +1,30 @@
 import Notification from "../models/Notifications.js";
+import jwt from "jsonwebtoken";
 
 let ioInstance = null;
-export const userSocketMap = new Map();
 
 export const initSocket = (io) => {
   ioInstance = io;
+
+  io.use((socket, next) => {
+    const token = socket.handshake.auth?.token;
+    if (!token) {
+      return next(new Error("Authentication error: Token missing"));
+    }
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      socket.userId = decoded.id;
+      next();
+    } catch (err) {
+      return next(new Error("Authentication error: Invalid token"));
+    }
+  });
+
   io.on("connection", (socket) => {
-    socket.on("join", (userId) => {
-      userSocketMap.set(String(userId), socket.id);
-    });
+    socket.join(String(socket.userId));
 
     socket.on("disconnect", () => {
-      for (const [userId, socketId] of userSocketMap.entries()) {
-        if (socketId === socket.id) {
-          userSocketMap.delete(userId);
-          break;
-        }
-      }
+      // Socket.io automatically leaves all rooms on disconnect
     });
   });
 };
@@ -30,9 +38,8 @@ export const sendNotification = async (userId, message, questionId) => {
     });
     await newNotif.save();
 
-    const socketId = userSocketMap.get(String(userId));
-    if (socketId && ioInstance) {
-      ioInstance.to(socketId).emit("notification", newNotif);
+    if (ioInstance) {
+      ioInstance.to(String(userId)).emit("notification", newNotif);
     }
   } catch (error) {
     console.error("Error sending notification:", error);

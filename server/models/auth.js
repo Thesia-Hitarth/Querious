@@ -19,7 +19,26 @@ const userSchema = mongoose.Schema({
   collectives: { type: [String], default: [] },
   resetPasswordToken: { type: String },
   resetPasswordExpires: { type: Date },
+  passwordChangedAt: { type: Date },
+  loginAttempts: { type: Number, default: 0 },
+  lockUntil: { type: Date },
+  forgotPasswordCount: { type: Number, default: 0 },
+  forgotPasswordWindowStart: { type: Date },
   joinedOn: { type: Date, default: Date.now },
 });
+
+const stripSensitiveFields = (_doc, ret) => {
+  delete ret.password;
+  delete ret.resetPasswordToken;
+  delete ret.resetPasswordExpires;
+  delete ret.loginAttempts;
+  delete ret.lockUntil;
+  delete ret.forgotPasswordCount;
+  delete ret.forgotPasswordWindowStart;
+  return ret;
+};
+
+userSchema.set("toJSON", { transform: stripSensitiveFields });
+userSchema.set("toObject", { transform: stripSensitiveFields });
 
 export default mongoose.model("User", userSchema);

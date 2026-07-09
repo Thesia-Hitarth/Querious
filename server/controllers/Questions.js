@@ -9,13 +9,20 @@ import { updateReputationAndBadges } from "../utils/reputationHelper.js";
 import xss from "xss";
 
 export const AskQuestion = async (req, res) => {
-  const postQuestionData = req.body;
+  const { questionTitle, questionBody, questionTags } = req.body;
   const userId = req.userId;
-  if (postQuestionData.questionBody) {
-    postQuestionData.questionBody = xss(postQuestionData.questionBody);
-  }
-  const postQuestion = new Questions({ ...postQuestionData, userId });
   try {
+    const user = await User.findById(userId);
+    const authorName = user ? user.name : "Anonymous";
+
+    const sanitizedBody = questionBody ? xss(questionBody) : "";
+    const postQuestion = new Questions({
+      questionTitle,
+      questionBody: sanitizedBody,
+      questionTags,
+      userPosted: authorName,
+      userId,
+    });
     await postQuestion.save();
     res.status(200).json("Posted a question successfully");
   } catch (error) {
@@ -27,7 +34,7 @@ export const AskQuestion = async (req, res) => {
 export const getAllQuestions = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 15;
+    const limit = Math.min(parseInt(req.query.limit) || 15, 50);
     const tab = req.query.tab || "newest";
     const search = req.query.search || "";
     const tag = req.query.tag || "";
@@ -41,17 +48,27 @@ export const getAllQuestions = async (req, res) => {
 
     let query = {};
     let andConditions = [];
+    let sortOption = { askedOn: -1 };
+    let projection = {};
 
     if (search) {
-      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const searchRegex = new RegExp(escapedSearch, "i");
-      andConditions.push({
-        $or: [
-          { questionTitle: searchRegex },
-          { questionBody: searchRegex },
-          { questionTags: searchRegex }
-        ]
-      });
+      if (search.trim().length >= 3) {
+        andConditions.push({ $text: { $search: search } });
+        projection = { score: { $meta: "textScore" } };
+        if (!filterSort && tab !== "active") {
+          sortOption = { score: { $meta: "textScore" } };
+        }
+      } else {
+        const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const searchRegex = new RegExp(escapedSearch, "i");
+        andConditions.push({
+          $or: [
+            { questionTitle: searchRegex },
+            { questionBody: searchRegex },
+            { questionTags: searchRegex }
+          ]
+        });
+      }
     }
 
     if (tag) {
@@ -87,13 +104,12 @@ export const getAllQuestions = async (req, res) => {
     }
 
     // Determine sorting options
-    let sortOption = { askedOn: -1 };
     if (filterSort) {
       if (filterSort === "newest") {
         sortOption = { askedOn: -1 };
       } else if (filterSort === "activity") {
         sortOption = { editedOn: -1, askedOn: -1 };
-      } else if (filterSort === "score") {
+      } else if (filterSort === "score" && !(search && search.trim().length >= 3)) {
         // Approximate score sorting by views and date
         sortOption = { views: -1, askedOn: -1 };
       } else if (filterSort === "views") {
@@ -102,7 +118,7 @@ export const getAllQuestions = async (req, res) => {
     } else {
       if (tab === "active") {
         sortOption = { noOfAnswers: -1, askedOn: -1 };
-      } else if (tab === "newest") {
+      } else if (tab === "newest" && !(search && search.trim().length >= 3)) {
         sortOption = { askedOn: -1 };
       } else if (tab === "unanswered") {
         query.noOfAnswers = 0;
@@ -114,7 +130,7 @@ export const getAllQuestions = async (req, res) => {
     
     let questions;
     if (filterSort === "score") {
-      questions = await Questions.aggregate([
+      const aggPipeline = [
         { $match: query },
         {
           $addFields: {
@@ -125,29 +141,33 @@ export const getAllQuestions = async (req, res) => {
               ]
             }
           }
-        },
+        }
+      ];
+      if (search && search.trim().length >= 3) {
+        aggPipeline.push({
+          $addFields: {
+            textScore: { $meta: "textScore" }
+          }
+        });
+      }
+      aggPipeline.push(
         { $sort: { voteScore: -1, askedOn: -1 } },
         { $skip: (page - 1) * limit },
         { $limit: limit }
-      ]);
+      );
+      questions = await Questions.aggregate(aggPipeline);
     } else {
-      questions = await Questions.find(query)
+      questions = await Questions.find(query, projection)
         .sort(sortOption)
         .skip((page - 1) * limit)
         .limit(limit);
     }
 
-    // Fetch answers for each question to maintain frontend compatibility
-    const questionsWithAnswers = await Promise.all(
-      questions.map(async (question) => {
-        const answers = await Answers.find({ questionId: question._id }).sort({
-          isAccepted: -1,
-          upVote: -1,
-        });
-        const questionObj = typeof question.toObject === "function" ? question.toObject() : question;
-        return { ...questionObj, answer: answers };
-      })
-    );
+    // Avoid N+1 query lookup, answers are resolved at detail level.
+    const questionsWithAnswers = questions.map((question) => {
+      const questionObj = typeof question.toObject === "function" ? question.toObject() : question;
+      return { ...questionObj, answer: [] };
+    });
 
     const totalSiteQuestions = await Questions.countDocuments({});
     const totalSiteAnswers = await Answers.countDocuments({});
@@ -188,8 +208,9 @@ export const getQuestionDetails = async (req, res) => {
       // Ignore token errors for public views, treat as anonymous
     }
 
-    const isAuthor = currentUserId && question.userId === currentUserId;
+    const isAuthor = currentUserId && String(question.userId) === String(currentUserId);
 
+    let updatedQuestion = question;
     if (!isAuthor) {
       const clientIp = req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress;
       const trackerKey = currentUserId ? `${currentUserId}-${id}` : `${clientIp}-${id}`;
@@ -198,10 +219,8 @@ export const getQuestionDetails = async (req, res) => {
         const existingTracker = await ViewTracker.findOne({ trackerKey });
         if (!existingTracker) {
           await ViewTracker.create({ trackerKey });
-          // BUG-09 fix: only the atomic $inc updates the DB; the in-memory
-          // mutation (question.views += 1) was redundant and caused the API
-          // response to return a stale view count (the pre-increment value).
-          await Questions.findByIdAndUpdate(id, { $inc: { views: 1 } });
+          // Fetch and return the updated document with views incremented
+          updatedQuestion = await Questions.findByIdAndUpdate(id, { $inc: { views: 1 } }, { new: true });
         }
       } catch (err) {
         // Ignore duplicate key errors arising from race conditions
@@ -216,7 +235,7 @@ export const getQuestionDetails = async (req, res) => {
       upVote: -1,
     });
 
-    res.status(200).json({ ...question.toObject(), answer: answers });
+    res.status(200).json({ ...updatedQuestion.toObject(), answer: answers });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
@@ -280,42 +299,68 @@ export const voteQuestion = async (req, res) => {
       (id) => String(id) === String(userId)
     );
 
+    let updated;
     let repDelta = 0;
 
     if (value === "upVote") {
-      if (downIndex !== -1) {
-        question.downVote = question.downVote.filter(
-          (id) => String(id) !== String(userId)
-        );
-        repDelta += 2;
-      }
-      if (upIndex === -1) {
-        question.upVote.push(userId);
-        repDelta += 10;
+      updated = await Questions.findOneAndUpdate(
+        { _id, upVote: userId },
+        { $pull: { upVote: userId } },
+        { new: true }
+      );
+      if (updated) {
+        repDelta = -10;
       } else {
-        question.upVote = question.upVote.filter((id) => String(id) !== String(userId));
-        repDelta -= 10;
+        updated = await Questions.findOneAndUpdate(
+          { _id, downVote: userId },
+          { $pull: { downVote: userId }, $addToSet: { upVote: userId } },
+          { new: true }
+        );
+        if (updated) {
+          repDelta = 12;
+        } else {
+          updated = await Questions.findOneAndUpdate(
+            { _id, upVote: { $ne: userId }, downVote: { $ne: userId } },
+            { $addToSet: { upVote: userId } },
+            { new: true }
+          );
+          if (updated) {
+            repDelta = 10;
+          }
+        }
       }
     } else if (value === "downVote") {
-      if (upIndex !== -1) {
-        question.upVote = question.upVote.filter((id) => String(id) !== String(userId));
-        repDelta -= 10;
-      }
-      if (downIndex === -1) {
-        question.downVote.push(userId);
-        repDelta -= 2;
+      updated = await Questions.findOneAndUpdate(
+        { _id, downVote: userId },
+        { $pull: { downVote: userId } },
+        { new: true }
+      );
+      if (updated) {
+        repDelta = 2;
       } else {
-        question.downVote = question.downVote.filter(
-          (id) => String(id) !== String(userId)
+        updated = await Questions.findOneAndUpdate(
+          { _id, upVote: userId },
+          { $pull: { upVote: userId }, $addToSet: { downVote: userId } },
+          { new: true }
         );
-        repDelta += 2;
+        if (updated) {
+          repDelta = -12;
+        } else {
+          updated = await Questions.findOneAndUpdate(
+            { _id, upVote: { $ne: userId }, downVote: { $ne: userId } },
+            { $addToSet: { downVote: userId } },
+            { new: true }
+          );
+          if (updated) {
+            repDelta = -2;
+          }
+        }
       }
     }
-    const updated = await Questions.findByIdAndUpdate(
-      _id,
-      { $set: { upVote: question.upVote, downVote: question.downVote } },
-      { new: true }
-    );
+
+    if (!updated) {
+      return res.status(404).send("Question not found...");
+    }
 
     if (question.userId && repDelta !== 0) {
       await updateReputationAndBadges(question.userId, repDelta);
@@ -418,7 +463,7 @@ export const addCommentQuestion = async (req, res) => {
     }
 
     question.comments.push({
-      commentBody,
+      commentBody: xss(commentBody),
       userId,
       userCommented: userName,
       commentedOn: Date.now(),

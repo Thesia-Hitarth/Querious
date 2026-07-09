@@ -36,10 +36,28 @@ export const login = async (req, res) => {
     if (!existinguser) {
       return res.status(404).json({ message: "User doesn't exist." });
     }
+
+    if (existinguser.lockUntil && existinguser.lockUntil > Date.now()) {
+      const remainingTime = Math.ceil((existinguser.lockUntil - Date.now()) / (60 * 1000));
+      return res.status(423).json({ message: `Account is temporarily locked. Try again in ${remainingTime} minutes.` });
+    }
+
     const isPasswordCrt = await bcrypt.compare(password, existinguser.password);
     if (!isPasswordCrt) {
+      existinguser.loginAttempts = (existinguser.loginAttempts || 0) + 1;
+      if (existinguser.loginAttempts >= 5) {
+        existinguser.lockUntil = Date.now() + 15 * 60 * 1000;
+        await existinguser.save();
+        return res.status(423).json({ message: "Too many failed attempts. Account locked for 15 minutes." });
+      }
+      await existinguser.save();
       return res.status(400).json({ message: "Invalid credentials" });
     }
+
+    existinguser.loginAttempts = 0;
+    existinguser.lockUntil = undefined;
+    await existinguser.save();
+
     const token = jwt.sign(
       { email: existinguser.email, id: existinguser._id },
       process.env.JWT_SECRET,
@@ -58,6 +76,19 @@ export const forgotPassword = async (req, res) => {
     if (!user) {
       return res.status(200).json({ message: "If an account exists with this email, a reset link has been sent." });
     }
+
+    const now = new Date();
+    const oneHour = 60 * 60 * 1000;
+    if (user.forgotPasswordWindowStart && (now - user.forgotPasswordWindowStart) < oneHour) {
+      if (user.forgotPasswordCount >= 3) {
+        return res.status(429).json({ message: "Too many password reset requests. Please try again after an hour." });
+      }
+      user.forgotPasswordCount += 1;
+    } else {
+      user.forgotPasswordWindowStart = now;
+      user.forgotPasswordCount = 1;
+    }
+    await user.save();
 
     const resetToken = jwt.sign(
       { id: user._id },
@@ -117,6 +148,7 @@ export const resetPassword = async (req, res) => {
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     user.password = await bcrypt.hash(newPassword, 12);
+    user.passwordChangedAt = new Date();
     await user.save();
 
     res.status(200).json({ message: "Password has been reset successfully." });

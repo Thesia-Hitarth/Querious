@@ -34,16 +34,23 @@ function App() {
         ? "http://localhost:5000"
         : window.location.origin;
 
-      const socket = io(apiUrl);
-      socket.emit("join", User.result._id);
+      const profile = JSON.parse(localStorage.getItem("Profile"));
+      const token = profile?.token;
 
-      socket.on("notification", (notif) => {
-        dispatch({ type: "ADD_NOTIFICATION", payload: notif });
-      });
+      if (token) {
+        const socket = io(apiUrl, {
+          auth: { token }
+        });
+        socket.emit("join", User.result._id);
 
-      return () => {
-        socket.disconnect();
-      };
+        socket.on("notification", (notif) => {
+          dispatch({ type: "ADD_NOTIFICATION", payload: notif });
+        });
+
+        return () => {
+          socket.disconnect();
+        };
+      }
     } else {
       // Fallback polling for serverless deployment
       const interval = setInterval(() => {

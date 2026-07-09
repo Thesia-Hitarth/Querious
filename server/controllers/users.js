@@ -65,10 +65,9 @@ export const getUserDetails = async (req, res) => {
     const questionsAsked = await Questions.countDocuments({ userId: id });
     const answersGiven = await Answers.countDocuments({ userId: id });
 
-    res.status(200).json({
+    const userObj = {
       _id: user._id,
       name: user.name,
-      email: isSelf ? user.email : undefined,
       about: user.about,
       tags: user.tags,
       reputation: user.reputation,
@@ -81,7 +80,13 @@ export const getUserDetails = async (req, res) => {
       joinedOn: user.joinedOn,
       questionsAsked,
       answersGiven,
-    });
+    };
+
+    if (isSelf) {
+      userObj.email = user.email;
+    }
+
+    res.status(200).json(userObj);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -127,6 +132,10 @@ export const toggleSaveQuestion = async (req, res) => {
   }
   if (!mongoose.Types.ObjectId.isValid(questionId)) {
     return res.status(404).send("Question unavailable...");
+  }
+
+  if (String(req.userId) !== String(userId)) {
+    return res.status(403).json({ message: "Action forbidden." });
   }
 
   try {

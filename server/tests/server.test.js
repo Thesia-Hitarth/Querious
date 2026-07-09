@@ -17,6 +17,11 @@ describe("Stack Overflow Clone Server Integration Tests", () => {
   let answerId;
 
   beforeAll(async () => {
+    // Connect to MongoDB if not already connected
+    if (mongoose.connection.readyState === 0) {
+      const mongoUrl = process.env.CONNECTION_URL || process.env.MONGO_URL;
+      await mongoose.connect(mongoUrl);
+    }
     // Clear test collections
     await User.deleteMany({ email: { $in: ["testuser@example.com", "otheruser@example.com"] } });
     await Questions.deleteMany({ questionTitle: /Test Question/ });
@@ -43,7 +48,7 @@ describe("Stack Overflow Clone Server Integration Tests", () => {
           password: "Password123",
         });
 
-      expect(res.statusCode).toBe(200);
+      expect(res.statusCode).toBe(201);
       expect(res.body).toHaveProperty("token");
       expect(res.body.result.email).toBe("testuser@example.com");
 
@@ -60,7 +65,7 @@ describe("Stack Overflow Clone Server Integration Tests", () => {
           password: "Password123",
         });
 
-      expect(res.statusCode).toBe(404);
+      expect(res.statusCode).toBe(409);
     });
   });
 
@@ -112,7 +117,7 @@ describe("Stack Overflow Clone Server Integration Tests", () => {
   describe("POST /answer/:id/vote", () => {
     beforeEach(async () => {
       const answerRes = await request(app)
-        .patch(`/answer/post/${questionId}`)
+        .post(`/answer/post/${questionId}`)
         .set("Authorization", `Bearer ${otherUserToken}`)
         .send({
           answerBody: "Test Answer Body",

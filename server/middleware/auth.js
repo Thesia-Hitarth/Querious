@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
+import User from "../models/auth.js";
 
-const auth = (req, res, next) => {
+const auth = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
@@ -9,6 +10,19 @@ const auth = (req, res, next) => {
 
     let decodeData = jwt.verify(token, process.env.JWT_SECRET);
     req.userId = decodeData?.id;
+
+    if (req.userId) {
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(401).json({ message: "User no longer exists" });
+      }
+      if (user.passwordChangedAt && decodeData.iat) {
+        const changedTimestamp = parseInt(user.passwordChangedAt.getTime() / 1000, 10);
+        if (changedTimestamp > decodeData.iat) {
+          return res.status(401).json({ message: "Token is no longer valid due to password change." });
+        }
+      }
+    }
 
     next();
   } catch (error) {

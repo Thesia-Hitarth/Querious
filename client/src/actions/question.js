@@ -99,7 +99,7 @@ export const postAnswer = (answerData) => async (dispatch) => {
 
 export const deleteAnswer = (id, answerId) => async (dispatch) => {
   try {
-    const { data } = await api.deleteAnswer(id, answerId);
+    const { data } = await api.deleteAnswer(answerId);
     // BUG-02: fetchAllQuestions() removed — it reset pagination on every answer delete.
     dispatch(fetchQuestionDetails(id));
     return data;

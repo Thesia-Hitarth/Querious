@@ -30,6 +30,7 @@ import { Server } from "socket.io";
 import helmet from "helmet";
 import mongoSanitize from "express-mongo-sanitize";
 import { rateLimit } from "express-rate-limit";
+import morgan from "morgan";
 
 import userRoutes from "./routes/users.js";
 import questionRoutes from "./routes/Questions.js";
@@ -38,19 +39,40 @@ import notificationRoutes from "./routes/Notifications.js";
 import { initSocket } from "./utils/notificationHelper.js";
 import { logger } from "./utils/logger.js";
 
-// Ensure Mongo connects using CONNECTION_URL
-const mongoUrl = process.env.CONNECTION_URL || process.env.MONGO_URL;
-if (mongoUrl) {
-  mongoose
-    .connect(mongoUrl)
+// Cached connection handler for serverless efficiency
+let cached = global._mongoose;
+if (!cached) {
+  cached = global._mongoose = { conn: null, promise: null };
+}
+
+export async function dbConnect() {
+  if (cached.conn) {
+    return cached.conn;
+  }
+  if (!cached.promise) {
+    const mongoUrl = process.env.CONNECTION_URL || process.env.MONGO_URL;
+    if (!mongoUrl) {
+      throw new Error("MONGO_URL or CONNECTION_URL is not defined in environment variables");
+    }
+    cached.promise = mongoose.connect(mongoUrl, { maxPoolSize: 10 }).then((m) => m);
+  }
+  cached.conn = await cached.promise;
+  return cached.conn;
+}
+
+if (process.env.NODE_ENV !== "test") {
+  if (process.env.MONGO_URL && !process.env.CONNECTION_URL) {
+    console.warn("DEPRECATION WARNING: MONGO_URL environment variable is set. Please use CONNECTION_URL instead.");
+  }
+  dbConnect()
     .then((conn) => console.log(`MongoDB connected: ${conn.connection.host}`))
     .catch((error) => console.error("MongoDB connection failed:", error));
-} else {
-  console.warn("WARNING: CONNECTION_URL not defined. MongoDB connection skipped.");
 }
 
 const app = express();
 app.set('trust proxy', 1);
+
+app.use(morgan("dev"));
 
 app.use(
   helmet({
@@ -58,14 +80,26 @@ app.use(
       directives: {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'"],
-        connectSrc: ["'self'", "http://localhost:5000", "ws://localhost:5000", "wss://*", "https://*"],
-        imgSrc: ["'self'", "data:", "https://*"],
+        connectSrc: ["'self'", "http://localhost:5000", "ws://localhost:5000", "wss://*", "https://*.vercel.app"],
+        imgSrc: ["'self'", "data:", "https://images.unsplash.com", "https://lh3.googleusercontent.com", "https://*.vercel.app"],
         styleSrc: ["'self'", "'unsafe-inline'"],
       },
     },
   })
 );
 app.use(mongoSanitize());
+
+app.use(async (req, res, next) => {
+  if (process.env.NODE_ENV === "test") {
+    return next();
+  }
+  try {
+    await dbConnect();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 app.use(express.json({ limit: "100kb", extended: true }));
 app.use(express.urlencoded({ limit: "100kb", extended: true }));
@@ -110,9 +144,18 @@ app.use("/notifications", notificationRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {
+  const statusCode = err.statusCode || err.status || 500;
+  const message = err.message || "Internal server error";
+
   logger.error("Unhandled server exception caught by global boundary:", err);
-  res.status(err.status || 500).json({
-    message: err.message || "Internal server error",
+
+  res.status(statusCode).json({
+    message,
+    error: {
+      status: statusCode,
+      message,
+      ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+    }
   });
 });
 

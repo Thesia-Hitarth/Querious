@@ -50,9 +50,8 @@ export const answerValidationRules = [
     .isLength({ max: 30000 })
     .withMessage("Answer body cannot exceed 30000 characters"),
   body("userAnswered")
-    .trim()
-    .notEmpty()
-    .withMessage("User name is required"),
+    .optional()
+    .trim(),
   validateRequest
 ];
 
@@ -61,7 +60,83 @@ export const userUpdateValidationRules = [
     .optional()
     .trim()
     .notEmpty()
-    .withMessage("Name cannot be empty"),
+    .withMessage("Name cannot be empty")
+    .isLength({ max: 100 })
+    .withMessage("Name cannot exceed 100 characters"),
+  body("about")
+    .optional()
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage("About section cannot exceed 500 characters"),
+  body("location")
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage("Location cannot exceed 100 characters"),
+  body("website")
+    .optional()
+    .trim()
+    .isLength({ max: 200 })
+    .withMessage("Website cannot exceed 200 characters")
+    .custom((value) => {
+      if (value && value.trim() !== "") {
+        const isValidUrl = /^https?:\/\/.+/.test(value.trim());
+        if (!isValidUrl) {
+          throw new Error("Website must start with http:// or https://");
+        }
+      }
+      return true;
+    }),
+  body("avatar")
+    .optional()
+    .trim()
+    .custom((value) => {
+      if (value && value.trim() !== "") {
+        const isValidUrl = /^https?:\/\/.+/.test(value.trim());
+        if (!isValidUrl) {
+          throw new Error("Avatar must be a valid URL starting with http:// or https://");
+        }
+      }
+      return true;
+    }),
+  body("tags")
+    .optional()
+    .custom((value) => {
+      if (value) {
+        const tags = Array.isArray(value) ? value : [value];
+        if (tags.length > 10) {
+          throw new Error("You can specify at most 10 tags");
+        }
+        for (const tag of tags) {
+          if (typeof tag !== "string" || tag.trim().length === 0) {
+            throw new Error("Tags must be non-empty strings");
+          }
+          if (tag.length > 50) {
+            throw new Error("Each tag cannot exceed 50 characters");
+          }
+        }
+      }
+      return true;
+    }),
+  body("collectives")
+    .optional()
+    .custom((value) => {
+      if (value) {
+        const collectives = Array.isArray(value) ? value : [value];
+        if (collectives.length > 5) {
+          throw new Error("You can specify at most 5 collectives");
+        }
+        for (const col of collectives) {
+          if (typeof col !== "string" || col.trim().length === 0) {
+            throw new Error("Collectives must be non-empty strings");
+          }
+          if (col.length > 100) {
+            throw new Error("Each collective name cannot exceed 100 characters");
+          }
+        }
+      }
+      return true;
+    }),
   validateRequest
 ];
 
