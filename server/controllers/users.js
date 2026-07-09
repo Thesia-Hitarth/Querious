@@ -187,7 +187,7 @@ export const toggleSaveQuestion = async (req, res) => {
       return res.status(404).send("User not found...");
     }
 
-    const index = user.savedQuestions.indexOf(questionId);
+    const index = user.savedQuestions.findIndex((qId) => String(qId) === String(questionId));
     if (index === -1) {
       user.savedQuestions.push(questionId);
     } else {
@@ -210,22 +210,28 @@ export const getUserBadges = async (req, res) => {
   try {
     const awards = await UserBadgeAward.find({ userId: id }).sort({ awardedAt: -1 });
     
-    // Look up badge catalog details for each award
-    const badgeDetails = [];
-    for (const award of awards) {
-      const badge = await Badge.findOne({ code: award.badgeCode });
-      if (badge) {
-        badgeDetails.push({
-          _id: award._id,
-          code: award.badgeCode,
-          name: badge.name,
-          description: badge.description,
-          tier: badge.tier,
-          sourceId: award.sourceId,
-          awardedAt: award.awardedAt
-        });
-      }
-    }
+    // Look up badge catalog details for each award using a single batch query (resolves N+1)
+    const badgeCodes = awards.map((award) => award.badgeCode);
+    const badges = await Badge.find({ code: { $in: badgeCodes } });
+    const badgeMap = new Map(badges.map((b) => [b.code, b]));
+    
+    const badgeDetails = awards
+      .map((award) => {
+        const badge = badgeMap.get(award.badgeCode);
+        if (badge) {
+          return {
+            _id: award._id,
+            code: award.badgeCode,
+            name: badge.name,
+            description: badge.description,
+            tier: badge.tier,
+            sourceId: award.sourceId,
+            awardedAt: award.awardedAt,
+          };
+        }
+        return null;
+      })
+      .filter(Boolean);
     
     res.status(200).json(badgeDetails);
   } catch (error) {

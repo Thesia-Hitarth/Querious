@@ -60,27 +60,37 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
     dispatch(fetchUserDetails(id));
   }, [id, dispatch]);
 
-  // Fetch user-specific questions and answers from dedicated endpoints
-  const fetchUserActivity = useCallback(async () => {
-    if (!id) return;
-    setActivityLoading(true);
-    try {
-      const [qRes, aRes] = await Promise.all([
-        api.getUserQuestions(id, { limit: 50 }),
-        api.getUserAnswers(id, { limit: 50 }),
-      ]);
-      setUserQuestions(qRes.data.data || []);
-      setUserAnswers(aRes.data.data || []);
-    } catch (err) {
-      console.error("Error fetching user activity:", err);
-    } finally {
-      setActivityLoading(false);
-    }
-  }, [id]);
-
+  // Fetch user-specific questions and answers from dedicated endpoints (uses active flag to prevent race conditions)
   useEffect(() => {
+    if (!id) return;
+    let active = true;
+
+    const fetchUserActivity = async () => {
+      setActivityLoading(true);
+      try {
+        const [qRes, aRes] = await Promise.all([
+          api.getUserQuestions(id, { limit: 50 }),
+          api.getUserAnswers(id, { limit: 50 }),
+        ]);
+        if (active) {
+          setUserQuestions(qRes.data.data || []);
+          setUserAnswers(aRes.data.data || []);
+        }
+      } catch (err) {
+        console.error("Error fetching user activity:", err);
+      } finally {
+        if (active) {
+          setActivityLoading(false);
+        }
+      }
+    };
+
     fetchUserActivity();
-  }, [fetchUserActivity]);
+
+    return () => {
+      active = false;
+    };
+  }, [id]);
 
   const profileData = userDetails && userDetails._id === id ? userDetails : currentProfile;
 

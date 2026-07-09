@@ -123,10 +123,10 @@ const QuestionsDetails = () => {
       showToast("Please login or signup to watch this question", "warning");
       return;
     }
+    const wasWatching = question.watchers?.includes(User?.result?._id);
     try {
       await dispatch(toggleWatchQuestion(id));
-      const isWatching = !question.watchers?.includes(User?.result?._id);
-      showToast(isWatching ? "You are now watching this question." : "You stopped watching this question.", "success");
+      showToast(wasWatching ? "You stopped watching this question." : "You are now watching this question.", "success");
     } catch (err) {
       console.error(err);
       showToast(err.response?.data?.message || "Failed to update watch status.", "danger");

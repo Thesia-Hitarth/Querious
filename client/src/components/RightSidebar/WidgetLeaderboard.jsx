@@ -11,7 +11,7 @@ const WidgetLeaderboard = () => {
     setIsLoading(true);
     api.getAllUsers()
       .then(({ data }) => {
-        const sorted = [...data].sort((a, b) => (b.reputation || 0) - (a.reputation || 0)).slice(0, 5);
+        const sorted = [...(data.data || [])].sort((a, b) => (b.reputation || 0) - (a.reputation || 0)).slice(0, 5);
         setTopUsers(sorted);
       })
       .catch((err) => {

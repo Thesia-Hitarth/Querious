@@ -95,8 +95,8 @@ export const deleteAnswer = async (req, res) => {
         question.acceptedAnswerId = null;
         await question.save({ session });
         
-        await updateReputationAndBadges(answer.userId, -15, session);
-        await updateReputationAndBadges(question.userId, -2, session);
+        await updateReputationAndBadges(answer.userId, -15, "acceptance_reversed", answer._id, session);
+        await updateReputationAndBadges(question.userId, -2, "acceptance_reversed", question._id, session);
       }
     }
 
@@ -302,8 +302,8 @@ export const acceptAnswer = async (req, res) => {
       question.acceptedAnswerId = null;
       await question.save({ session });
 
-      await updateReputationAndBadges(answer.userId, -15, session);
-      await updateReputationAndBadges(question.userId, -2, session);
+      await updateReputationAndBadges(answer.userId, -15, "acceptance_reversed", answer._id, session);
+      await updateReputationAndBadges(question.userId, -2, "acceptance_reversed", question._id, session);
 
       return { status: 200, message: "Answer un-accepted successfully", data: answer };
     }

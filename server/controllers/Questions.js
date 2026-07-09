@@ -679,7 +679,7 @@ export const toggleWatchQuestion = async (req, res) => {
       question.watchers = [];
     }
 
-    const index = question.watchers.indexOf(userId);
+    const index = question.watchers.findIndex((wId) => String(wId) === String(userId));
     if (index === -1) {
       question.watchers.push(userId);
     } else {
