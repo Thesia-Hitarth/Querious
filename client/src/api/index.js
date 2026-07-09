@@ -22,6 +22,7 @@ const API = axios.create({
     (hostname === "localhost"
       ? "http://localhost:5000"
       : window.location.origin),
+  withCredentials: true,
 });
 
 API.interceptors.request.use((req) => {
@@ -72,3 +73,4 @@ export const markAllNotificationsRead = () => API.patch("/notifications/read-all
 
 export const forgotPassword = (email) => API.post("/user/forgot-password", { email });
 export const resetPassword = (token, newPassword) => API.post("/user/reset-password", { token, newPassword });
+export const changePassword = (passwordData) => API.put("/user/change-password", passwordData);

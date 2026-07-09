@@ -184,3 +184,26 @@ export const resetPasswordValidationRules = [
     .withMessage("Password must contain at least one number"),
   validateRequest,
 ];
+
+export const changePasswordValidationRules = [
+  body("oldPassword").notEmpty().withMessage("Current password is required"),
+  body("newPassword")
+    .isLength({ min: 8 })
+    .withMessage("Password must be at least 8 characters long")
+    .matches(/[A-Z]/)
+    .withMessage("Password must contain at least one uppercase letter")
+    .matches(/[0-9]/)
+    .withMessage("Password must contain at least one number"),
+  validateRequest,
+];
+
+export const commentValidationRules = [
+  body("commentBody")
+    .trim()
+    .notEmpty()
+    .withMessage("Comment body is required")
+    .isLength({ min: 2, max: 600 })
+    .withMessage("Comment must be between 2 and 600 characters"),
+  validateRequest
+];
+

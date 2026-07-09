@@ -24,4 +24,7 @@ const AnswerSchema = mongoose.Schema({
   ],
 });
 
+AnswerSchema.index({ questionId: 1, isAccepted: -1, upVote: -1 });
+AnswerSchema.index({ userId: 1 });
+
 export default mongoose.model("Answer", AnswerSchema);

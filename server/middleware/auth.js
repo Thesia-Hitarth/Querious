@@ -3,7 +3,16 @@ import User from "../models/auth.js";
 
 const auth = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
+    const cookies = req.headers.cookie
+      ? Object.fromEntries(
+          req.headers.cookie.split("; ").map((c) => {
+            const eqIndex = c.indexOf("=");
+            return eqIndex === -1 ? [c, ""] : [c.substring(0, eqIndex), c.substring(eqIndex + 1)];
+          })
+        )
+      : {};
+
+    const token = req.headers.authorization?.split(" ")[1] || cookies.token;
     if (!token) {
       return res.status(401).json({ message: "Authentication token missing" });
     }

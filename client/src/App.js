@@ -30,35 +30,50 @@ function App() {
     const isSocketEnabled = process.env.REACT_APP_ENABLE_SOCKET === "true" || window.location.hostname === "localhost";
 
     if (isSocketEnabled) {
-      const apiUrl = window.location.hostname === "localhost"
-        ? "http://localhost:5000"
-        : window.location.origin;
+      const apiUrl = process.env.REACT_APP_API_URL || 
+        (window.location.hostname === "localhost" ? "http://localhost:5000" : window.location.origin);
 
       const profile = JSON.parse(localStorage.getItem("Profile"));
       const token = profile?.token;
 
-      if (token) {
-        const socket = io(apiUrl, {
-          auth: { token }
-        });
-        socket.emit("join", User.result._id);
+      const socket = io(apiUrl, {
+        auth: { token },
+        withCredentials: true
+      });
+      socket.emit("join", User.result._id);
 
-        socket.on("notification", (notif) => {
-          dispatch({ type: "ADD_NOTIFICATION", payload: notif });
-        });
+      socket.on("notification", (notif) => {
+        dispatch({ type: "ADD_NOTIFICATION", payload: notif });
+      });
 
-        return () => {
-          socket.disconnect();
-        };
-      }
+      return () => {
+        socket.disconnect();
+      };
     } else {
       // Fallback polling for serverless deployment
-      const interval = setInterval(() => {
-        dispatch(fetchNotifications());
-      }, 30000);
+      // Optimize: Only poll when the tab is visible to reduce serverless overhead
+      const fetchIfVisible = () => {
+        if (document.visibilityState === "visible") {
+          dispatch(fetchNotifications());
+        }
+      };
+
+      const interval = setInterval(fetchIfVisible, 30000);
+
+      // Perform initial fetch
+      fetchIfVisible();
+
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === "visible") {
+          dispatch(fetchNotifications());
+        }
+      };
+
+      document.addEventListener("visibilitychange", handleVisibilityChange);
 
       return () => {
         clearInterval(interval);
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
       };
     }
   }, [User?.result?._id, dispatch]);

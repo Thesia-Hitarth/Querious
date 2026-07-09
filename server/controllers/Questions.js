@@ -52,23 +52,9 @@ export const getAllQuestions = async (req, res) => {
     let projection = {};
 
     if (search) {
-      if (search.trim().length >= 3) {
-        andConditions.push({ $text: { $search: search } });
-        projection = { score: { $meta: "textScore" } };
-        if (!filterSort && tab !== "active") {
-          sortOption = { score: { $meta: "textScore" } };
-        }
-      } else {
-        const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const searchRegex = new RegExp(escapedSearch, "i");
-        andConditions.push({
-          $or: [
-            { questionTitle: searchRegex },
-            { questionBody: searchRegex },
-            { questionTags: searchRegex }
-          ]
-        });
-      }
+      andConditions.push({
+        $text: { $search: search }
+      });
     }
 
     if (tag) {
@@ -109,7 +95,7 @@ export const getAllQuestions = async (req, res) => {
         sortOption = { askedOn: -1 };
       } else if (filterSort === "activity") {
         sortOption = { editedOn: -1, askedOn: -1 };
-      } else if (filterSort === "score" && !(search && search.trim().length >= 3)) {
+      } else if (filterSort === "score") {
         // Approximate score sorting by views and date
         sortOption = { views: -1, askedOn: -1 };
       } else if (filterSort === "views") {
@@ -118,7 +104,7 @@ export const getAllQuestions = async (req, res) => {
     } else {
       if (tab === "active") {
         sortOption = { noOfAnswers: -1, askedOn: -1 };
-      } else if (tab === "newest" && !(search && search.trim().length >= 3)) {
+      } else if (tab === "newest") {
         sortOption = { askedOn: -1 };
       } else if (tab === "unanswered") {
         query.noOfAnswers = 0;
@@ -141,20 +127,11 @@ export const getAllQuestions = async (req, res) => {
               ]
             }
           }
-        }
-      ];
-      if (search && search.trim().length >= 3) {
-        aggPipeline.push({
-          $addFields: {
-            textScore: { $meta: "textScore" }
-          }
-        });
-      }
-      aggPipeline.push(
+        },
         { $sort: { voteScore: -1, askedOn: -1 } },
         { $skip: (page - 1) * limit },
         { $limit: limit }
-      );
+      ];
       questions = await Questions.aggregate(aggPipeline);
     } else {
       questions = await Questions.find(query, projection)

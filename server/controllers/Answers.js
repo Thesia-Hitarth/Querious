@@ -58,34 +58,78 @@ export const deleteAnswer = async (req, res) => {
     return res.status(404).send("Answer unavailable...");
   }
 
-  try {
-    const answer = await Answers.findById(answerId);
+  const performDeletion = async (session = null) => {
+    const answer = await Answers.findById(answerId).session(session);
     if (!answer) {
-      return res.status(404).send("Answer not found...");
+      return { status: 404, message: "Answer not found..." };
     }
 
     if (String(answer.userId) !== String(userId)) {
-      return res.status(403).json({ message: "Action forbidden: You are not the author." });
+      return { status: 403, message: "Action forbidden: You are not the author." };
     }
 
     const questionId = answer.questionId;
-    await Answers.findByIdAndDelete(answerId);
 
-    // Decrement answer count on Question — floor at 0 to prevent negative drift
-    if (questionId) {
-      await Questions.findByIdAndUpdate(questionId, [
-        {
-          $set: {
-            noOfAnswers: { $max: [0, { $subtract: ["$noOfAnswers", 1] }] },
-          },
-        },
-      ]);
+    if (answer.isAccepted && questionId) {
+      const question = await Questions.findById(questionId).session(session);
+      if (question) {
+        question.acceptedAnswerId = null;
+        await question.save({ session });
+        
+        await updateReputationAndBadges(answer.userId, -15, session);
+        await updateReputationAndBadges(question.userId, -2, session);
+      }
     }
 
-    res.status(200).json({ message: "Successfully deleted..." });
+    await Answers.findByIdAndDelete(answerId).session(session);
+
+    if (questionId) {
+      await Questions.findByIdAndUpdate(
+        questionId,
+        [
+          {
+            $set: {
+              noOfAnswers: { $max: [0, { $subtract: ["$noOfAnswers", 1] }] },
+            },
+          },
+        ],
+        { session }
+      );
+    }
+
+    return { status: 200, message: "Successfully deleted..." };
+  };
+
+  let session = null;
+  try {
+    session = await mongoose.startSession();
+    let result;
+    await session.withTransaction(async () => {
+      result = await performDeletion(session);
+    });
+    session.endSession();
+    return res.status(result.status).json({ message: result.message });
   } catch (error) {
-    console.error(error);
-    res.status(405).json({ message: error.message || "Failed to delete answer" });
+    if (session) session.endSession();
+
+    const isTransNotSupported = 
+      error.message.includes("replica set") || 
+      error.message.includes("transaction") || 
+      error.code === 20;
+
+    if (isTransNotSupported) {
+      console.warn("MongoDB environment does not support transactions. Falling back to non-transactional deletion.");
+      try {
+        const result = await performDeletion(null);
+        return res.status(result.status).json({ message: result.message });
+      } catch (fallbackError) {
+        console.error(fallbackError);
+        return res.status(500).json({ message: "Failed to delete answer." });
+      }
+    } else {
+      console.error(error);
+      return res.status(500).json({ message: error.message || "Failed to delete answer." });
+    }
   }
 };
 
@@ -203,86 +247,91 @@ export const acceptAnswer = async (req, res) => {
     return res.status(404).send("Answer unavailable...");
   }
 
-  const adjustReputation = async (targetUserId, delta, session) => {
-    if (!targetUserId || delta === 0) return null;
-    const user = await User.findById(targetUserId).session(session);
-    if (!user) return null;
-    user.reputation = Math.max(1, (user.reputation || 1) + delta);
-    user.badges = {
-      gold: Math.floor(user.reputation / 500),
-      silver: Math.floor((user.reputation % 500) / 100),
-      bronze: Math.floor((user.reputation % 100) / 20),
-    };
-    await user.save({ session });
-    return user;
-  };
+  const performAcceptance = async (session = null) => {
+    const answer = await Answers.findById(answerId).session(session);
+    if (!answer) {
+      return { status: 404, message: "Answer not found..." };
+    }
 
-  const session = await mongoose.startSession();
-  try {
-    await session.withTransaction(async () => {
-      const answer = await Answers.findById(answerId).session(session);
-      if (!answer) {
-        return res.status(404).send("Answer not found...");
-      }
+    const question = await Questions.findById(answer.questionId).session(session);
+    if (!question) {
+      return { status: 404, message: "Question not found..." };
+    }
 
-      const question = await Questions.findById(answer.questionId).session(session);
-      if (!question) {
-        return res.status(404).send("Question not found...");
-      }
+    if (String(question.userId) !== String(userId)) {
+      return { status: 403, message: "Only the question author can accept an answer." };
+    }
 
-      if (String(question.userId) !== String(userId)) {
-        return res.status(403).json({
-          message: "Only the question author can accept an answer.",
-        });
-      }
+    const isCurrentlyAccepted = answer.isAccepted;
 
-      const isCurrentlyAccepted = answer.isAccepted;
-
-      if (isCurrentlyAccepted) {
-        answer.isAccepted = false;
-        await answer.save({ session });
-
-        question.acceptedAnswerId = null;
-        await question.save({ session });
-
-        await adjustReputation(answer.userId, -15, session);
-        await adjustReputation(question.userId, -2, session);
-
-        res.status(200).json({ message: "Answer un-accepted successfully", data: answer });
-        return;
-      }
-
-      const prevAcceptedAnswer = await Answers.findOne({
-        questionId: question._id,
-        isAccepted: true,
-      }).session(session);
-
-      if (prevAcceptedAnswer) {
-        prevAcceptedAnswer.isAccepted = false;
-        await prevAcceptedAnswer.save({ session });
-        await adjustReputation(prevAcceptedAnswer.userId, -15, session);
-      }
-
-      answer.isAccepted = true;
+    if (isCurrentlyAccepted) {
+      answer.isAccepted = false;
       await answer.save({ session });
 
-      question.acceptedAnswerId = answerId;
+      question.acceptedAnswerId = null;
       await question.save({ session });
 
-      await adjustReputation(answer.userId, 15, session);
-      if (!prevAcceptedAnswer) {
-        await adjustReputation(question.userId, 2, session);
-      }
+      await updateReputationAndBadges(answer.userId, -15, session);
+      await updateReputationAndBadges(question.userId, -2, session);
 
-      res.status(200).json({ message: "Answer accepted successfully", data: answer });
-    });
-  } catch (error) {
-    console.error(error);
-    if (!res.headersSent) {
-      res.status(500).json({ message: "Error in accepting answer" });
+      return { status: 200, message: "Answer un-accepted successfully", data: answer };
     }
-  } finally {
+
+    const prevAcceptedAnswer = await Answers.findOne({
+      questionId: question._id,
+      isAccepted: true,
+    }).session(session);
+
+    if (prevAcceptedAnswer) {
+      prevAcceptedAnswer.isAccepted = false;
+      await prevAcceptedAnswer.save({ session });
+      await updateReputationAndBadges(prevAcceptedAnswer.userId, -15, session);
+    }
+
+    answer.isAccepted = true;
+    await answer.save({ session });
+
+    question.acceptedAnswerId = answerId;
+    await question.save({ session });
+
+    await updateReputationAndBadges(answer.userId, 15, session);
+    if (!prevAcceptedAnswer) {
+      await updateReputationAndBadges(question.userId, 2, session);
+    }
+
+    return { status: 200, message: "Answer accepted successfully", data: answer };
+  };
+
+  let session = null;
+  try {
+    session = await mongoose.startSession();
+    let result;
+    await session.withTransaction(async () => {
+      result = await performAcceptance(session);
+    });
     session.endSession();
+    return res.status(result.status).json({ message: result.message, data: result.data });
+  } catch (error) {
+    if (session) session.endSession();
+
+    const isTransNotSupported = 
+      error.message.includes("replica set") || 
+      error.message.includes("transaction") || 
+      error.code === 20;
+
+    if (isTransNotSupported) {
+      console.warn("MongoDB environment does not support transactions. Falling back to non-transactional acceptance.");
+      try {
+        const result = await performAcceptance(null);
+        return res.status(result.status).json({ message: result.message, data: result.data });
+      } catch (fallbackError) {
+        console.error(fallbackError);
+        return res.status(500).json({ message: "Failed to update answer acceptance status." });
+      }
+    } else {
+      console.error(error);
+      return res.status(500).json({ message: error.message || "Failed to update answer acceptance status." });
+    }
   }
 };
 

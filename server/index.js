@@ -103,7 +103,7 @@ app.use(async (req, res, next) => {
 
 app.use(express.json({ limit: "100kb", extended: true }));
 app.use(express.urlencoded({ limit: "100kb", extended: true }));
-const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
+const clientUrl = process.env.CLIENT_URL || process.env.REACT_APP_CLIENT_URL || "http://localhost:3000";
 app.use(
   cors({
     origin: clientUrl.split(",").map((url) => url.trim()),
@@ -134,6 +134,7 @@ const authLimiter = rateLimit({
 app.use("/user/login", authLimiter);
 app.use("/user/signup", authLimiter);
 app.use("/user/forgot-password", authLimiter);
+app.use("/user/reset-password", authLimiter);
 app.use(generalLimiter);
 
 // Routes

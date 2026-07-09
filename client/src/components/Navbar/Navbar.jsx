@@ -185,14 +185,21 @@ const Navbar = ({ handleSlideIn }) => {
     if (token) {
       try {
         const decodedToken = decode(token);
-        if (decodedToken.exp * 1000 < new Date().getTime()) handleLogout();
+        if (decodedToken.exp * 1000 < new Date().getTime()) {
+          handleLogout();
+          return;
+        }
       } catch (e) {
         console.error("Failed to decode token, logging out:", e);
         handleLogout();
+        return;
       }
     }
-    dispatch(setCurrentUser(JSON.parse(localStorage.getItem("Profile"))));
-  }, [User?.token, dispatch, handleLogout]);
+    const localProfile = JSON.parse(localStorage.getItem("Profile"));
+    if (JSON.stringify(User) !== JSON.stringify(localProfile)) {
+      dispatch(setCurrentUser(localProfile));
+    }
+  }, [User, dispatch, handleLogout]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {

@@ -94,6 +94,7 @@ const Comments = ({ questionId, parentId, comments = [], type, postOwnerId }) =>
                   className="delete-comment-btn"
                   onClick={() => handleDeleteComment(comment._id)}
                   title="Delete comment"
+                  aria-label="Delete comment"
                 >
                   &times;
                 </button>

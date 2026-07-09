@@ -12,7 +12,7 @@ import {
   deleteCommentQuestion,
 } from "../controllers/Questions.js";
 import auth from "../middleware/auth.js";
-import { questionValidationRules } from "../middleware/validation.js";
+import { questionValidationRules, commentValidationRules } from "../middleware/validation.js";
 
 const router = express.Router();
 
@@ -23,7 +23,7 @@ router.get("/get/:id", getQuestionDetails);
 router.delete("/delete/:id", auth, deleteQuestion);
 router.patch("/vote/:id", auth, voteQuestion);
 router.put("/:id", auth, questionValidationRules, updateQuestion);
-router.post("/:id/comment", auth, addCommentQuestion);
+router.post("/:id/comment", auth, commentValidationRules, addCommentQuestion);
 router.delete("/:id/comment/:commentId", auth, deleteCommentQuestion);
 
 export default router;

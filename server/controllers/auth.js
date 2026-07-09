@@ -23,6 +23,12 @@ export const signup = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
     res.status(201).json({ result: newUser, token });
   } catch (error) {
     res.status(500).json({ message: "Something went wrong..." });
@@ -63,6 +69,12 @@ export const login = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
     res.status(200).json({ result: existinguser, token });
   } catch (error) {
     res.status(500).json({ message: "Something went wrong..." });
@@ -101,11 +113,7 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
     await user.save();
 
-    const clientUrl = process.env.CLIENT_URL || process.env.REACT_APP_CLIENT_URL;
-    if (!clientUrl) {
-      console.error("CLIENT_URL is not configured for password resets.");
-      return res.status(500).json({ message: "Password reset is temporarily unavailable." });
-    }
+    const clientUrl = process.env.CLIENT_URL || process.env.REACT_APP_CLIENT_URL || "http://localhost:3000";
     const resetLink = `${clientUrl}/reset-password/${resetToken}`;
 
     await sendResetEmail(email, resetLink);
@@ -154,6 +162,32 @@ export const resetPassword = async (req, res) => {
     res.status(200).json({ message: "Password has been reset successfully." });
   } catch (error) {
     console.error(error);
+    res.status(500).json({ message: "Something went wrong..." });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  const userId = req.userId;
+
+  try {
+    const user = await users.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(oldPassword, user.password);
+    if (!isPasswordCorrect) {
+      return res.status(400).json({ message: "Incorrect current password" });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 12);
+    user.passwordChangedAt = new Date();
+    await user.save();
+
+    res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Change password error:", error);
     res.status(500).json({ message: "Something went wrong..." });
   }
 };

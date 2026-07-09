@@ -26,5 +26,6 @@ const QuestionSchema = mongoose.Schema({
 });
 
 QuestionSchema.index({ questionTitle: "text", questionBody: "text" });
+QuestionSchema.index({ userId: 1, askedOn: -1 });
 
 export default mongoose.model("Question", QuestionSchema);

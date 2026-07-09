@@ -7,7 +7,16 @@ export const initSocket = (io) => {
   ioInstance = io;
 
   io.use((socket, next) => {
-    const token = socket.handshake.auth?.token;
+    const cookies = socket.handshake.headers.cookie
+      ? Object.fromEntries(
+          socket.handshake.headers.cookie.split("; ").map((c) => {
+            const eqIndex = c.indexOf("=");
+            return eqIndex === -1 ? [c, ""] : [c.substring(0, eqIndex), c.substring(eqIndex + 1)];
+          })
+        )
+      : {};
+
+    const token = socket.handshake.auth?.token || cookies.token;
     if (!token) {
       return next(new Error("Authentication error: Token missing"));
     }
