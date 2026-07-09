@@ -140,7 +140,14 @@ const Navbar = ({ handleSlideIn }) => {
   const handleNotificationClick = (notif) => {
     dispatch(markAsRead(notif._id));
     setIsBellOpen(false);
-    navigate(`/Questions/${notif.questionId}`);
+    // Badge/system notifications may have no questionId — navigate to profile instead
+    if (notif.questionId) {
+      navigate(`/Questions/${notif.questionId}`);
+    } else if (notif.category === "badge") {
+      navigate(`/Users/${User?.result?._id}?tab=badges`);
+    } else {
+      navigate("/");
+    }
   };
 
   const handleMarkAllRead = () => {

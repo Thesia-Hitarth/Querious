@@ -83,25 +83,11 @@ const QuestionsDetails = () => {
   const url = window.location.origin;
   const { showToast } = useToast();
 
-  const [showStickyBar, setShowStickyBar] = useState(false);
-
   useEffect(() => {
     dispatch(fetchQuestionDetails(id)).catch((err) => {
       console.error("Error fetching question details:", err);
     });
   }, [id, dispatch]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 300) {
-        setShowStickyBar(true);
-      } else {
-        setShowStickyBar(false);
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const question = questionsList.data?.find((q) => q._id === id);
   const questionUser = {
@@ -547,41 +533,7 @@ const QuestionsDetails = () => {
             questionId={question._id}
           />
 
-          {showStickyBar && question && (
-            <div className="sticky-question-action-bar">
-              <div className="sticky-action-bar-content">
-                <span className="sticky-bar-title">{question.questionTitle}</span>
-                <div className="sticky-bar-actions">
-                  <VoteRail
-                    score={(question.upVote?.length || 0) - (question.downVote?.length || 0)}
-                    onUpVote={handleUpVote}
-                    onDownVote={handleDownVote}
-                    userUpVoted={question.upVote?.includes(User?.result?._id)}
-                    userDownVoted={question.downVote?.includes(User?.result?._id)}
-                    isVoting={isVoting}
-                    orientation="horizontal"
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    style={{ padding: "6px 12px", fontSize: "12px" }}
-                    onClick={handleShare}
-                  >
-                    Share
-                  </button>
-                  <button
-                    type="button"
-                    className="bookmark-btn"
-                    style={{ padding: "6px" }}
-                    onClick={() => handleBookmarkClick(question._id)}
-                    title={User?.result?.savedQuestions?.includes(question._id) ? "Remove bookmark" : "Bookmark this question"}
-                  >
-                    <BookmarkIconSVG filled={User?.result?.savedQuestions?.includes(question._id)} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          
         </>
       )}
     </div>

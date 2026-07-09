@@ -217,11 +217,6 @@ const DisplayAnswer = ({ question, handleShare }) => {
             <div
               className={`display-ans ${ans.isAccepted ? "accepted-answer" : ""}`}
             >
-              {ans.isAccepted && (
-                <div className="accepted-badge">
-                  ✓ Accepted
-                </div>
-              )}
               
               {ans.outdatedFlags?.length >= 3 && (
                 <div className="outdated-answer-banner" style={{ display: "flex", gap: "10px", alignItems: "center", backgroundColor: "#fdf2e9", color: "#c85a17", border: "1px solid #fbd0b4", padding: "10px 16px", borderRadius: "6px", marginBottom: "12px", fontSize: "13px" }}>

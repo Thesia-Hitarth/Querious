@@ -16,7 +16,7 @@ export const getAdminStats = async (req, res) => {
       Questions.countDocuments(),
       Answers.countDocuments(),
       User.countDocuments(),
-      Flag.countDocuments({ status: "pending" }),
+      Flag.countDocuments({ status: "open" }),
       SuggestedEdit.countDocuments({ status: "pending" }),
     ]);
 

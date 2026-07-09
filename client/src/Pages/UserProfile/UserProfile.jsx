@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import * as api from "../../api";
 
 import LeftSidebar from "../../components/LeftSidebar/LeftSidebar";
 import EditProfileForm from "./EditProfileForm";
@@ -26,16 +27,26 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
   const currentProfile = users.filter((user) => user._id === id)[0];
   const currentUser = useSelector((state) => state.currentUserReducer);
   const userDetails = useSelector((state) => state.userDetailsReducer);
-  const questionsList = useSelector((state) => state.questionsReducer.data) || [];
 
   const [Switch, setSwitch] = useState(false);
   const [activeTab, setActiveTab] = useState("activity");
+
+  // Dedicated user activity state (replaces filtering the global questions store)
+  const [userQuestions, setUserQuestions] = useState([]);
+  const [userAnswers, setUserAnswers] = useState([]);
+  const [activityLoading, setActivityLoading] = useState(false);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const tab = searchParams.get("tab");
     if (tab === "saves" && currentUser?.result?._id === id) {
       setActiveTab("saves");
+    } else if (tab === "settings" && currentUser?.result?._id === id) {
+      setActiveTab("settings");
+    } else if (tab === "badges") {
+      setActiveTab("badges");
+    } else if (tab === "reputation") {
+      setActiveTab("reputation");
     } else if (tab === "questions") {
       setActiveTab("questions");
     } else if (tab === "answers") {
@@ -48,6 +59,28 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
   useEffect(() => {
     dispatch(fetchUserDetails(id));
   }, [id, dispatch]);
+
+  // Fetch user-specific questions and answers from dedicated endpoints
+  const fetchUserActivity = useCallback(async () => {
+    if (!id) return;
+    setActivityLoading(true);
+    try {
+      const [qRes, aRes] = await Promise.all([
+        api.getUserQuestions(id, { limit: 50 }),
+        api.getUserAnswers(id, { limit: 50 }),
+      ]);
+      setUserQuestions(qRes.data.data || []);
+      setUserAnswers(aRes.data.data || []);
+    } catch (err) {
+      console.error("Error fetching user activity:", err);
+    } finally {
+      setActivityLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchUserActivity();
+  }, [fetchUserActivity]);
 
   const profileData = userDetails && userDetails._id === id ? userDetails : currentProfile;
 
@@ -65,14 +98,8 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
       : quest
   );
 
-  const questionsAsked = profileData?.questionsAsked ?? questionsList.filter((q) => String(q.userId) === String(id)).length;
-  const answersGiven = profileData?.answersGiven ?? questionsList.reduce((acc, q) => {
-    const userAnswers = q.answer?.filter((ans) => String(ans.userId) === String(id)) || [];
-    return acc + userAnswers.length;
-  }, 0);
-
-  const userQuestions = questionsList.filter((q) => String(q.userId) === String(id));
-  const userAnswers = questionsList.filter((q) => q.answer?.some((ans) => String(ans.userId) === String(id)));
+  const questionsAsked = profileData?.questionsAsked ?? userQuestions.length;
+  const answersGiven = profileData?.answersGiven ?? userAnswers.length;
 
   return (
     <div className="home-container-1">
@@ -165,7 +192,9 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
                   {activeTab === "questions" && (
                     <div className="profile-questions-tab">
                       <h3 className="saved-questions-title">Questions Asked</h3>
-                      {userQuestions.length === 0 ? (
+                      {activityLoading ? (
+                        <p className="tab-empty-text">Loading questions...</p>
+                      ) : userQuestions.length === 0 ? (
                         <p className="tab-empty-text">No questions asked yet.</p>
                       ) : (
                         <div className="tab-questions-list">
@@ -187,20 +216,26 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
                   {activeTab === "answers" && (
                     <div className="profile-answers-tab">
                       <h3 className="saved-questions-title">Answers Contributed</h3>
-                      {userAnswers.length === 0 ? (
+                      {activityLoading ? (
+                        <p className="tab-empty-text">Loading answers...</p>
+                      ) : userAnswers.length === 0 ? (
                         <p className="tab-empty-text">No answers given yet.</p>
                       ) : (
                         <div className="tab-answers-list">
-                          {userAnswers.map((q) => {
-                            const ansObj = q.answer?.find((a) => String(a.userId) === String(id));
+                          {userAnswers.map((ans) => {
+                            const questionId = ans.questionId?._id || ans.questionId;
+                            const questionTitle = ans.questionId?.questionTitle || "Question";
                             return (
-                              <div key={q._id} className="profile-list-item card">
+                              <div key={ans._id} className="profile-list-item card">
                                 <span className="profile-item-label">Answered:</span>
-                                <Link to={`/Questions/${q._id}`} className="profile-item-title-link">
-                                  {q.questionTitle}
+                                <Link to={`/Questions/${questionId}`} className="profile-item-title-link">
+                                  {questionTitle}
                                 </Link>
+                                {ans.isAccepted && (
+                                  <span style={{ fontSize: "11px", color: "#2da44e", fontWeight: "600", marginLeft: "6px" }}>✓ Accepted</span>
+                                )}
                                 <span className="profile-item-date">
-                                  replied {ansObj?.answeredOn ? formatDistanceToNow(new Date(ansObj.answeredOn), { addSuffix: true }) : "recently"}
+                                  replied {ans.answeredOn ? formatDistanceToNow(new Date(ans.answeredOn), { addSuffix: true }) : "recently"}
                                 </span>
                               </div>
                             );

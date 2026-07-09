@@ -125,7 +125,7 @@ export const getUserDetails = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   const { id: _id } = req.params;
-  const { name, about, tags, location, website, avatar, collectives } = req.body;
+  const { name, about, tags, location, website, avatar, collectives, notificationPreferences } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(_id)) {
     return res.status(404).send("User unavailable...");
@@ -143,9 +143,20 @@ export const updateProfile = async (req, res) => {
   }
 
   try {
+    // Build update object — only include fields that were actually sent
+    const updateFields = {};
+    if (name !== undefined) updateFields.name = name;
+    if (about !== undefined) updateFields.about = about;
+    if (tags !== undefined) updateFields.tags = tags;
+    if (location !== undefined) updateFields.location = location;
+    if (website !== undefined) updateFields.website = website;
+    if (avatar !== undefined) updateFields.avatar = avatar;
+    if (collectives !== undefined) updateFields.collectives = collectives;
+    if (notificationPreferences !== undefined) updateFields.notificationPreferences = notificationPreferences;
+
     const updatedProfile = await users.findByIdAndUpdate(
       _id,
-      { $set: { name, about, tags, location, website, avatar, collectives } },
+      { $set: updateFields },
       { new: true }
     );
     checkBadgeTriggers(_id, "profile_updated");
@@ -234,5 +245,62 @@ export const getUserReputationHistory = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Failed to fetch reputation history" });
+  }
+};
+
+export const getUserQuestions = async (req, res) => {
+  const { id } = req.params;
+  const page = parseInt(req.query.page) || 1;
+  const limit = Math.min(parseInt(req.query.limit) || 10, 50);
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).send("User unavailable...");
+  }
+  try {
+    const total = await Questions.countDocuments({ userId: id });
+    const questions = await Questions.find({ userId: id })
+      .select("questionTitle questionTags askedOn noOfAnswers acceptedAnswerId upVote downVote views status")
+      .sort({ askedOn: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.status(200).json({
+      data: questions,
+      totalCount: total,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch user questions" });
+  }
+};
+
+export const getUserAnswers = async (req, res) => {
+  const { id } = req.params;
+  const page = parseInt(req.query.page) || 1;
+  const limit = Math.min(parseInt(req.query.limit) || 10, 50);
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).send("User unavailable...");
+  }
+  try {
+    const total = await Answers.countDocuments({ userId: id });
+    const answers = await Answers.find({ userId: id })
+      .select("questionId answerBody answeredOn isAccepted upVote downVote editedOn")
+      .populate("questionId", "questionTitle")
+      .sort({ answeredOn: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.status(200).json({
+      data: answers,
+      totalCount: total,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch user answers" });
   }
 };

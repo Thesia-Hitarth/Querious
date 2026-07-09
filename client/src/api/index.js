@@ -70,6 +70,8 @@ export const getAllUsers = (params) => API.get("/user/getAllUsers", { params });
 export const getUserDetails = (id) => API.get(`/user/${id}`);
 export const getUserBadges = (userId) => API.get(`/user/${userId}/badges`);
 export const getUserReputation = (userId) => API.get(`/user/${userId}/reputation`);
+export const getUserQuestions = (userId, params) => API.get(`/user/${userId}/questions`, { params });
+export const getUserAnswers = (userId, params) => API.get(`/user/${userId}/answers`, { params });
 export const updateProfile = (id, updateData) =>
   API.patch(`/user/update/${id}`, updateData);
 

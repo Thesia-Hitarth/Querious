@@ -506,6 +506,10 @@ input::placeholder { color: var(--color-text-faint); }
   --color-status-closed-bg: rgba(107, 114, 128, 0.15);
   --color-status-closed-text: #d1d5db;
 
+  --color-accepted: #34d399;
+  --color-accepted-bg: rgba(52, 211, 153, 0.05);
+  --color-accepted-border: rgba(52, 211, 153, 0.2);
+
   --color-hero-bg-1: #171a21;
   --color-hero-bg-2: #14161d;
   --color-eyebrow-bg: rgba(249, 115, 22, 0.15);

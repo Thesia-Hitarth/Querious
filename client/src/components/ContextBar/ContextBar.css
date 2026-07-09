@@ -31,7 +31,53 @@
   padding: 0 var(--space-6);
   display: flex;
   align-items: center;
+  justify-content: space-between;
+}
+
+.context-bar-breadcrumbs {
+  display: flex;
+  align-items: center;
   gap: var(--space-2);
+  min-width: 0;
+}
+
+.context-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.context-bar-actions .bookmark-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast);
+}
+
+.context-bar-actions .bookmark-btn:hover {
+  color: var(--color-brand-primary);
+}
+
+.context-bar-actions .btn-ghost {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.context-bar-actions .btn-ghost:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-border-strong);
 }
 
 .context-bar-segment a {
