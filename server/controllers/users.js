@@ -3,31 +3,60 @@ import users from "../models/auth.js";
 import Questions from "../models/Questions.js";
 import Answers from "../models/Answers.js";
 import jwt from "jsonwebtoken";
+import { checkBadgeTriggers } from "../utils/badgeEngine.js";
+import Badge from "../models/Badge.js";
+import UserBadgeAward from "../models/UserBadgeAward.js";
+import RepLedger from "../models/RepLedger.js";
 
 export const getAllUsers = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = Math.min(parseInt(req.query.limit) || 30, 100);
+    const search = req.query.search || "";
+    const sort = req.query.sort || "reputation";
+
+    const query = {};
+    if (search) {
+      query.name = { $regex: search, $options: "i" };
+    }
+
+    let sortOption = { reputation: -1, name: 1 };
+    if (sort === "newest") {
+      sortOption = { joinedOn: -1 };
+    } else if (sort === "alpha") {
+      sortOption = { name: 1 };
+    }
+
+    const total = await users.countDocuments(query);
     const allUsers = await users.find(
-      {},
+      query,
       { password: 0, resetPasswordToken: 0, resetPasswordExpires: 0 }
-    );
-    const allUserDetails = [];
-    allUsers.forEach((user) => {
-      allUserDetails.push({
-        _id: user._id,
-        name: user.name,
-        about: user.about,
-        tags: user.tags,
-        reputation: user.reputation,
-        badges: user.badges,
-        location: user.location,
-        website: user.website,
-        avatar: user.avatar,
-        savedQuestions: user.savedQuestions,
-        collectives: user.collectives,
-        joinedOn: user.joinedOn,
-      });
+    )
+      .sort(sortOption)
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const allUserDetails = allUsers.map((user) => ({
+      _id: user._id,
+      name: user.name,
+      about: user.about,
+      tags: user.tags,
+      reputation: user.reputation,
+      badges: user.badges,
+      location: user.location,
+      website: user.website,
+      avatar: user.avatar,
+      savedQuestions: user.savedQuestions,
+      collectives: user.collectives,
+      joinedOn: user.joinedOn,
+    }));
+
+    res.status(200).json({
+      data: allUserDetails,
+      totalCount: total,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
     });
-    res.status(200).json(allUserDetails);
   } catch (error) {
     res.status(404).json({ message: error.message });
   }
@@ -78,6 +107,8 @@ export const getUserDetails = async (req, res) => {
       savedQuestions: isSelf ? user.savedQuestions : [],
       collectives: user.collectives,
       joinedOn: user.joinedOn,
+      trustLevel: user.trustLevel || 0,
+      notificationPreferences: user.notificationPreferences,
       questionsAsked,
       answersGiven,
     };
@@ -117,6 +148,7 @@ export const updateProfile = async (req, res) => {
       { $set: { name, about, tags, location, website, avatar, collectives } },
       { new: true }
     );
+    checkBadgeTriggers(_id, "profile_updated");
     res.status(200).json(updatedProfile);
   } catch (error) {
     res.status(405).json({ message: error.message });
@@ -156,5 +188,51 @@ export const toggleSaveQuestion = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(400).json({ message: "Failed to toggle bookmark" });
+  }
+};
+
+export const getUserBadges = async (req, res) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).send("User unavailable...");
+  }
+  try {
+    const awards = await UserBadgeAward.find({ userId: id }).sort({ awardedAt: -1 });
+    
+    // Look up badge catalog details for each award
+    const badgeDetails = [];
+    for (const award of awards) {
+      const badge = await Badge.findOne({ code: award.badgeCode });
+      if (badge) {
+        badgeDetails.push({
+          _id: award._id,
+          code: award.badgeCode,
+          name: badge.name,
+          description: badge.description,
+          tier: badge.tier,
+          sourceId: award.sourceId,
+          awardedAt: award.awardedAt
+        });
+      }
+    }
+    
+    res.status(200).json(badgeDetails);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch user badges" });
+  }
+};
+
+export const getUserReputationHistory = async (req, res) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).send("User unavailable...");
+  }
+  try {
+    const history = await RepLedger.find({ userId: id }).sort({ createdAt: -1 });
+    res.status(200).json(history);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch reputation history" });
   }
 };

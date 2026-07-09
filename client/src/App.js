@@ -6,7 +6,6 @@ import "./App.css";
 import Navbar from "./components/Navbar/Navbar";
 import ContextBar from "./components/ContextBar/ContextBar";
 import AllRoutes from "./AllRoutes";
-import { fetchAllUsers } from "./actions/users";
 import { fetchNotifications } from "./actions/notifications";
 
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
@@ -18,9 +17,7 @@ function App() {
   const dispatch = useDispatch();
   const User = useSelector((state) => state.currentUserReducer);
 
-  useEffect(() => {
-    dispatch(fetchAllUsers());
-  }, [dispatch]);
+
 
   useEffect(() => {
     if (!User?.result?._id) {

@@ -7,6 +7,10 @@ import LeftSidebar from "../../components/LeftSidebar/LeftSidebar";
 import EditProfileForm from "./EditProfileForm";
 import ProfileBio from "./ProfileBio";
 import ProfileHeader from "./ProfileHeader";
+import BadgesTab from "./BadgesTab";
+import SettingsTab from "./SettingsTab";
+import ReputationTab from "./ReputationTab";
+import { useDocumentMeta } from "../../hooks/useDocumentMeta";
 import EmptyState from "../../components/EmptyState/EmptyState";
 import LoadingSkeleton from "../../components/LoadingSkeleton/LoadingSkeleton";
 import "./UsersProfile.css";
@@ -18,7 +22,7 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const users = useSelector((state) => state.usersReducer);
+  const users = useSelector((state) => state.usersReducer.data) || [];
   const currentProfile = users.filter((user) => user._id === id)[0];
   const currentUser = useSelector((state) => state.currentUserReducer);
   const userDetails = useSelector((state) => state.userDetailsReducer);
@@ -46,6 +50,13 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
   }, [id, dispatch]);
 
   const profileData = userDetails && userDetails._id === id ? userDetails : currentProfile;
+
+  useDocumentMeta({
+    title: profileData?.name ? `${profileData.name}'s Profile` : "User Profile",
+    description: profileData?.about || `View ${profileData?.name || "user"}'s developer profile on Querious.`,
+    keywords: `${profileData?.name || ""}, profile, reputation, badges, developer`,
+  });
+
   const savedQuestionsList = profileData?.savedQuestions || [];
 
   const normalizedSavedQuestionsList = savedQuestionsList.map((quest) =>
@@ -105,14 +116,37 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
                   >
                     Answers ({userAnswers.length})
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/Users/${id}?tab=badges`)}
+                    className={`profile-tab-btn ${activeTab === "badges" ? "active" : ""}`}
+                  >
+                    Badges
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/Users/${id}?tab=reputation`)}
+                    className={`profile-tab-btn ${activeTab === "reputation" ? "active" : ""}`}
+                  >
+                    Reputation
+                  </button>
                   {currentUser?.result?._id === id && (
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/Users/${id}?tab=saves`)}
-                      className={`profile-tab-btn ${activeTab === "saves" ? "active" : ""}`}
-                    >
-                      Saved ({savedQuestionsList.length})
-                    </button>
+                    <>
+                      <button
+                         type="button"
+                         onClick={() => navigate(`/Users/${id}?tab=saves`)}
+                         className={`profile-tab-btn ${activeTab === "saves" ? "active" : ""}`}
+                       >
+                         Saved ({savedQuestionsList.length})
+                       </button>
+                       <button
+                         type="button"
+                         onClick={() => navigate(`/Users/${id}?tab=settings`)}
+                         className={`profile-tab-btn ${activeTab === "settings" ? "active" : ""}`}
+                       >
+                         Settings
+                       </button>
+                    </>
                   )}
                 </div>
 
@@ -176,6 +210,14 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
                     </div>
                   )}
 
+                  {activeTab === "badges" && (
+                    <BadgesTab userId={id} />
+                  )}
+
+                  {activeTab === "reputation" && (
+                    <ReputationTab userId={id} />
+                  )}
+
                   {activeTab === "saves" && (
                     <div className="saved-questions-container">
                       <h3 className="saved-questions-title">Bookmarked Questions</h3>
@@ -206,6 +248,10 @@ const UserProfile = ({ slideIn, handleSlideIn }) => {
                         </div>
                       )}
                     </div>
+                  )}
+
+                  {activeTab === "settings" && (
+                    <SettingsTab userId={id} />
                   )}
                 </div>
               </div>

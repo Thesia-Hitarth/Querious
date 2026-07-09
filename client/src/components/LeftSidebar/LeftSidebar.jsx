@@ -76,7 +76,7 @@ const itemVariants = {
 
 const LeftSidebar = ({ slideIn, handleSlideIn }) => {
   const User = useSelector((state) => state.currentUserReducer);
-  const usersList = useSelector((state) => state.usersReducer) || [];
+  const usersList = useSelector((state) => state.usersReducer.data) || [];
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -99,7 +99,7 @@ const LeftSidebar = ({ slideIn, handleSlideIn }) => {
     User?.result?._id && location.pathname === `/Users/${User?.result?._id}`;
 
   const loggedInUserDetails = usersList.find((u) => u._id === User?.result?._id);
-  const rep = loggedInUserDetails?.reputation || 1;
+  const rep = loggedInUserDetails?.reputation || User?.result?.reputation || 1;
 
   return (
     <>

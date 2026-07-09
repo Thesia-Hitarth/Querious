@@ -5,6 +5,9 @@ import ViewTracker from "../models/ViewTracker.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import { sendNotification } from "../utils/notificationHelper.js";
+import { checkBadgeTriggers } from "../utils/badgeEngine.js";
+import SuggestedEdit from "../models/SuggestedEdit.js";
+import { notifyMentionedUsers } from "../utils/mentionHelper.js";
 import { updateReputationAndBadges } from "../utils/reputationHelper.js";
 import xss from "xss";
 
@@ -24,6 +27,7 @@ export const AskQuestion = async (req, res) => {
       userId,
     });
     await postQuestion.save();
+    checkBadgeTriggers(userId, "question_asked", { questionId: postQuestion._id });
     res.status(200).json("Posted a question successfully");
   } catch (error) {
     console.error(error);
@@ -50,6 +54,25 @@ export const getAllQuestions = async (req, res) => {
     let andConditions = [];
     let sortOption = { askedOn: -1 };
     let projection = {};
+
+    if (req.query.cursor) {
+      try {
+        const [cursorTime, cursorId] = Buffer.from(req.query.cursor, "base64").toString("ascii").split("|");
+        if (cursorTime && cursorId) {
+          andConditions.push({
+            $or: [
+              { askedOn: { $lt: new Date(parseInt(cursorTime)) } },
+              {
+                askedOn: new Date(parseInt(cursorTime)),
+                _id: { $lt: new mongoose.Types.ObjectId(cursorId) }
+              }
+            ]
+          });
+        }
+      } catch (err) {
+        console.warn("Invalid pagination cursor ignored:", err.message);
+      }
+    }
 
     if (search) {
       andConditions.push({
@@ -115,7 +138,8 @@ export const getAllQuestions = async (req, res) => {
     const total = await Questions.countDocuments(query);
     
     let questions;
-    if (filterSort === "score") {
+    const isHot = (filterSort === "hot" || tab === "hot");
+    if (filterSort === "score" || isHot) {
       const aggPipeline = [
         { $match: query },
         {
@@ -127,27 +151,68 @@ export const getAllQuestions = async (req, res) => {
               ]
             }
           }
-        },
-        { $sort: { voteScore: -1, askedOn: -1 } },
+        }
+      ];
+
+      if (isHot) {
+        aggPipeline.push(
+          {
+            $addFields: {
+              hotScore: {
+                $add: [
+                  "$voteScore",
+                  {
+                    $divide: [
+                      { $subtract: [{ $toLong: "$askedOn" }, 1134028003000] },
+                      45000000
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          { $sort: { hotScore: -1 } }
+        );
+      } else {
+        aggPipeline.push({ $sort: { voteScore: -1, askedOn: -1 } });
+      }
+
+      aggPipeline.push(
         { $skip: (page - 1) * limit },
         { $limit: limit }
-      ];
+      );
+
       questions = await Questions.aggregate(aggPipeline);
+      questions = await Questions.populate(questions, { path: "userId", select: "name reputation badges avatar" });
     } else {
       questions = await Questions.find(query, projection)
         .sort(sortOption)
         .skip((page - 1) * limit)
-        .limit(limit);
+        .limit(limit)
+        .populate("userId", "name reputation badges avatar");
     }
 
     // Avoid N+1 query lookup, answers are resolved at detail level.
     const questionsWithAnswers = questions.map((question) => {
       const questionObj = typeof question.toObject === "function" ? question.toObject() : question;
-      return { ...questionObj, answer: [] };
+      return {
+        ...questionObj,
+        userReputation: question.userId?.reputation || 1,
+        userBadges: question.userId?.badges || { gold: 0, silver: 0, bronze: 0 },
+        userId: question.userId?._id || question.userId,
+        answer: []
+      };
     });
 
     const totalSiteQuestions = await Questions.countDocuments({});
     const totalSiteAnswers = await Answers.countDocuments({});
+    const totalSiteUsers = await User.countDocuments({});
+
+    let nextCursor = null;
+    if (questions.length > 0) {
+      const lastItem = questions[questions.length - 1];
+      nextCursor = Buffer.from(`${new Date(lastItem.askedOn).getTime()}|${lastItem._id}`).toString("base64");
+    }
 
     res.status(200).json({
       data: questionsWithAnswers,
@@ -156,6 +221,8 @@ export const getAllQuestions = async (req, res) => {
       totalCount: total,
       totalSiteQuestions,
       totalSiteAnswers,
+      totalSiteUsers,
+      nextCursor,
     });
   } catch (error) {
     console.error(error);
@@ -169,7 +236,7 @@ export const getQuestionDetails = async (req, res) => {
     return res.status(404).send("Invalid question ID");
   }
   try {
-    const question = await Questions.findById(id);
+    const question = await Questions.findById(id).populate("userId", "reputation badges");
     if (!question) {
       return res.status(404).send("Question not found");
     }
@@ -197,7 +264,7 @@ export const getQuestionDetails = async (req, res) => {
         if (!existingTracker) {
           await ViewTracker.create({ trackerKey });
           // Fetch and return the updated document with views incremented
-          updatedQuestion = await Questions.findByIdAndUpdate(id, { $inc: { views: 1 } }, { new: true });
+          updatedQuestion = await Questions.findByIdAndUpdate(id, { $inc: { views: 1 } }, { new: true }).populate("userId", "reputation badges");
         }
       } catch (err) {
         // Ignore duplicate key errors arising from race conditions
@@ -207,12 +274,49 @@ export const getQuestionDetails = async (req, res) => {
       }
     }
 
-    const answers = await Answers.find({ questionId: id }).sort({
-      isAccepted: -1,
-      upVote: -1,
+    const answersQuery = { questionId: id };
+    let isAdminUser = false;
+    if (currentUserId) {
+      const viewer = await User.findById(currentUserId, "isAdmin");
+      isAdminUser = !!viewer?.isAdmin;
+    }
+
+    if (!isAdminUser) {
+      if (currentUserId) {
+        answersQuery.$or = [
+          { hidden: { $ne: true } },
+          { userId: currentUserId }
+        ];
+      } else {
+        answersQuery.hidden = { $ne: true };
+      }
+    }
+
+    const answers = await Answers.find(answersQuery)
+      .sort({
+        isAccepted: -1,
+        upVote: -1,
+      })
+      .populate("userId", "reputation badges");
+
+    const mappedAnswers = answers.map((ans) => {
+      const ansObj = typeof ans.toObject === "function" ? ans.toObject() : ans;
+      return {
+        ...ansObj,
+        userReputation: ans.userId?.reputation || 1,
+        userBadges: ans.userId?.badges || { gold: 0, silver: 0, bronze: 0 },
+        userId: ans.userId?._id || ans.userId
+      };
     });
 
-    res.status(200).json({ ...updatedQuestion.toObject(), answer: answers });
+    const questionObj = updatedQuestion.toObject();
+    res.status(200).json({
+      ...questionObj,
+      userReputation: updatedQuestion.userId?.reputation || 1,
+      userBadges: updatedQuestion.userId?.badges || { gold: 0, silver: 0, bronze: 0 },
+      userId: updatedQuestion.userId?._id || updatedQuestion.userId,
+      answer: mappedAnswers
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
@@ -340,7 +444,7 @@ export const voteQuestion = async (req, res) => {
     }
 
     if (question.userId && repDelta !== 0) {
-      await updateReputationAndBadges(question.userId, repDelta);
+      await updateReputationAndBadges(question.userId, repDelta, "vote_received", question._id);
     }
 
     res.status(200).json({ message: "voted successfully...", data: updated });
@@ -391,12 +495,28 @@ export const updateQuestion = async (req, res) => {
       return res.status(404).send("Question not found...");
     }
 
-    if (String(question.userId) !== String(userId)) {
-      return res.status(403).json({ message: "Action forbidden: You are not the author." });
-    }
-
     const user = await User.findById(userId);
     const editorName = user ? user.name : "Anonymous";
+
+    const isAuthor = String(question.userId) === String(userId);
+    const isAdmin = user?.isAdmin;
+    const isPrivileged = (user?.reputation || 0) >= 2000;
+
+    if (!isAuthor && !isAdmin && !isPrivileged) {
+      const suggestedEdit = new SuggestedEdit({
+        targetType: "question",
+        targetId: _id,
+        suggestedBy: userId,
+        title: questionTitle,
+        body: questionBody ? xss(questionBody) : "",
+        tags: questionTags,
+      });
+      await suggestedEdit.save();
+      return res.status(201).json({
+        status: "suggested",
+        message: "Your edit has been suggested and is pending review.",
+      });
+    }
 
     const sanitizedBody = questionBody ? xss(questionBody) : questionBody;
 
@@ -447,13 +567,31 @@ export const addCommentQuestion = async (req, res) => {
     });
 
     await question.save();
+    checkBadgeTriggers(userId, "comment_posted");
+    notifyMentionedUsers(commentBody, userId, userName, questionId, "comment");
 
-    if (question.userId && String(question.userId) !== String(userId)) {
-      await sendNotification(
-        question.userId,
-        `${userName} commented on your question: "${question.questionTitle}"`,
-        questionId
-      );
+    if (question) {
+      if (question.userId && String(question.userId) !== String(userId)) {
+        await sendNotification(
+          question.userId,
+          `${userName} commented on your question: "${question.questionTitle}"`,
+          questionId,
+          "comment"
+        );
+      }
+
+      if (question.watchers && question.watchers.length > 0) {
+        for (const watcherId of question.watchers) {
+          if (String(watcherId) !== String(userId) && String(watcherId) !== String(question.userId)) {
+            await sendNotification(
+              watcherId,
+              `New comment on watched question: "${question.questionTitle}"`,
+              questionId,
+              "comment"
+            );
+          }
+        }
+      }
     }
 
     res.status(200).json(question);
@@ -496,6 +634,63 @@ export const deleteCommentQuestion = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(400).json({ message: "Failed to delete comment" });
+  }
+};
+
+export const getRelatedQuestions = async (req, res) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).send("Invalid question ID");
+  }
+  try {
+    const question = await Questions.findById(id, "questionTitle");
+    if (!question) {
+      return res.status(404).send("Question not found");
+    }
+    const results = await Questions.find(
+      { $text: { $search: question.questionTitle }, _id: { $ne: id } },
+      { score: { $meta: "textScore" }, questionTitle: 1, noOfAnswers: 1, acceptedAnswerId: 1, askedOn: 1 }
+    )
+      .sort({ score: { $meta: "textScore" } })
+      .limit(5);
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch related questions" });
+  }
+};
+
+export const toggleWatchQuestion = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.userId;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).send("Question unavailable...");
+  }
+
+  try {
+    const question = await Questions.findById(id);
+    if (!question) {
+      return res.status(404).send("Question not found...");
+    }
+
+    if (!question.watchers) {
+      question.watchers = [];
+    }
+
+    const index = question.watchers.indexOf(userId);
+    if (index === -1) {
+      question.watchers.push(userId);
+    } else {
+      question.watchers.splice(index, 1);
+    }
+
+    await question.save();
+    res.status(200).json({ watchers: question.watchers });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ message: "Failed to toggle watch status" });
   }
 };
 

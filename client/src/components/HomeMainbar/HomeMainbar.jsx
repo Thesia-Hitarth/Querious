@@ -60,7 +60,6 @@ const HomeMainbar = ({ tag }) => {
 
   const questionsList = useSelector((state) => state.questionsReducer);
   const searchQuery = questionsList.searchQuery;
-  const usersList = useSelector((state) => state.usersReducer) || [];
   const [activeTab, setActiveTab] = useState("newest");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -219,7 +218,7 @@ const HomeMainbar = ({ tag }) => {
                 <span className="hero-stat-label">Answers</span>
               </div>
               <div className="hero-stat">
-                <span className="hero-stat-number"><CountUp end={usersList.length || 0} />+</span>
+                <span className="hero-stat-number"><CountUp end={questionsList.totalSiteUsers || 0} />+</span>
                 <span className="hero-stat-label">Users</span>
               </div>
             </motion.div>
@@ -254,14 +253,14 @@ const HomeMainbar = ({ tag }) => {
 
         <div className="questions-filter-pills-row">
           <div className="questions-tabs">
-            {["newest", "active", "unanswered"].map((tab) => (
+            {["newest", "active", "unanswered", "hot"].map((tab) => (
               <button
                 key={tab}
                 type="button"
                 className={`tab-btn ${activeTab === tab ? "active" : ""}`}
                 onClick={() => handleTabClick(tab)}
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {tab === "hot" ? "🔥 Trending" : tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
             ))}
           </div>

@@ -36,8 +36,12 @@ import userRoutes from "./routes/users.js";
 import questionRoutes from "./routes/Questions.js";
 import answerRoutes from "./routes/Answers.js";
 import notificationRoutes from "./routes/Notifications.js";
+import flagRoutes from "./routes/flags.js";
+import suggestedEditRoutes from "./routes/suggestedEdits.js";
+import adminRoutes from "./routes/admin.js";
 import { initSocket } from "./utils/notificationHelper.js";
 import { logger } from "./utils/logger.js";
+import { seedBadges } from "./utils/badgeSeeder.js";
 
 // Cached connection handler for serverless efficiency
 let cached = global._mongoose;
@@ -65,7 +69,10 @@ if (process.env.NODE_ENV !== "test") {
     console.warn("DEPRECATION WARNING: MONGO_URL environment variable is set. Please use CONNECTION_URL instead.");
   }
   dbConnect()
-    .then((conn) => console.log(`MongoDB connected: ${conn.connection.host}`))
+    .then((conn) => {
+      console.log(`MongoDB connected: ${conn.connection.host}`);
+      seedBadges();
+    })
     .catch((error) => console.error("MongoDB connection failed:", error));
 }
 
@@ -142,6 +149,9 @@ app.use("/user", userRoutes);
 app.use("/questions", questionRoutes);
 app.use("/answer", answerRoutes);
 app.use("/notifications", notificationRoutes);
+app.use("/flags", flagRoutes);
+app.use("/suggested-edits", suggestedEditRoutes);
+app.use("/admin", adminRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

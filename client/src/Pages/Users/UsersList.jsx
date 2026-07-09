@@ -4,7 +4,7 @@ import MemberCard from "../../components/MemberCard/MemberCard";
 import "./Users.css";
 
 const UsersList = ({ searchTerm, sortMode }) => {
-  const users = useSelector((state) => state.usersReducer);
+  const users = useSelector((state) => state.usersReducer.data) || [];
 
   const filteredUsers = users.filter((user) =>
     user.name?.toLowerCase().includes((searchTerm || "").toLowerCase())

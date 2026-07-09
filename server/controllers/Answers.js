@@ -3,6 +3,9 @@ import Questions from "../models/Questions.js";
 import Answers from "../models/Answers.js";
 import User from "../models/auth.js";
 import { sendNotification } from "../utils/notificationHelper.js";
+import { checkBadgeTriggers } from "../utils/badgeEngine.js";
+import SuggestedEdit from "../models/SuggestedEdit.js";
+import { notifyMentionedUsers } from "../utils/mentionHelper.js";
 import { updateReputationAndBadges } from "../utils/reputationHelper.js";
 import xss from "xss";
 
@@ -35,12 +38,28 @@ export const postAnswer = async (req, res) => {
       { new: true }
     );
 
-    if (question && String(question.userId) !== String(userId)) {
-      await sendNotification(
-        question.userId,
-        `${authorName} answered your question: "${question.questionTitle}"`,
-        questionId
-      );
+    if (question) {
+      if (String(question.userId) !== String(userId)) {
+        await sendNotification(
+          question.userId,
+          `${authorName} answered your question: "${question.questionTitle}"`,
+          questionId,
+          "answer"
+        );
+      }
+
+      if (question.watchers && question.watchers.length > 0) {
+        for (const watcherId of question.watchers) {
+          if (String(watcherId) !== String(userId) && String(watcherId) !== String(question.userId)) {
+            await sendNotification(
+              watcherId,
+              `New answer added to watched question: "${question.questionTitle}"`,
+              questionId,
+              "answer"
+            );
+          }
+        }
+      }
     }
 
     res.status(200).json(newAnswer);
@@ -219,7 +238,18 @@ export const voteAnswer = async (req, res) => {
     }
 
     if (answer.userId && repDelta !== 0) {
-      await updateReputationAndBadges(answer.userId, repDelta);
+      await updateReputationAndBadges(answer.userId, repDelta, "vote_received", answer._id);
+    }
+
+    // Trigger badge evaluation
+    checkBadgeTriggers(userId, "vote_cast", { value });
+    if (answer.userId) {
+      checkBadgeTriggers(answer.userId, "answer_upvoted", {
+        answerId: answer._id,
+        upVotesCount: updated.upVote?.length || 0,
+        downVotesCount: updated.downVote?.length || 0,
+        questionId: answer.questionId,
+      });
     }
 
     // Notify answer author if not voting on own answer
@@ -228,7 +258,8 @@ export const voteAnswer = async (req, res) => {
       await sendNotification(
         answer.userId,
         `Someone ${voteText} your answer.`,
-        answer.questionId
+        answer.questionId,
+        "vote"
       );
     }
 
@@ -285,7 +316,7 @@ export const acceptAnswer = async (req, res) => {
     if (prevAcceptedAnswer) {
       prevAcceptedAnswer.isAccepted = false;
       await prevAcceptedAnswer.save({ session });
-      await updateReputationAndBadges(prevAcceptedAnswer.userId, -15, session);
+      await updateReputationAndBadges(prevAcceptedAnswer.userId, -15, "acceptance_reversed", prevAcceptedAnswer._id, session);
     }
 
     answer.isAccepted = true;
@@ -294,9 +325,25 @@ export const acceptAnswer = async (req, res) => {
     question.acceptedAnswerId = answerId;
     await question.save({ session });
 
-    await updateReputationAndBadges(answer.userId, 15, session);
+    await updateReputationAndBadges(answer.userId, 15, "answer_accepted", answer._id, session);
     if (!prevAcceptedAnswer) {
-      await updateReputationAndBadges(question.userId, 2, session);
+      await updateReputationAndBadges(question.userId, 2, "accepted_answer_bonus", question._id, session);
+    }
+
+    if (answer.userId) {
+      checkBadgeTriggers(answer.userId, "answer_accepted", {
+        answerId: answer._id,
+        questionId: question._id,
+      });
+    }
+
+    if (answer.userId && String(answer.userId) !== String(userId)) {
+      await sendNotification(
+        answer.userId,
+        `Your answer was accepted for: "${question.questionTitle}"`,
+        question._id,
+        "accept"
+      );
     }
 
     return { status: 200, message: "Answer accepted successfully", data: answer };
@@ -350,8 +397,23 @@ export const updateAnswer = async (req, res) => {
       return res.status(404).send("Answer not found...");
     }
 
-    if (String(answer.userId) !== String(userId)) {
-      return res.status(403).json({ message: "Action forbidden: You are not the author." });
+    const user = await User.findById(userId);
+    const isAuthor = String(answer.userId) === String(userId);
+    const isAdmin = user?.isAdmin;
+    const isPrivileged = (user?.reputation || 0) >= 2000;
+
+    if (!isAuthor && !isAdmin && !isPrivileged) {
+      const suggestedEdit = new SuggestedEdit({
+        targetType: "answer",
+        targetId: answerId,
+        suggestedBy: userId,
+        body: answerBody ? xss(answerBody) : "",
+      });
+      await suggestedEdit.save();
+      return res.status(201).json({
+        status: "suggested",
+        message: "Your edit has been suggested and is pending review.",
+      });
     }
 
     const sanitizedBody = answerBody ? xss(answerBody) : answerBody;
@@ -400,12 +462,15 @@ export const addCommentAnswer = async (req, res) => {
     });
 
     await answer.save();
+    checkBadgeTriggers(userId, "comment_posted");
+    notifyMentionedUsers(commentBody, userId, userName, answer.questionId, "comment");
 
     if (answer.userId && String(answer.userId) !== String(userId)) {
       await sendNotification(
         answer.userId,
         `${userName} commented on your answer.`,
-        answer.questionId
+        answer.questionId,
+        "comment"
       );
     }
 
@@ -449,5 +514,67 @@ export const deleteCommentAnswer = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(400).json({ message: "Failed to delete comment" });
+  }
+};
+
+export const flagOutdated = async (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+  const userId = req.userId;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).send("Answer unavailable...");
+  }
+
+  try {
+    const answer = await Answers.findById(id);
+    if (!answer) {
+      return res.status(404).send("Answer not found...");
+    }
+
+    const alreadyFlagged = answer.outdatedFlags.some((f) => String(f.userId) === String(userId));
+    if (alreadyFlagged) {
+      return res.status(409).json({ message: "You have already flagged this answer as outdated." });
+    }
+
+    answer.outdatedFlags.push({ userId, reason });
+    await answer.save();
+
+    res.status(200).json(answer);
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ message: "Failed to mark answer as outdated" });
+  }
+};
+
+export const clearOutdatedFlags = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.userId;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).send("Answer unavailable...");
+  }
+
+  try {
+    const answer = await Answers.findById(id);
+    if (!answer) {
+      return res.status(404).send("Answer not found...");
+    }
+
+    const user = await User.findById(userId);
+    const isAuthor = String(answer.userId) === String(userId);
+    const isAdmin = user?.isAdmin;
+
+    if (!isAuthor && !isAdmin) {
+      return res.status(403).json({ message: "Only the author or an admin can clear outdated flags." });
+    }
+
+    answer.outdatedFlags = [];
+    await answer.save();
+
+    res.status(200).json(answer);
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ message: "Failed to clear outdated flags" });
   }
 };

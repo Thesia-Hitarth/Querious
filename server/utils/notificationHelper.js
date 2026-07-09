@@ -1,5 +1,8 @@
+import mongoose from "mongoose";
 import Notification from "../models/Notifications.js";
 import jwt from "jsonwebtoken";
+import User from "../models/auth.js";
+import PendingDigest from "../models/PendingDigest.js";
 
 let ioInstance = null;
 
@@ -38,12 +41,38 @@ export const initSocket = (io) => {
   });
 };
 
-export const sendNotification = async (userId, message, questionId) => {
+export const sendNotification = async (userId, message, questionId, category = "system") => {
   try {
+    const user = await User.findById(userId, "notificationPreferences");
+    const prefs = user?.notificationPreferences || {
+      instant: true,
+      digest: "none",
+      categories: ["answer", "comment", "vote", "accept", "badge"]
+    };
+
+    // Filter by categories if user settings exist
+    if (prefs.categories && !prefs.categories.includes(category)) {
+      return;
+    }
+
+    // If user prefers digest, save in queue rather than sending instantly
+    if (prefs.digest === "daily" || prefs.digest === "weekly") {
+      const digestEntry = new PendingDigest({
+        userId,
+        message,
+        targetId: questionId,
+        category,
+      });
+      await digestEntry.save();
+      return;
+    }
+
+    // Otherwise, create and send instant notification
     const newNotif = new Notification({
       userId,
       message,
       questionId,
+      category,
     });
     await newNotif.save();
 

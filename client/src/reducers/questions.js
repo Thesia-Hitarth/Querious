@@ -29,6 +29,7 @@ const questionsReducer = (
         totalCount: action.payload.totalCount || 0,
         totalSiteQuestions: action.payload.totalSiteQuestions || 0,
         totalSiteAnswers: action.payload.totalSiteAnswers || 0,
+        totalSiteUsers: action.payload.totalSiteUsers || 0,
       };
     case "FETCH_QUESTION_DETAILS":
       const currentData = state.data || [];

@@ -1,18 +1,47 @@
 import User from "../models/auth.js";
+import RepLedger from "../models/RepLedger.js";
+import { computeTrustLevel } from "./trustEngine.js";
 
-export const updateReputationAndBadges = async (userId, repDelta, session = null) => {
+export const updateReputationAndBadges = async (userId, repDelta, action = "adjustment", sourceId = null, session = null) => {
   if (!userId) return null;
   try {
-    // Atomically increment reputation to avoid lost updates due to race conditions
+    // 1. Calculate Daily Cap (+200 max positive rep per day)
+    let appliedDelta = repDelta;
+    if (repDelta > 0) {
+      const startOfToday = new Date();
+      startOfToday.setUTCHours(0, 0, 0, 0);
+
+      const todayEntries = await RepLedger.find({
+        userId,
+        createdAt: { $gte: startOfToday },
+        repDelta: { $gt: 0 }
+      }, "repDelta", { session });
+
+      const todayGains = todayEntries.reduce((sum, entry) => sum + entry.repDelta, 0);
+      const remainingCap = Math.max(0, 200 - todayGains);
+      appliedDelta = Math.min(repDelta, remainingCap);
+    }
+
+    // 2. Log in Ledger
+    const ledgerEntry = new RepLedger({
+      userId,
+      repDelta: appliedDelta,
+      originalDelta: repDelta,
+      action,
+      sourceId,
+    });
+    await ledgerEntry.save({ session });
+
+    // 3. Update User reputation
     const user = await User.findByIdAndUpdate(
       userId,
-      { $inc: { reputation: repDelta } },
+      { $inc: { reputation: appliedDelta } },
       { new: true, session }
     );
 
     if (!user) return null;
 
-    // Standard SO behavior: reputation must not fall below 1
+    // Reputation must not fall below 1
     if (user.reputation < 1) {
       user.reputation = 1;
       await user.save({ session });
@@ -24,6 +53,9 @@ export const updateReputationAndBadges = async (userId, repDelta, session = null
       silver: Math.floor((user.reputation % 500) / 100),
       bronze: Math.floor((user.reputation % 100) / 20),
     };
+
+    // Compute trust level based on reputation & joined date
+    user.trustLevel = computeTrustLevel(user.reputation, user.joinedOn);
 
     await user.save({ session });
     return user;

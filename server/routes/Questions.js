@@ -10,6 +10,8 @@ import {
   updateQuestion,
   addCommentQuestion,
   deleteCommentQuestion,
+  getRelatedQuestions,
+  toggleWatchQuestion,
 } from "../controllers/Questions.js";
 import auth from "../middleware/auth.js";
 import { questionValidationRules, commentValidationRules } from "../middleware/validation.js";
@@ -25,5 +27,7 @@ router.patch("/vote/:id", auth, voteQuestion);
 router.put("/:id", auth, questionValidationRules, updateQuestion);
 router.post("/:id/comment", auth, commentValidationRules, addCommentQuestion);
 router.delete("/:id/comment/:commentId", auth, deleteCommentQuestion);
+router.get("/:id/related", getRelatedQuestions);
+router.post("/:id/watch", auth, toggleWatchQuestion);
 
 export default router;

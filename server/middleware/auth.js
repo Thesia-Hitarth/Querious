@@ -31,6 +31,7 @@ const auth = async (req, res, next) => {
           return res.status(401).json({ message: "Token is no longer valid due to password change." });
         }
       }
+      req.user = user;
     }
 
     next();

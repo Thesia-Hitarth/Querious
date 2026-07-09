@@ -1,0 +1,67 @@
+.flag-form {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.flag-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.flag-option-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.flag-option-label:hover {
+  background-color: var(--color-bg-alt, rgba(255, 255, 255, 0.05));
+}
+
+.flag-option-label input[type="radio"] {
+  margin-top: 3px;
+  accent-color: var(--color-brand-primary, #f48225);
+}
+
+.flag-option-text {
+  font-size: 13.5px;
+  color: var(--color-text-primary, #eaeaea);
+  line-height: 1.4;
+}
+
+.flag-option-text strong {
+  color: var(--color-brand-primary, #f48225);
+}
+
+.flag-note-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border-light, rgba(255, 255, 255, 0.15));
+  background-color: var(--color-bg, #0d1117);
+  color: var(--color-text-primary, #eaeaea);
+  font-family: inherit;
+  font-size: 13px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.flag-note-input:focus {
+  border-color: var(--color-brand-primary, #f48225);
+}
+
+.flag-submit-btn {
+  background-color: var(--color-danger, #d93838) !important;
+}
+
+.flag-submit-btn:hover {
+  background-color: var(--color-danger-hover, #b82d2d) !important;
+}

@@ -52,7 +52,6 @@ const Questions = ({ question }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const User = useSelector((state) => state.currentUserReducer);
-  const usersList = useSelector((state) => state.usersReducer) || [];
   const { showToast } = useToast();
 
   const handleBookmarkClick = (e, questionId) => {
@@ -97,10 +96,11 @@ const Questions = ({ question }) => {
   const isOldUnanswered = !question.acceptedAnswerId && (question.noOfAnswers || 0) === 0 &&
     (new Date() - new Date(question.askedOn)) > 48 * 60 * 60 * 1000;
 
-  const questionUser = usersList.find((u) => u._id === question.userId) || {
+  const questionUser = {
     _id: question.userId,
     name: question.userPosted,
-    reputation: 1,
+    reputation: question.userReputation || 1,
+    badges: question.userBadges || { gold: 0, silver: 0, bronze: 0 }
   };
 
   const heat = getActivityHeat(question.updatedAt || question.askedOn);
@@ -152,7 +152,7 @@ const Questions = ({ question }) => {
                   {question.userPosted}
                 </Link>
               </UserPopover>
-              <UserBadge userId={question.userId} />
+              <UserBadge userId={question.userId} reputation={question.userReputation} badges={question.userBadges} />
             </p>
           </div>
         </div>

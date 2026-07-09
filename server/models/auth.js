@@ -17,6 +17,7 @@ const userSchema = mongoose.Schema({
   website: { type: String, default: "" , maxlength: 200 },
   savedQuestions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
   collectives: { type: [String], default: [] },
+  isAdmin: { type: Boolean, default: false },
   resetPasswordToken: { type: String },
   resetPasswordExpires: { type: Date },
   passwordChangedAt: { type: Date },
@@ -25,6 +26,12 @@ const userSchema = mongoose.Schema({
   forgotPasswordCount: { type: Number, default: 0 },
   forgotPasswordWindowStart: { type: Date },
   joinedOn: { type: Date, default: Date.now },
+  trustLevel: { type: Number, default: 0 },
+  notificationPreferences: {
+    instant: { type: Boolean, default: true },
+    digest: { type: String, enum: ["none", "daily", "weekly"], default: "none" },
+    categories: { type: [String], default: ["answer", "comment", "vote", "accept", "badge"] }
+  },
 }, { timestamps: true });
 
 const stripSensitiveFields = (_doc, ret) => {

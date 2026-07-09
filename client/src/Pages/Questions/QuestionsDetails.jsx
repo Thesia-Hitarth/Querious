@@ -15,6 +15,7 @@ import Comments from "../../components/Comments/Comments";
 import UserBadge from "../../components/UserBadge/UserBadge";
 import ConfirmationModal from "../../components/ConfirmationModal/ConfirmationModal";
 import TagInput from "../../components/TagInput/TagInput";
+import FlagModal from "../../components/FlagModal/FlagModal";
 import { toggleSaveQuestion } from "../../actions/users";
 import {
   postAnswer,
@@ -22,7 +23,9 @@ import {
   voteQuestion,
   updateQuestion,
   fetchQuestionDetails,
+  toggleWatchQuestion,
 } from "../../actions/question";
+import { useDocumentMeta } from "../../hooks/useDocumentMeta";
 import { useToast } from "../../components/Toast/ToastContext";
 
 // Custom SVGs
@@ -71,6 +74,7 @@ const QuestionsDetails = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
+  const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
 
   const Navigate = useNavigate();
   const dispatch = useDispatch();
@@ -100,12 +104,20 @@ const QuestionsDetails = () => {
   }, []);
 
   const question = questionsList.data?.find((q) => q._id === id);
-  const usersList = useSelector((state) => state.usersReducer) || [];
-  const questionUser = usersList.find((u) => u._id === question?.userId) || {
+  const questionUser = {
     _id: question?.userId,
     name: question?.userPosted,
-    reputation: 1,
+    reputation: question?.userReputation || 1,
+    badges: question?.userBadges || { gold: 0, silver: 0, bronze: 0 }
   };
+
+  useDocumentMeta({
+    title: question?.questionTitle,
+    description: question?.questionBody?.replace(/<[^>]+>/g, "").substring(0, 155),
+    keywords: question?.questionTags?.join(", "),
+    ogTitle: question?.questionTitle,
+    ogDescription: question?.questionBody?.replace(/<[^>]+>/g, "").substring(0, 155),
+  });
 
   let statusText = "Unanswered";
   let statusClass = "status-chip-unanswered";
@@ -119,6 +131,21 @@ const QuestionsDetails = () => {
     statusText = "Answered";
     statusClass = "status-chip-answered";
   }
+
+  const handleWatchClick = async () => {
+    if (!User) {
+      showToast("Please login or signup to watch this question", "warning");
+      return;
+    }
+    try {
+      await dispatch(toggleWatchQuestion(id));
+      const isWatching = !question.watchers?.includes(User?.result?._id);
+      showToast(isWatching ? "You are now watching this question." : "You stopped watching this question.", "success");
+    } catch (err) {
+      console.error(err);
+      showToast(err.response?.data?.message || "Failed to update watch status.", "danger");
+    }
+  };
 
   const handlePostAns = async (e) => {
     e.preventDefault();
@@ -196,14 +223,18 @@ const QuestionsDetails = () => {
       return;
     }
     try {
-      await dispatch(
+      const res = await dispatch(
         updateQuestion(id, {
           questionTitle: editTitle,
           questionBody: editBody,
           questionTags: editTags,
         })
       );
-      showToast("Question updated successfully!", "success");
+      if (res?.status === "suggested") {
+        showToast(res.message, "success");
+      } else {
+        showToast("Question updated successfully!", "success");
+      }
       setIsEditing(false);
     } catch (err) {
       showToast("Failed to update question. Please try again.", "error");
@@ -398,15 +429,29 @@ const QuestionsDetails = () => {
                       <button type="button" onClick={handleShare}>
                         Share
                       </button>
+                      {User && (
+                        <button
+                          type="button"
+                          className={question.watchers?.includes(User?.result?._id) ? "text-primary font-semibold" : "text-muted"}
+                          onClick={handleWatchClick}
+                        >
+                          {question.watchers?.includes(User?.result?._id) ? "Watching ✓" : "Watch"}
+                        </button>
+                      )}
+                      {User && (
+                        <button type="button" onClick={() => handleEditClick(question)}>
+                          Edit
+                        </button>
+                      )}
                       {User?.result?._id === question?.userId && (
-                        <>
-                          <button type="button" onClick={() => handleEditClick(question)}>
-                            Edit
-                          </button>
-                          <button type="button" className="text-danger" onClick={handleDeleteClick}>
-                            Delete
-                          </button>
-                        </>
+                        <button type="button" className="text-danger" onClick={handleDeleteClick}>
+                          Delete
+                        </button>
+                      )}
+                      {User?.result?._id !== question?.userId && User && (
+                        <button type="button" className="text-muted" onClick={() => setIsFlagModalOpen(true)}>
+                          Flag
+                        </button>
                       )}
                     </div>
                     <div className="question-author-meta">
@@ -418,7 +463,7 @@ const QuestionsDetails = () => {
                               {question.userPosted}
                             </Link>
                           </UserPopover>
-                          <UserBadge userId={question.userId} />
+                          <UserBadge userId={question.userId} reputation={question.userReputation} badges={question.userBadges} />
                         </div>
                       </div>
                     </div>
@@ -492,6 +537,14 @@ const QuestionsDetails = () => {
             onConfirm={handleConfirmDelete}
             title="Delete Question"
             message="Are you sure you want to delete this question? This action cannot be undone."
+          />
+
+          <FlagModal
+            isOpen={isFlagModalOpen}
+            onClose={() => setIsFlagModalOpen(false)}
+            targetType="question"
+            targetId={question._id}
+            questionId={question._id}
           />
 
           {showStickyBar && question && (

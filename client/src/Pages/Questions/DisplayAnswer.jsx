@@ -4,13 +4,14 @@ import { Link, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import ReactQuill from "react-quill";
 
-import { deleteAnswer, voteAnswer, acceptAnswer, updateAnswer } from "../../actions/question";
+import { deleteAnswer, voteAnswer, acceptAnswer, updateAnswer, flagAnswerOutdated, clearAnswerOutdated } from "../../actions/question";
 import VoteRail from "../../components/VoteRail/VoteRail";
 import SafeHtml from "../../components/SafeHtml/SafeHtml";
 import Comments from "../../components/Comments/Comments";
 import UserBadge from "../../components/UserBadge/UserBadge";
 import ConfirmationModal from "../../components/ConfirmationModal/ConfirmationModal";
 import { useToast } from "../../components/Toast/ToastContext";
+import FlagModal from "../../components/FlagModal/FlagModal";
 
 // Custom SVGs (18px/20px)
 
@@ -55,6 +56,7 @@ const DisplayAnswer = ({ question, handleShare }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteAnswerId, setDeleteAnswerId] = useState(null);
   const [votingAnswerId, setVotingAnswerId] = useState(null);
+  const [flagAnswerId, setFlagAnswerId] = useState(null);
 
   const handleEditClick = (ans) => {
     setEditingAnswerId(ans._id);
@@ -72,8 +74,12 @@ const DisplayAnswer = ({ question, handleShare }) => {
       return;
     }
     try {
-      await dispatch(updateAnswer(id, answerId, { answerBody: editAnswerBody }));
-      showToast("Answer updated successfully!", "success");
+      const res = await dispatch(updateAnswer(id, answerId, { answerBody: editAnswerBody }));
+      if (res?.status === "suggested") {
+        showToast(res.message, "success");
+      } else {
+        showToast("Answer updated successfully!", "success");
+      }
       setEditingAnswerId(null);
     } catch (err) {
       showToast("Failed to update answer. Please try again.", "error");
@@ -148,6 +154,36 @@ const DisplayAnswer = ({ question, handleShare }) => {
     }
   };
 
+  const handleFlagOutdated = async (answerId) => {
+    if (User === null) {
+      showToast("Please login or signup to flag an answer as outdated", "warning");
+      return;
+    }
+    try {
+      const reason = prompt("Enter a brief reason why this answer is outdated (optional):");
+      if (reason === null) return; // user cancelled
+      await dispatch(flagAnswerOutdated(id, answerId, reason));
+      showToast("Answer flagged as outdated.", "success");
+    } catch (err) {
+      console.error(err);
+      if (err.response?.status === 409) {
+        showToast("You have already flagged this answer as outdated.", "warning");
+      } else {
+        showToast(err.response?.data?.message || "Failed to mark as outdated.", "danger");
+      }
+    }
+  };
+
+  const handleClearOutdated = async (answerId) => {
+    try {
+      await dispatch(clearAnswerOutdated(id, answerId));
+      showToast("Outdated flags cleared.", "success");
+    } catch (err) {
+      console.error(err);
+      showToast(err.response?.data?.message || "Failed to clear flags.", "danger");
+    }
+  };
+
 
 
 
@@ -187,6 +223,25 @@ const DisplayAnswer = ({ question, handleShare }) => {
                 </div>
               )}
               
+              {ans.outdatedFlags?.length >= 3 && (
+                <div className="outdated-answer-banner" style={{ display: "flex", gap: "10px", alignItems: "center", backgroundColor: "#fdf2e9", color: "#c85a17", border: "1px solid #fbd0b4", padding: "10px 16px", borderRadius: "6px", marginBottom: "12px", fontSize: "13px" }}>
+                  <span>⚠️</span>
+                  <span>
+                    <strong>Potentially outdated answer.</strong> {ans.outdatedFlags.length} community members have flagged this answer as potentially containing outdated code or practices.
+                  </span>
+                  {(String(User?.result?._id) === String(ans.userId) || User?.result?.isAdmin) && (
+                    <button
+                      type="button"
+                      onClick={() => handleClearOutdated(ans._id)}
+                      className="btn btn-soft"
+                      style={{ marginLeft: "auto", fontSize: "11px", padding: "4px 8px", cursor: "pointer" }}
+                    >
+                      Clear Flags
+                    </button>
+                  )}
+                </div>
+              )}
+
               <div className="display-ans-container-2">
                 {/* Left voting column */}
                 <div className="question-votes-col-wrapper" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--space-3)" }}>
@@ -260,20 +315,34 @@ const DisplayAnswer = ({ question, handleShare }) => {
                       <button type="button" onClick={handleShare}>
                         Share
                       </button>
+                      {User && editingAnswerId !== ans._id && (
+                        <button type="button" onClick={() => handleEditClick(ans)}>
+                          Edit
+                        </button>
+                      )}
                       {User?.result?._id === ans?.userId && (
+                        <button
+                          type="button"
+                          className="text-danger"
+                          onClick={() => handleDeleteClick(ans._id)}
+                        >
+                          Delete
+                        </button>
+                      )}
+                      {User && (
                         <>
-                          {editingAnswerId !== ans._id && (
-                            <button type="button" onClick={() => handleEditClick(ans)}>
-                              Edit
+                          {User.result._id !== ans.userId && (
+                            <button type="button" className="text-muted" onClick={() => setFlagAnswerId(ans._id)}>
+                              Flag
                             </button>
                           )}
-                          <button
-                            type="button"
-                            className="text-danger"
-                            onClick={() => handleDeleteClick(ans._id)}
-                          >
-                            Delete
-                          </button>
+                          {User.result._id !== ans.userId && (
+                            <button type="button" className="text-muted" onClick={() => handleFlagOutdated(ans._id)}>
+                              {ans.outdatedFlags?.some((f) => String(f.userId) === String(User?.result?._id))
+                                ? "Outdated ✓"
+                                : "Mark as Outdated"}
+                            </button>
+                          )}
                         </>
                       )}
                     </div>
@@ -284,7 +353,7 @@ const DisplayAnswer = ({ question, handleShare }) => {
                           <Link to={`/Users/${ans.userId}`} className="author-link">
                             {ans.userAnswered}
                           </Link>
-                          <UserBadge userId={ans.userId} />
+                          <UserBadge userId={ans.userId} reputation={ans.userReputation} badges={ans.userBadges} />
                         </div>
                       </div>
                     </div>
@@ -312,6 +381,14 @@ const DisplayAnswer = ({ question, handleShare }) => {
         message="Are you sure you want to delete this answer? This action cannot be undone."
         confirmText="Delete"
         cancelText="Cancel"
+      />
+
+      <FlagModal
+        isOpen={flagAnswerId !== null}
+        onClose={() => setFlagAnswerId(null)}
+        targetType="answer"
+        targetId={flagAnswerId}
+        questionId={id}
       />
     </div>
   );

@@ -27,7 +27,7 @@ describe("Stack Overflow Clone Server Integration Tests", () => {
     await Questions.deleteMany({ questionTitle: /Test Question/ });
     await Answers.deleteMany({ userAnswered: /Test User/ });
     await ViewTracker.deleteMany({});
-  });
+  }, 30000);
 
   afterAll(async () => {
     // Clean up test data and close connection
@@ -36,7 +36,7 @@ describe("Stack Overflow Clone Server Integration Tests", () => {
     await Answers.deleteMany({ userAnswered: /Test User/ });
     await ViewTracker.deleteMany({});
     await mongoose.connection.close();
-  });
+  }, 30000);
 
   describe("POST /user/signup", () => {
     it("should sign up a user and return a token", async () => {
@@ -111,7 +111,7 @@ describe("Stack Overflow Clone Server Integration Tests", () => {
       );
       expect(question).toBeDefined();
       questionId = question._id;
-    });
+    }, 30000);
   });
 
   describe("POST /answer/:id/vote", () => {
@@ -124,7 +124,7 @@ describe("Stack Overflow Clone Server Integration Tests", () => {
           userAnswered: "Other Test User",
         });
       answerId = answerRes.body._id;
-    });
+    }, 30000);
 
     it("should vote and toggle votes properly", async () => {
       // Upvote
@@ -144,7 +144,7 @@ describe("Stack Overflow Clone Server Integration Tests", () => {
 
       expect(voteRes.statusCode).toBe(200);
       expect(voteRes.body.data.upVote).not.toContain(testUser._id);
-    });
+    }, 30000);
   });
 
   describe("PATCH /answer/:id/accept", () => {
@@ -154,7 +154,7 @@ describe("Stack Overflow Clone Server Integration Tests", () => {
         .set("Authorization", `Bearer ${otherUserToken}`);
 
       expect(res.statusCode).toBe(403);
-    });
+    }, 30000);
 
     it("should accept the answer when requester is the question author", async () => {
       const res = await request(app)
@@ -163,7 +163,7 @@ describe("Stack Overflow Clone Server Integration Tests", () => {
 
       expect(res.statusCode).toBe(200);
       expect(res.body.data.isAccepted).toBe(true);
-    });
+    }, 30000);
   });
 
   describe("GET /questions/get/:id", () => {

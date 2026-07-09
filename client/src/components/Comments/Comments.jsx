@@ -11,6 +11,7 @@ import {
 } from "../../actions/question";
 import { useToast } from "../Toast/ToastContext";
 import ConfirmationModal from "../ConfirmationModal/ConfirmationModal";
+import * as api from "../../api";
 
 const Comments = ({ questionId, parentId, comments = [], type, postOwnerId }) => {
   const dispatch = useDispatch();
@@ -22,6 +23,55 @@ const Comments = ({ questionId, parentId, comments = [], type, postOwnerId }) =>
   const [commentText, setCommentText] = useState("");
   // Track which comment is pending deletion so we can show the confirmation modal
   const [pendingDeleteCommentId, setPendingDeleteCommentId] = useState(null);
+
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+
+  const handleInputChange = async (e) => {
+    const val = e.target.value;
+    setCommentText(val);
+
+    const selectionStart = e.target.selectionStart;
+    const textBeforeCursor = val.slice(0, selectionStart);
+    const lastWord = textBeforeCursor.split(/[\s,]+/).pop() || "";
+
+    if (lastWord.startsWith("@")) {
+      const searchStr = lastWord.slice(1);
+      try {
+        const { data } = await api.getAllUsers({ page: 1, limit: 5, search: searchStr });
+        setSuggestions(data.data || []);
+        setShowSuggestions(true);
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      setShowSuggestions(false);
+      setSuggestions([]);
+    }
+  };
+
+  const handleSelectSuggestion = (userName) => {
+    const val = commentText;
+    const inputEl = document.getElementById(`comment-input-${parentId}`);
+    const selectionStart = inputEl ? inputEl.selectionStart : val.length;
+    const textBeforeCursor = val.slice(0, selectionStart);
+    const textAfterCursor = val.slice(selectionStart);
+    
+    const words = textBeforeCursor.split(/([\s,]+)/);
+    const formattedName = userName.replace(/\s+/g, "");
+    words[words.length - 1] = `@${formattedName} `;
+    
+    const newText = words.join("") + textAfterCursor;
+    setCommentText(newText);
+    setShowSuggestions(false);
+    setSuggestions([]);
+    
+    setTimeout(() => {
+      inputEl?.focus();
+      const newCursorPos = words.join("").length;
+      inputEl?.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
 
   const displayedComments = isExpanded ? comments : comments.slice(0, 5);
 
@@ -115,16 +165,35 @@ const Comments = ({ questionId, parentId, comments = [], type, postOwnerId }) =>
       )}
 
       {showInput ? (
-        <form onSubmit={handleAddComment} className="add-comment-form">
+        <form onSubmit={handleAddComment} className="add-comment-form" style={{ position: "relative" }}>
           <input
+            id={`comment-input-${parentId}`}
             type="text"
             className="add-comment-input"
-            placeholder="Add a comment..."
+            placeholder="Add a comment... (use @username to mention)"
             value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
+            onChange={handleInputChange}
             autoFocus
+            autoComplete="off"
           />
-          <button type="submit" className="add-comment-btn">
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="mention-suggestions-dropdown" style={{ position: "absolute", zIndex: 100, backgroundColor: "var(--color-bg-card, #161b22)", border: "1px solid var(--color-border-light)", borderRadius: "6px", width: "250px", maxHeight: "160px", overflowY: "auto", boxShadow: "0 4px 12px rgba(0,0,0,0.3)", marginTop: "36px" }}>
+              {suggestions.map((user) => (
+                <div
+                  key={user._id}
+                  className="mention-suggestion-item"
+                  style={{ padding: "8px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", borderBottom: "1px solid rgba(255,255,255,0.03)" }}
+                  onClick={() => handleSelectSuggestion(user.name)}
+                >
+                  <span className="user-reputation" style={{ fontSize: "10px", padding: "1px 4px", borderRadius: "3px", backgroundColor: "rgba(255,255,255,0.1)" }}>
+                    {user.reputation || 1}
+                  </span>
+                  <span style={{ fontSize: "13px", color: "var(--color-text-primary)" }}>{user.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <button type="submit" className="add-comment-btn" style={{ marginLeft: "6px" }}>
             Add Comment
           </button>
           <button

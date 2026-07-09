@@ -147,12 +147,12 @@ const Navbar = ({ handleSlideIn }) => {
     dispatch(markAllAsRead());
   };
 
-  const usersList = useSelector((state) => state.usersReducer) || [];
+  const usersList = useSelector((state) => state.usersReducer.data) || [];
   const loggedInUserDetails = usersList.find((u) => u._id === User?.result?._id);
-  const rep = loggedInUserDetails?.reputation || 1;
-  const gold = loggedInUserDetails?.badges?.gold || 0;
-  const silver = loggedInUserDetails?.badges?.silver || 0;
-  const bronze = loggedInUserDetails?.badges?.bronze || 0;
+  const rep = loggedInUserDetails?.reputation || User?.result?.reputation || 1;
+  const gold = loggedInUserDetails?.badges?.gold || User?.result?.badges?.gold || 0;
+  const silver = loggedInUserDetails?.badges?.silver || User?.result?.badges?.silver || 0;
+  const bronze = loggedInUserDetails?.badges?.bronze || User?.result?.badges?.bronze || 0;
 
   const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
   const shortcutText = isMac ? "⌘K" : "Ctrl+K";

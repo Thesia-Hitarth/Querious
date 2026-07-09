@@ -142,6 +142,28 @@ export const acceptAnswer = (id, answerId) => async (dispatch) => {
   }
 };
 
+export const flagAnswerOutdated = (id, answerId, reason) => async (dispatch) => {
+  try {
+    const { data } = await api.flagAnswerOutdated(answerId, reason);
+    dispatch(fetchQuestionDetails(id));
+    return data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+export const clearAnswerOutdated = (id, answerId) => async (dispatch) => {
+  try {
+    const { data } = await api.clearAnswerOutdatedFlags(answerId);
+    dispatch(fetchQuestionDetails(id));
+    return data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
 export const commentQuestion = (id, commentBody) => async (dispatch) => {
   try {
     const { data } = await api.commentQuestion(id, commentBody);
@@ -190,6 +212,17 @@ export const fetchTagsAggregation = () => async (dispatch) => {
   try {
     const { data } = await api.getTagsAggregation();
     dispatch({ type: "FETCH_TAGS_AGGREGATION", payload: data });
+    return data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+export const toggleWatchQuestion = (id) => async (dispatch) => {
+  try {
+    const { data } = await api.watchQuestion(id);
+    dispatch(fetchQuestionDetails(id));
     return data;
   } catch (error) {
     console.error(error);

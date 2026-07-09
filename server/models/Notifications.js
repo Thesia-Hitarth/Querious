@@ -4,6 +4,11 @@ const NotificationSchema = mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   message: { type: String, required: true },
   questionId: { type: mongoose.Schema.Types.ObjectId, ref: "Question", required: true },
+  category: {
+    type: String,
+    enum: ["answer", "comment", "vote", "accept", "mention", "badge", "system"],
+    default: "system",
+  },
   read: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
 });

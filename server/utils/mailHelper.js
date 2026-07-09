@@ -77,3 +77,67 @@ export const sendResetEmail = async (email, resetLink) => {
   }
   return info;
 };
+
+export const sendDigestEmail = async (email, name, notifications, frequency) => {
+  const mailUser = process.env.GMAIL_USER || process.env.SMTP_USER || "";
+  let activeTransporter = getTransporter();
+
+  if (!mailUser && process.env.NODE_ENV !== "production") {
+    try {
+      const testAccount = await nodemailer.createTestAccount();
+      activeTransporter = nodemailer.createTransport({
+        host: "smtp.ethereal.email",
+        port: 587,
+        secure: false,
+        auth: {
+          user: testAccount.user,
+          pass: testAccount.pass,
+        },
+      });
+    } catch (err) {
+      console.warn("Could not create Ethereal test email account, logging to console instead:", err.message);
+    }
+  }
+
+  const senderEmail = mailUser || "support@querious.com";
+  const notificationItems = notifications
+    .map(
+      (n) => `
+      <li style="margin-bottom: 12px; font-size: 14px; line-height: 1.4; color: #4a5568;">
+        <strong>[${n.category.toUpperCase()}]</strong> ${n.message}
+      </li>
+    `
+    )
+    .join("");
+
+  const mailOptions = {
+    from: `"Querious Digest" <${senderEmail}>`,
+    to: email,
+    subject: `Your ${frequency} Querious Notification Digest`,
+    html: `
+      <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <h2 style="color: #f48225; margin-bottom: 20px;">Querious Notification Digest</h2>
+        <p>Hi ${name || "User"},</p>
+        <p>Here is your ${frequency} summary of what happened on Querious since your last digest:</p>
+        <ul style="padding-left: 20px; margin: 20px 0;">
+          ${notificationItems}
+        </ul>
+        <p style="font-size: 13px; color: #666; margin-top: 24px;">To change your notification settings, visit your User Profile page on Querious.</p>
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+        <p style="font-size: 11px; color: #999;">Querious Inc. • 123 Dev Lane, Stack City</p>
+      </div>
+    `,
+  };
+
+  const info = await activeTransporter.sendMail(mailOptions);
+  
+  if (!mailUser && process.env.NODE_ENV !== "production") {
+    const previewUrl = nodemailer.getTestMessageUrl(info);
+    if (previewUrl) {
+      console.log("========================================");
+      console.log(`[Ethereal Digest Email Sent] Preview URL: ${previewUrl}`);
+      console.log("========================================");
+    }
+  }
+  return info;
+};

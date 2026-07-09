@@ -23,6 +23,7 @@ const QuestionSchema = mongoose.Schema({
       commentedOn: { type: Date, default: Date.now },
     },
   ],
+  watchers: { type: [mongoose.Schema.Types.ObjectId], ref: "User", default: [] },
 });
 
 QuestionSchema.index({ questionTitle: "text", questionBody: "text" });

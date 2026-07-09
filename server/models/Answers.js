@@ -12,6 +12,14 @@ const AnswerSchema = mongoose.Schema({
   upVote: { type: [mongoose.Schema.Types.ObjectId], ref: "User", default: [] },
   downVote: { type: [mongoose.Schema.Types.ObjectId], ref: "User", default: [] },
   isAccepted: { type: Boolean, default: false },
+  hidden: { type: Boolean, default: false },
+  outdatedFlags: [
+    {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      reason: { type: String, maxlength: 200 },
+      flaggedAt: { type: Date, default: Date.now },
+    },
+  ],
   answeredOn: { type: Date, default: Date.now },
   editedOn: { type: Date, default: null },
   comments: [

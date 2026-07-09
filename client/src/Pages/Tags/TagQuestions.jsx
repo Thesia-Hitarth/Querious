@@ -6,9 +6,16 @@ import RightSidebar from "../../components/RightSidebar/RightSidebar";
 import HomeMainbar from "../../components/HomeMainbar/HomeMainbar";
 import { COLLECTIVES } from "../../constants/collectives";
 import CollectiveIcon from "../../components/CollectiveIcon/CollectiveIcon";
+import { useDocumentMeta } from "../../hooks/useDocumentMeta";
 
 const TagQuestions = ({ slideIn, handleSlideIn }) => {
   const { tag } = useParams();
+
+  useDocumentMeta({
+    title: `Questions tagged [${tag}]`,
+    description: `Browse developer questions and answers tagged with [${tag}] on Querious.`,
+    keywords: `${tag}, questions, answers, coding, developer`,
+  });
 
   const matchedCollective = COLLECTIVES.find((c) =>
     c.tags.includes(tag?.toLowerCase())
