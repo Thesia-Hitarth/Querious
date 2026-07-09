@@ -106,7 +106,7 @@
 
 .tag-link-wrapper:hover .tag {
   border-color: var(--color-brand-primary-light);
-  background-color: #fffbf7;
+  background-color: var(--color-bg-card-hover);
   box-shadow: var(--shadow-md);
   transform: translateY(-3px);
 }

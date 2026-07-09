@@ -14,7 +14,7 @@
 }
 
 .display-question-container:hover {
-  background-color: #fffbf7;
+  background-color: var(--color-bg-card-hover);
 }
 
 /* Question Cards Entry Animation (Section 3 of micro-interactions) */

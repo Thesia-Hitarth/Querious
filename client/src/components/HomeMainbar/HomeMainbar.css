@@ -373,7 +373,7 @@
 }
 .filter-tags-input:focus {
   border-color: var(--color-brand-primary);
-  background-color: #fffbf7;
+  background-color: var(--color-bg-card-hover);
 }
 
 .filter-footer {

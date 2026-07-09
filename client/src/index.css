@@ -17,6 +17,7 @@
   --color-bg-hover:         #f0f0f0;
   --color-bg-input:         #ffffff;
   --color-bg-card:          #ffffff;
+  --color-bg-card-hover:    #fffbf7;
 
   /* ── Borders ── */
   --color-border:           #e5e7eb;
@@ -343,7 +344,7 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
   outline: none;
   border-color: var(--color-brand-primary);
   box-shadow: var(--shadow-glow);
-  background: #fffbf7;
+  background: var(--color-bg-card-hover);
 }
 input::placeholder { color: var(--color-text-faint); }
 
@@ -475,6 +476,7 @@ input::placeholder { color: var(--color-text-faint); }
   --color-bg-hover: #20242e;
   --color-bg-input: #1a1d24;
   --color-bg-card: #171a21;
+  --color-bg-card-hover: rgba(249, 115, 22, 0.08);
   --color-border: #2a2e38;
   --color-border-light: #22262f;
   --color-border-strong: #363b47;
